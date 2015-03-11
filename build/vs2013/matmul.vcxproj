@@ -1,0 +1,160 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{47D277D1-886F-4A95-A14C-B00891465754}</ProjectGuid>
+    <RootNamespace>matmul</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v120</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Debug'" Label="Configuration">
+    <UseDebugLibraries>true</UseDebugLibraries>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Release'" Label="Configuration">
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  <PropertyGroup>
+    <IncludePath>C:\Program Files %28x86%29\Intel\Composer XE\mkl\include\;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LibraryPath>C:\Program Files %28x86%29\Intel\Composer XE\mkl\lib\ia32;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LibraryPath>C:\Program Files %28x86%29\Intel\Composer XE\mkl\lib\intel64;C:\Program Files %28x86%29\Intel\Composer XE\compiler\lib\intel64;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <WarningLevel>Level4</WarningLevel>
+      <FloatingPointModel>Precise</FloatingPointModel>
+      <!--ICC-->
+      <DisableIntelLangExtensions>true</DisableIntelLangExtensions>
+      <OpenMP>GenerateParallelCode</OpenMP>
+      <C99Support>true</C99Support>
+      <RecognizeRestrictKeyword>true</RecognizeRestrictKeyword>
+      <EnableAnsiAliasing>true</EnableAnsiAliasing>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Console</SubSystem>
+      <LargeAddressAware>true</LargeAddressAware>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)'=='Debug'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)'=='Release'">
+    <ClCompile>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <!--ICC-->
+      <OpenMPSupport>true</OpenMPSupport>
+      <ExceptionHandling>false</ExceptionHandling>
+      <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
+      <UseProcessorExtensions>AVXI</UseProcessorExtensions>
+      <Parallelization>true</Parallelization>
+      <EnableMatrixMultiplyLibraryCall>Default</EnableMatrixMultiplyLibraryCall>
+      <AdditionalOptions>/Qvec-report:2 %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
+    <Link>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <IgnoreAllDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </IgnoreAllDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </IgnoreSpecificDefaultLibraries>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\src\array.h" />
+    <ClInclude Include="..\..\src\config.h" />
+    <ClInclude Include="..\..\src\config_build.h" />
+    <ClInclude Include="..\..\src\malloc.h" />
+    <ClInclude Include="..\..\src\matmul_par_mpi_dns.h" />
+    <ClInclude Include="..\..\src\matmul_par_phi_off_blas_mkl.h" />
+    <ClInclude Include="..\..\src\matmul_par_phi_off_openmp.h" />
+    <ClInclude Include="..\..\src\matmul_seq_compl_opt.h" />
+    <ClInclude Include="..\..\src\matmul_par_mpi_cannon.h" />
+    <ClInclude Include="..\..\src\matmul_par_blas_mkl.h" />
+    <ClInclude Include="..\..\src\matmul_par_openacc.h" />
+    <ClInclude Include="..\..\src\matmul_par_openmp.h" />
+    <ClInclude Include="..\..\src\matmul_seq_basic_opt.h" />
+    <ClInclude Include="..\..\src\matmul_par_strassen_omp.h" />
+    <ClInclude Include="..\..\src\matmul_seq_strassen.h" />
+    <ClInclude Include="..\..\src\matmul_seq.h" />
+    <ClInclude Include="..\..\src\mat_common.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\src\array.c" />
+    <ClCompile Include="..\..\src\malloc.c" />
+    <ClCompile Include="..\..\src\main.c" />
+    <ClCompile Include="..\..\src\matmul_par_mpi_cannon.c" />
+    <ClCompile Include="..\..\src\matmul_par_blas_mkl.c" />
+    <ClCompile Include="..\..\src\matmul_par_mpi_dns.c" />
+    <ClCompile Include="..\..\src\matmul_par_openacc.c" />
+    <ClCompile Include="..\..\src\matmul_par_openmp.c" />
+    <ClCompile Include="..\..\src\matmul_par_phi_off_blas_mkl.c" />
+    <ClCompile Include="..\..\src\matmul_par_phi_off_openmp.c" />
+    <ClCompile Include="..\..\src\matmul_seq.c" />
+    <ClCompile Include="..\..\src\matmul_seq_basic_opt.c" />
+    <ClCompile Include="..\..\src\matmul_seq_compl_opt.c" />
+    <ClCompile Include="..\..\src\matmul_seq_strassen.c" />
+    <ClCompile Include="..\..\src\matmul_par_strassen_omp.c" />
+    <ClCompile Include="..\..\src\mat_common.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\src\matmul_par_blas_cublas.cu" />
+    <None Include="..\..\src\matmul_par_blas_cublas.cuh" />
+    <None Include="..\..\src\matmul_par_cuda.cu" />
+    <None Include="..\..\src\matmul_par_cuda.cuh" />
+    <None Include="..\make\makefile_clang" />
+    <None Include="..\make\makefile_gcc" />
+    <None Include="..\make\makefile_icc" />
+    <None Include="..\make\makefile_icc_phi" />
+    <None Include="..\make\makefile_incl" />
+    <None Include="..\make\makefile_pgi" />
+    <None Include="..\make\matmulcu_job_10h.sh" />
+    <None Include="..\make\matmulcu_job_1min.sh" />
+    <None Include="..\make\matmulmpicu_job_10h.sh" />
+    <None Include="..\make\matmulmpicu_job_1min.sh" />
+    <None Include="..\make\matmulmpi_job_10h.sh" />
+    <None Include="..\make\matmulmpi_job_1min.sh" />
+    <None Include="..\make\matmulmpi_omp_job_10h.sh" />
+    <None Include="..\make\matmulmpi_omp_job_1min.sh" />
+    <None Include="..\make\matmul_job_10h.sh" />
+    <None Include="..\make\matmul_job_1min.sh" />
+    <None Include="..\make\matmul_omp_job_10h.sh" />
+    <None Include="..\make\matmul_omp_job_1min.sh" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+</Project>
