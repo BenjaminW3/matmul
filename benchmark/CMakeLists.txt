@@ -1,0 +1,303 @@
+#
+# Copyright 2014-2015 Benjamin Worpitz
+#
+# This file is part of alpaka.
+#
+# alpaka is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# alpaka is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with alpaka.
+# If not, see <http://www.gnu.org/licenses/>.
+#
+# - ``MATMUL_VERIFY_RESULT`` {ON, OFF}
+# - ``MATMUL_MIN_N`` {0<MATMUL_MIN_N<MATMUL_MAX_N}
+# - ``MATMUL_STEP_N`` {0<MATMUL_STEP_N<inf}
+# - ``MATMUL_MAX_N`` {MATMUL_MIN_N<MATMUL_MAX_N<inf}
+# - ``MATMUL_REPEAT_COUNT`` {0<MATMUL_REPEAT_COUNT}
+# - ``MATMUL_REPEAT_TAKE_MINIMUM`` {ON, OFF}
+
+################################################################################
+# Required CMake version.
+################################################################################
+
+CMAKE_MINIMUM_REQUIRED(VERSION 2.8.12)
+
+SET_PROPERTY(GLOBAL PROPERTY USE_FOLDERS ON)
+
+################################################################################
+# Project.
+################################################################################
+
+PROJECT("matmul_benchmark")
+
+UNSET(_BENCHMARK_COMPILE_OPTIONS)
+UNSET(_BENCHMARK_COMPILE_DEFINITIONS)
+UNSET(_BENCHMARK_INCLUDE_DIR)
+UNSET(_BENCHMARK_LINK_FLAGS)
+
+#-------------------------------------------------------------------------------
+# Options.
+#-------------------------------------------------------------------------------
+
+SET(BENCHMARK_SEQ_BASIC OFF CACHE BOOL "Enable the basic sequential GEMM")
+IF(BENCHMARK_SEQ_BASIC)
+    LIST(APPEND _BENCHMARK_COMPILE_DEFINITIONS "BENCHMARK_SEQ_BASIC")
+    SET(MATMUL_BUILD_SEQ_BASIC ON CACHE BOOL "" FORCE)
+ENDIF()
+SET(BENCHMARK_SEQ_SINGLE_OPTS OFF CACHE BOOL "Enable the optimized versions of the sequential algorithm each with only one optimization")
+IF(BENCHMARK_SEQ_SINGLE_OPTS)
+    LIST(APPEND _BENCHMARK_COMPILE_DEFINITIONS "BENCHMARK_SEQ_SINGLE_OPTS")
+    SET(MATMUL_BUILD_SEQ_SINGLE_OPTS ON CACHE BOOL "" FORCE)
+ENDIF()
+SET(BENCHMARK_SEQ_MULTIPLE_OPTS OFF CACHE BOOL "Enable the optimized versions of the sequential algorithm with multiple optimizations at once")
+IF(BENCHMARK_SEQ_MULTIPLE_OPTS)
+    LIST(APPEND _BENCHMARK_COMPILE_DEFINITIONS "BENCHMARK_SEQ_MULTIPLE_OPTS")
+    SET(MATMUL_BUILD_SEQ_MULTIPLE_OPTS ON CACHE BOOL "" FORCE)
+ENDIF()
+SET(BENCHMARK_SEQ_STRASSEN OFF CACHE BOOL "Enable the basic sequential Strassen algorithm")
+IF(BENCHMARK_SEQ_STRASSEN)
+    LIST(APPEND _BENCHMARK_COMPILE_DEFINITIONS "BENCHMARK_SEQ_STRASSEN")
+    SET(MATMUL_BUILD_SEQ_STRASSEN ON CACHE BOOL "" FORCE)
+ENDIF()
+SET(BENCHMARK_PAR_OPENMP OFF CACHE BOOL "The optimized but not blocked algorithm with OpenMP annotations")
+IF(BENCHMARK_PAR_OPENMP)
+    LIST(APPEND _BENCHMARK_COMPILE_DEFINITIONS "BENCHMARK_PAR_OPENMP")
+    SET(MATMUL_BUILD_PAR_OPENMP ON CACHE BOOL "" FORCE)
+ENDIF()
+SET(BENCHMARK_PAR_STRASSEN_OMP OFF CACHE BOOL "The Strassen algorithm using OpenMP methods for the GEMM base case and matrix addition and subtraction")
+IF(BENCHMARK_PAR_STRASSEN_OMP)
+    LIST(APPEND _BENCHMARK_COMPILE_DEFINITIONS "BENCHMARK_PAR_STRASSEN_OMP")
+    SET(MATMUL_BUILD_PAR_STRASSEN_OMP ON CACHE BOOL "" FORCE)
+ENDIF()
+SET(BENCHMARK_PAR_OPENACC OFF CACHE BOOL "Enable the optimized but not blocked algorithm with OpenACC annotations")
+IF(BENCHMARK_PAR_OPENACC)
+    LIST(APPEND _BENCHMARK_COMPILE_DEFINITIONS "BENCHMARK_PAR_OPENACC")
+    SET(MATMUL_BUILD_PAR_OPENACC ON CACHE BOOL "" FORCE)
+ENDIF()
+SET(BENCHMARK_PAR_CUDA OFF CACHE BOOL "Enable the GEMM algorithm from the CUDA developers guide")
+IF(BENCHMARK_PAR_CUDA)
+    LIST(APPEND _BENCHMARK_COMPILE_DEFINITIONS "BENCHMARK_PAR_CUDA")
+    SET(MATMUL_BUILD_PAR_CUDA ON CACHE BOOL "" FORCE)
+ENDIF()
+SET(BENCHMARK_PAR_BLAS_MKL OFF CACHE BOOL "Enable the GEMM using the Intel MKL BLAS implementation")
+IF(BENCHMARKL_TEST_PAR_BLAS_MKL)
+    LIST(APPEND _BENCHMARK_COMPILE_DEFINITIONS "BENCHMARK_PAR_BLAS_MKL")
+    SET(MATMUL_BUILD_PAR_BLAS_MKL ON CACHE BOOL "" FORCE)
+ENDIF()
+SET(BENCHMARK_PAR_BLAS_CUBLAS OFF CACHE BOOL "Enable the GEMM using the NVIDIA cublas2 implementation.")
+IF(BENCHMARK_PAR_BLAS_CUBLAS)
+    LIST(APPEND _BENCHMARK_COMPILE_DEFINITIONS "BENCHMARK_PAR_BLAS_CUBLAS")
+    SET(MATMUL_BUILD_PAR_BLAS_CUBLAS ON CACHE BOOL "" FORCE)
+ENDIF()
+SET(BENCHMARK_PAR_PHI_OFF_OPENMP OFF CACHE BOOL "Enable the offloading of the GEMM onto the xeon phi using OpenMP.")
+IF(BENCHMARK_PAR_PHI_OFF_OPENMP)
+    LIST(APPEND _BENCHMARK_COMPILE_DEFINITIONS "BENCHMARK_PAR_PHI_OFF_OPENMP")
+    SET(MATMUL_BUILD_PAR_PHI_OFF_OPENMP ON CACHE BOOL "" FORCE)
+ENDIF()
+SET(BENCHMARK_PAR_PHI_OFF_BLAS_MKL OFF CACHE BOOL "Enable the offloading of the GEMM onto the xeon phi using the Intel MKL BLAS implementation.")
+IF(BENCHMARK_PAR_PHI_OFF_BLAS_MKL)
+    LIST(APPEND _BENCHMARK_COMPILE_DEFINITIONS "BENCHMARK_PAR_PHI_OFF_BLAS_MKL")
+    SET(MATMUL_BUILD_PAR_PHI_OFF_BLAS_MKL ON CACHE BOOL "" FORCE)
+ENDIF()
+
+SET(BENCHMARK_PAR_ALPAKA_ACC_CPU_B_SEQ_T_SEQ OFF CACHE BOOL "Enable the GEMM using the alpaka serial accelerator back-end on the CPU")
+IF(BENCHMARK_PAR_ALPAKA_ACC_CPU_B_SEQ_T_SEQ)
+    LIST(APPEND _BENCHMARK_COMPILE_DEFINITIONS "BENCHMARK_PAR_ALPAKA_ACC_CPU_B_SEQ_T_SEQ")
+    SET(MATMUL_BUILD_PAR_ALPAKA_ACC_CPU_B_SEQ_T_SEQ ON CACHE BOOL "" FORCE)
+ENDIF()
+SET(BENCHMARK_PAR_ALPAKA_ACC_CPU_B_OMP2_T_SEQ OFF CACHE BOOL "Enable the GEMM using the alpaka OpenMP 2.0 grid block accelerator back-end on the CPU")
+IF(BENCHMARK_PAR_ALPAKA_ACC_CPU_B_OMP2_T_SEQ)
+    LIST(APPEND _BENCHMARK_COMPILE_DEFINITIONS "BENCHMARK_PAR_ALPAKA_ACC_CPU_B_OMP2_T_SEQ")
+    SET(MATMUL_BUILD_PAR_ALPAKA_ACC_CPU_B_OMP2_T_SEQ ON CACHE BOOL "" FORCE)
+ENDIF()
+SET(BENCHMARK_PAR_ALPAKA_ACC_CPU_B_SEQ_T_OMP2 OFF CACHE BOOL "Enable the GEMM using the alpaka OpenMP 2.0 block thread accelerator back-end on the CPU")
+IF(BENCHMARK_PAR_ALPAKA_ACC_CPU_B_SEQ_T_OMP2)
+    LIST(APPEND _BENCHMARK_COMPILE_DEFINITIONS "BENCHMARK_PAR_ALPAKA_ACC_CPU_B_SEQ_T_OMP2")
+    SET(MATMUL_BUILD_PAR_ALPAKA_ACC_CPU_B_SEQ_T_OMP2 ON CACHE BOOL "" FORCE)
+ENDIF()
+SET(BENCHMARK_PAR_ALPAKA_ACC_CPU_B_SEQ_T_THREADS OFF CACHE BOOL "Enable the GEMM using the alpaka std::thread accelerator back-end on the CPU")
+IF(BENCHMARK_PAR_ALPAKA_ACC_CPU_B_SEQ_T_THREADS)
+    LIST(APPEND _BENCHMARK_COMPILE_DEFINITIONS "BENCHMARK_PAR_ALPAKA_ACC_CPU_B_SEQ_T_THREADS")
+    SET(MATMUL_BUILD_PAR_ALPAKA_ACC_CPU_B_SEQ_T_THREADS ON CACHE BOOL "" FORCE)
+ENDIF()
+SET(BENCHMARK_PAR_ALPAKA_ACC_CPU_B_SEQ_T_FIBERS OFF CACHE BOOL "Enable the GEMM using the alpaka Boost.Fiber accelerator back-end on the CPU")
+IF(BENCHMARK_PAR_ALPAKA_ACC_CPU_B_SEQ_T_FIBERS)
+    LIST(APPEND _BENCHMARK_COMPILE_DEFINITIONS "BENCHMARK_PAR_ALPAKA_ACC_CPU_B_SEQ_T_FIBERS")
+    SET(MATMUL_BUILD_PAR_ALPAKA_ACC_CPU_B_SEQ_T_FIBERS ON CACHE BOOL "" FORCE)
+ENDIF()
+SET(BENCHMARK_PAR_ALPAKA_ACC_CPU_BT_OMP4 OFF CACHE BOOL "Enable the GEMM using the alpaka OpenMP 4.0 accelerator back-end on the CPU")
+IF(BENCHMARK_PAR_ALPAKA_ACC_CPU_BT_OMP4)
+    LIST(APPEND _BENCHMARK_COMPILE_DEFINITIONS "BENCHMARK_PAR_ALPAKA_ACC_CPU_BT_OMP4")
+    SET(MATMUL_BUILD_PAR_ALPAKA_ACC_CPU_BT_OMP4 ON CACHE BOOL "" FORCE)
+ENDIF()
+SET(BENCHMARK_PAR_ALPAKA_ACC_GPU_CUDA OFF CACHE BOOL "Enable the GEMM using the alpaka CUDA accelerator")
+IF(BENCHMARK_PAR_ALPAKA_ACC_GPU_CUDA)
+    LIST(APPEND _BENCHMARK_COMPILE_DEFINITIONS "BENCHMARK_PAR_ALPAKA_ACC_GPU_CUDA")
+    SET(MATMUL_BUILD_PAR_ALPAKA_ACC_GPU_CUDA ON CACHE BOOL "" FORCE)
+ENDIF()
+
+SET(BENCHMARK_PAR_MPI_CANNON_STD OFF CACHE BOOL "Enable the distributed GEMM using the cannon algorithm, MPI and the optimized sequential implementation on each node.")
+IF(BENCHMARK_PAR_MPI_CANNON_STD)
+    LIST(APPEND _BENCHMARK_COMPILE_DEFINITIONS "BENCHMARK_PAR_MPI_CANNON_STD")
+    SET(MATMUL_BUILD_PAR_MPI_CANNON_STD ON CACHE BOOL "" FORCE)
+ENDIF()
+SET(BENCHMARK_PAR_MPI_CANNON_MKL OFF CACHE BOOL "Enable the distributed GEMM using the cannon algorithm, MPI and the Intel MKL on each node.")
+IF(BENCHMARK_PAR_MPI_CANNON_MKL)
+    LIST(APPEND _BENCHMARK_COMPILE_DEFINITIONS "BENCHMARK_PAR_MPI_CANNON_MKL")
+    SET(MATMUL_BUILD_PAR_MPI_CANNON_MKL ON CACHE BOOL "" FORCE)
+ENDIF()
+SET(BENCHMARK_PAR_MPI_CANNON_CUBLAS OFF CACHE BOOL "Enable the distributed GEMM using the cannon algorithm, MPI and the cuBLAS on each node.")
+IF(BENCHMARK_PAR_MPI_CANNON_CUBLAS)
+    LIST(APPEND _BENCHMARK_COMPILE_DEFINITIONS "BENCHMARK_PAR_MPI_CANNON_CUBLAS")
+    SET(MATMUL_BUILD_PAR_MPI_CANNON_CUBLAS ON CACHE BOOL "" FORCE)
+ENDIF()
+SET(BENCHMARK_PAR_MPI_DNS OFF CACHE BOOL "Enable the distributed GEMM using the DNS algorithm, MPI and the optimized sequential implementation on each node")
+IF(BENCHMARK_PAR_MPI_DNS)
+    LIST(APPEND _BENCHMARK_COMPILE_DEFINITIONS "BENCHMARK_PAR_MPI_DNS")
+    SET(MATMUL_BUILD_PAR_MPI_DNS ON CACHE BOOL "" FORCE)
+ENDIF()
+
+#-------------------------------------------------------------------------------
+# MPI vs rest.
+#-------------------------------------------------------------------------------
+IF(BENCHMARK_PAR_MPI_CANNON_STD
+    OR BENCHMARK_PAR_MPI_CANNON_MKL
+    OR BENCHMARK_PAR_MPI_CANNON_CUBLAS
+    OR BENCHMARK_PAR_MPI_DNS)
+    IF(BENCHMARK_SEQ_BASIC
+        OR BENCHMARK_SEQ_SINGLE_OPTS
+        OR BENCHMARK_SEQ_MULTIPLE_OPTS
+        OR BENCHMARK_SEQ_STRASSEN
+        OR BENCHMARK_PAR_OPENMP
+        OR BENCHMARK_PAR_STRASSEN_OMP
+        OR BENCHMARK_PAR_OPENACC
+        OR BENCHMARK_PAR_CUDA
+        OR BENCHMARK_PAR_BLAS_MKL
+        OR BENCHMARK_PAR_BLAS_CUBLAS
+        OR BENCHMARK_PAR_PHI_OFF_OPENMP
+        OR BENCHMARK_PAR_PHI_OFF_BLAS_MKL
+        OR BENCHMARK_PAR_ALPAKA_ACC_GPU_CUDA
+        OR BENCHMARK_PAR_ALPAKA_ACC_CPU_B_OMP2_T_SEQ
+        OR BENCHMARK_PAR_ALPAKA_ACC_CPU_B_SEQ_T_OMP2
+        OR BENCHMARK_PAR_ALPAKA_ACC_CPU_BT_OMP4
+        OR BENCHMARK_PAR_ALPAKA_ACC_CPU_B_SEQ_T_FIBERS
+        OR BENCHMARK_PAR_ALPAKA_ACC_CPU_B_SEQ_T_THREADS)
+        MESSAGE(FATAL_ERROR "If MPI tests are executed, no other benchmarks can be executed by the same executable!")
+    ENDIF()
+ENDIF()
+
+#-------------------------------------------------------------------------------
+# Set the test matrix sizes.
+#-------------------------------------------------------------------------------
+
+SET(BENCHMARK_MIN_N 4 CACHE INTEGER "The minimal matrix size. This has to be greater or equal to 1.")
+IF(BENCHMARK_MIN_N)
+    LIST(APPEND _BENCHMARK_COMPILE_DEFINITIONS "BENCHMARK_MIN_N=${BENCHMARK_MIN_N}")
+ENDIF()
+SET(BENCHMARK_STEP_N 16 CACHE INTEGER "If BENCHMARK_STEP_N == 0 the size is doubled continuously.")
+IF(BENCHMARK_STEP_N)
+    LIST(APPEND _BENCHMARK_COMPILE_DEFINITIONS "BENCHMARK_STEP_N=${BENCHMARK_STEP_N}")
+ENDIF()
+SET(BENCHMARK_MAX_N 512 CACHE INTEGER "The maximal size.")
+IF(BENCHMARK_MAX_N)
+    LIST(APPEND _BENCHMARK_COMPILE_DEFINITIONS "BENCHMARK_MAX_N=${BENCHMARK_MAX_N}")
+ENDIF()
+
+#-------------------------------------------------------------------------------
+# Measurement settings.
+#-------------------------------------------------------------------------------
+SET(BENCHMARK_VERIFY_RESULT OFF CACHE BOOL "The result of a computation will be compared with the result of the standard sequential algorithm.")
+IF(BENCHMARK_VERIFY_RESULT)
+    LIST(APPEND _BENCHMARK_COMPILE_DEFINITIONS "BENCHMARK_VERIFY_RESULT")
+    SET(MATMUL_BUILD_SEQ_BASIC ON CACHE BOOL "" FORCE)
+ENDIF()
+SET(BENCHMARK_PRINT_GFLOPS OFF CACHE BOOL "If the GFLOPS should be printed instead if the time.")
+IF(BENCHMARK_PRINT_GFLOPS)
+    LIST(APPEND _BENCHMARK_COMPILE_DEFINITIONS "BENCHMARK_PRINT_GFLOPS")
+ENDIF()
+SET(BENCHMARK_REPEAT_COUNT 1 CACHE INTEGER "The repeat count.")
+IF(BENCHMARK_REPEAT_COUNT)
+    LIST(APPEND _BENCHMARK_COMPILE_DEFINITIONS "BENCHMARK_REPEAT_COUNT=${BENCHMARK_REPEAT_COUNT}")
+ENDIF()
+SET(BENCHMARK_REPEAT_TAKE_MINIMUM ON CACHE BOOL "If this is defined the minimum of all repetitions is returned instead of the average.")
+IF(BENCHMARK_REPEAT_TAKE_MINIMUM)
+    LIST(APPEND _BENCHMARK_COMPILE_DEFINITIONS "BENCHMARK_REPEAT_TAKE_MINIMUM")
+ENDIF()
+SET(BENCHMARK_PRINT_ITERATIONS OFF CACHE BOOL "If the current iteration number should be printed.")
+IF(BENCHMARK_PRINT_ITERATIONS)
+    LIST(APPEND _BENCHMARK_COMPILE_DEFINITIONS "BENCHMARK_PRINT_ITERATIONS")
+ENDIF()
+SET(BENCHMARK_PRINT_MATRICES OFF CACHE BOOL "If the matrices (in and out) should be printed.")
+IF(BENCHMARK_PRINT_MATRICES)
+    LIST(APPEND _BENCHMARK_COMPILE_DEFINITIONS "BENCHMARK_PRINT_MATRICES")
+ENDIF()
+
+IF(NOT MSVC)
+    LIST(APPEND _BENCHMARK_COMPILE_OPTIONS "-std=c99")
+ENDIF()
+
+#-------------------------------------------------------------------------------
+# Find OpenMP.
+#-------------------------------------------------------------------------------
+IF(BENCHMARK_PAR_OPENMP OR BENCHMARK_PAR_STRASSEN_OMP OR BENCHMARK_PAR_PHI_OFF_OPENMP OR BENCHMARK_PAR_ALPAKA_ACC_CPU_B_OMP2_T_SEQ OR BENCHMARK_PAR_ALPAKA_ACC_CPU_B_SEQ_T_OMP2 OR BENCHMARK_PAR_ALPAKA_ACC_CPU_BT_OMP4)
+    FIND_PACKAGE(OpenMP)
+    IF(NOT OPENMP_FOUND)
+        MESSAGE(ERROR "benchmark dependency OpenMP could not be found!")
+
+    ELSE()
+        LIST(APPEND _BENCHMARK_COMPILE_OPTIONS ${OpenMP_C_FLAGS})
+    ENDIF()
+ENDIF()
+
+#-------------------------------------------------------------------------------
+# Find matmul.
+#-------------------------------------------------------------------------------
+
+SET(MATMUL_ROOT "${CMAKE_CURRENT_LIST_DIR}/../" CACHE STRING  "The location of the matmul library")
+
+LIST(APPEND CMAKE_MODULE_PATH "${MATMUL_ROOT}")
+FIND_PACKAGE("matmul" REQUIRED)
+
+#-------------------------------------------------------------------------------
+# Common.
+#-------------------------------------------------------------------------------
+
+INCLUDE("${MATMUL_ROOT}/cmake/common.cmake")
+
+#-------------------------------------------------------------------------------
+# Add executable.
+#-------------------------------------------------------------------------------
+
+SET(_BENCHMARK_INCLUDE_DIR "include/")
+SET(_BENCHMARK_SUFFIXED_INCLUDE_DIR "${_BENCHMARK_INCLUDE_DIR}benchmark/")
+SET(_BENCHMARK_SOURCE_DIR "src/")
+
+# Add all the include files in all recursive subdirectories and group them accordingly.
+append_recursive_files_add_to_src_group("${_BENCHMARK_SUFFIXED_INCLUDE_DIR}" "" "h" _BENCHMARK_FILES_HEADER)
+
+# Add all the source files in all recursive subdirectories and group them accordingly.
+append_recursive_files_add_to_src_group("${_BENCHMARK_SOURCE_DIR}" "" "c" _BENCHMARK_FILES_SOURCE)
+
+ADD_EXECUTABLE(
+    "matmul_benchmark"
+    ${_BENCHMARK_FILES_HEADER} ${_BENCHMARK_FILES_SOURCE})
+TARGET_COMPILE_OPTIONS(
+    "matmul_benchmark"
+    PRIVATE ${_BENCHMARK_COMPILE_OPTIONS})
+TARGET_COMPILE_DEFINITIONS(
+    "matmul_benchmark"
+    PRIVATE ${_BENCHMARK_COMPILE_DEFINITIONS})
+TARGET_INCLUDE_DIRECTORIES(
+    "matmul_benchmark"
+    PUBLIC ${_BENCHMARK_INCLUDE_DIR})
+TARGET_LINK_LIBRARIES(
+    "matmul_benchmark"
+    PRIVATE "matmul" ${_BENCHMARK_LINK_FLAGS})

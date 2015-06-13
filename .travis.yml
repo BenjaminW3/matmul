@@ -1,0 +1,464 @@
+################################################################################
+#
+################################################################################
+language:
+    - cpp
+
+################################################################################
+#
+################################################################################
+os:
+    - linux
+
+################################################################################
+#
+################################################################################
+compiler:
+    - gcc
+    - clang
+
+################################################################################
+# \TODO: Test full matrix:
+# MATMUL_INTEGRATION_TEST                       : {ON}
+# CXX                                           : {g++, clang++}
+#   [clang++] MATMUL_CLANG_LIBSTDCPP_VERSION    : {4.9}
+#   [clang++] MATMUL_CLANG_VER                  : {3.5, 3.6, 3.7}
+#   [g++] MATMUL_GCC_VER                        : {4.9, 5}
+# MATMUL_BOOST_BRANCH                           : {boost-1.56.0, boost-1.57.0, boost-1.58.0, develop}
+# MATMUL_CMAKE_VER                              : {2.8.12.2, 3.0.2, 3.1.3, 3.2.2}
+# CMAKE_BUILD_TYPE                              : {Debug, Release}
+# MATMUL_DEBUG                                  : {0, 1, 2}
+# BENCHMARK_MPI                                 : {ON, OFF}
+# BENCHMARK_ALPAKA_THREADS_ENABLE               : {ON, OFF}
+# BENCHMARK_ALPAKA_FIBERS_ENABLE                : {ON, OFF}
+# BENCHMARK_OPENMP2_ENABLE                      : {ON, OFF}
+#   [ON] OMP_NUM_THREADS                        : {1, 2, 3, 4}
+# BENCHMARK_OPENMP4_ENABLE                      : {ON, OFF}
+#   [ON] OMP_NUM_THREADS                        : {1, 2, 3, 4}
+# BENCHMARK_CUDA                                : {ON, OFF}
+#   [ON] MATMUL_CUDA_VERSION                    : {7.0}
+# And one analysis build
+# MATMUL_ANALYSIS                               : {ON, OFF}
+################################################################################
+env:
+    global:
+        - BENCHMARK_OPENMP2_ENABLE=ON
+        - BENCHMARK_OPENMP4_ENABLE=ON
+        - BENCHMARK_ALPAKA_THREADS_ENABLE=ON
+        - BENCHMARK_ALPAKA_FIBERS_ENABLE=ON
+        - MATMUL_CUDA_VERSION=7.0
+        - MATMUL_CLANG_LIBSTDCPP_VERSION=4.9
+
+    matrix:
+        - MATMUL_ANALYSIS=OFF MATMUL_DEBUG=2 MATMUL_CMAKE_VER=3.2.2    CMAKE_BUILD_TYPE=Debug   OMP_NUM_THREADS=1 MATMUL_GCC_VER=4.9 MATMUL_CLANG_VER=3.6 MATMUL_BOOST_BRANCH=boost-1.56.0 BENCHMARK_CUDA=ON   BENCHMARK_MPI=OFF
+        - MATMUL_ANALYSIS=OFF MATMUL_DEBUG=0 MATMUL_CMAKE_VER=3.1.3    CMAKE_BUILD_TYPE=Debug   OMP_NUM_THREADS=2 MATMUL_GCC_VER=4.9 MATMUL_CLANG_VER=3.5 MATMUL_BOOST_BRANCH=boost-1.57.0 BENCHMARK_CUDA=ON   BENCHMARK_MPI=OFF
+        - MATMUL_ANALYSIS=OFF MATMUL_DEBUG=2 MATMUL_CMAKE_VER=3.0.2    CMAKE_BUILD_TYPE=Debug   OMP_NUM_THREADS=3 MATMUL_GCC_VER=4.9 MATMUL_CLANG_VER=3.6 MATMUL_BOOST_BRANCH=boost-1.58.0 BENCHMARK_CUDA=OFF  BENCHMARK_MPI=ON
+        - MATMUL_ANALYSIS=OFF MATMUL_DEBUG=0 MATMUL_CMAKE_VER=2.8.12.2 CMAKE_BUILD_TYPE=Debug   OMP_NUM_THREADS=4 MATMUL_GCC_VER=4.9 MATMUL_CLANG_VER=3.5 MATMUL_BOOST_BRANCH=boost-1.56.0 BENCHMARK_CUDA=OFF  BENCHMARK_MPI=OFF
+        - MATMUL_ANALYSIS=ON  MATMUL_DEBUG=0 MATMUL_CMAKE_VER=3.2.2    CMAKE_BUILD_TYPE=Debug   OMP_NUM_THREADS=4 MATMUL_GCC_VER=5   MATMUL_CLANG_VER=3.7 MATMUL_BOOST_BRANCH=develop      BENCHMARK_CUDA=OFF  BENCHMARK_MPI=OFF
+
+        - MATMUL_ANALYSIS=OFF MATMUL_DEBUG=2 MATMUL_CMAKE_VER=3.2.2    CMAKE_BUILD_TYPE=Release OMP_NUM_THREADS=4 MATMUL_GCC_VER=4.9 MATMUL_CLANG_VER=3.6 MATMUL_BOOST_BRANCH=boost-1.57.0 BENCHMARK_CUDA=ON   BENCHMARK_MPI=OFF
+        - MATMUL_ANALYSIS=OFF MATMUL_DEBUG=0 MATMUL_CMAKE_VER=3.2.2    CMAKE_BUILD_TYPE=Release OMP_NUM_THREADS=3 MATMUL_GCC_VER=4.9 MATMUL_CLANG_VER=3.5 MATMUL_BOOST_BRANCH=boost-1.58.0 BENCHMARK_CUDA=ON   BENCHMARK_MPI=OFF
+        - MATMUL_ANALYSIS=OFF MATMUL_DEBUG=1 MATMUL_CMAKE_VER=3.2.2    CMAKE_BUILD_TYPE=Release OMP_NUM_THREADS=2 MATMUL_GCC_VER=4.9 MATMUL_CLANG_VER=3.6 MATMUL_BOOST_BRANCH=boost-1.56.0 BENCHMARK_CUDA=OFF  BENCHMARK_MPI=ON
+        - MATMUL_ANALYSIS=OFF MATMUL_DEBUG=0 MATMUL_CMAKE_VER=3.2.2    CMAKE_BUILD_TYPE=Release OMP_NUM_THREADS=4 MATMUL_GCC_VER=4.9 MATMUL_CLANG_VER=3.5 MATMUL_BOOST_BRANCH=boost-1.57.0 BENCHMARK_CUDA=OFF  BENCHMARK_MPI=ON
+        - MATMUL_ANALYSIS=OFF MATMUL_DEBUG=0 MATMUL_CMAKE_VER=3.2.2    CMAKE_BUILD_TYPE=Release OMP_NUM_THREADS=4 MATMUL_GCC_VER=5   MATMUL_CLANG_VER=3.7 MATMUL_BOOST_BRANCH=develop      BENCHMARK_CUDA=OFF  BENCHMARK_MPI=OFF
+
+matrix:
+    allow_failures:
+        - compiler: gcc
+          env: MATMUL_ANALYSIS=ON  MATMUL_DEBUG=0 MATMUL_CMAKE_VER=3.2.2    CMAKE_BUILD_TYPE=Debug   OMP_NUM_THREADS=4 MATMUL_GCC_VER=5   MATMUL_CLANG_VER=3.7 MATMUL_BOOST_BRANCH=develop      BENCHMARK_CUDA=OFF  BENCHMARK_MPI=OFF
+        - compiler: gcc
+          env: MATMUL_ANALYSIS=OFF MATMUL_DEBUG=0 MATMUL_CMAKE_VER=3.2.2    CMAKE_BUILD_TYPE=Release OMP_NUM_THREADS=4 MATMUL_GCC_VER=5   MATMUL_CLANG_VER=3.7 MATMUL_BOOST_BRANCH=develop      BENCHMARK_CUDA=OFF  BENCHMARK_MPI=OFF
+        - compiler: clang
+          env: MATMUL_ANALYSIS=ON  MATMUL_DEBUG=0 MATMUL_CMAKE_VER=3.2.2    CMAKE_BUILD_TYPE=Debug   OMP_NUM_THREADS=4 MATMUL_GCC_VER=5   MATMUL_CLANG_VER=3.7 MATMUL_BOOST_BRANCH=develop      BENCHMARK_CUDA=OFF  BENCHMARK_MPI=OFF
+        - compiler: clang
+          env: MATMUL_ANALYSIS=OFF MATMUL_DEBUG=0 MATMUL_CMAKE_VER=3.2.2    CMAKE_BUILD_TYPE=Release OMP_NUM_THREADS=4 MATMUL_GCC_VER=5   MATMUL_CLANG_VER=3.7 MATMUL_BOOST_BRANCH=develop      BENCHMARK_CUDA=OFF  BENCHMARK_MPI=OFF
+        - os: osx
+
+branches:
+  except:
+     - doc
+
+################################################################################
+# Use this to prepare the system to install prerequisites or dependencies.
+################################################################################
+before_install:
+    # Print the travis environment variables: http://docs.travis-ci.com/user/ci-environment/
+    - echo "${TRAVIS_BRANCH}"
+    - echo "${TRAVIS_BUILD_DIR}"
+    - echo "${TRAVIS_BUILD_ID}"
+    - echo "${TRAVIS_BUILD_NUMBER}"
+    - echo "${TRAVIS_COMMIT}"
+    - echo "${TRAVIS_COMMIT_RANGE}"
+    - echo "${TRAVIS_JOB_ID}"
+    - echo "${TRAVIS_JOB_NUMBER}"
+    - echo "${TRAVIS_PULL_REQUEST}"
+    - echo "${TRAVIS_SECURE_ENV_VARS}"
+    - echo "${TRAVIS_REPO_SLUG}"
+    - echo "${TRAVIS_OS_NAME}"
+    - echo "${TRAVIS_TAG}"
+
+    # g++ / clang dependencies
+    - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+
+    # clang
+    - if [ "${CXX}" == "clang++" ] ;then sudo add-apt-repository -y 'deb http://llvm.org/apt/precise/ llvm-toolchain-precise-3.5 main' ;fi
+    - if [ "${CXX}" == "clang++" ] ;then sudo add-apt-repository -y 'deb http://llvm.org/apt/precise/ llvm-toolchain-precise-3.6 main' ;fi
+    - if [ "${CXX}" == "clang++" ] ;then sudo add-apt-repository -y 'deb http://llvm.org/apt/precise/ llvm-toolchain-precise main' ;fi
+    - if [ "${CXX}" == "clang++" ] ;then wget -O - http://llvm.org/apt/llvm-snapshot.gpg.key | sudo apt-key add - ;fi
+
+    # git
+    - sudo add-apt-repository -y ppa:git-core/ppa
+
+    - sudo apt-get update
+
+################################################################################
+# Use this to install any prerequisites or dependencies necessary to run your build.
+################################################################################
+install:
+    # Step out of the matmul directory.
+    - cd ../../
+
+    #-------------------------------------------------------------------------------
+    # Install sloc
+    - if [ "${MATMUL_ANALYSIS}" == "ON" ] ;then sudo apt-get install sloccount ;fi
+
+    #-------------------------------------------------------------------------------
+    # Get the current gcc version.
+    - git --version
+    - sudo apt-get install git
+    - git --version
+
+    #-------------------------------------------------------------------------------
+    # gcc 4.6 is too old...
+    - if [ "${CXX}" == "g++" ]
+      ;then
+          sudo apt-get install g++-${MATMUL_GCC_VER}
+          && sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-${MATMUL_GCC_VER} 50
+          && sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-${MATMUL_GCC_VER} 50
+      ;fi
+    # Extract the version numbers.
+    - if [ "${CXX}" == "g++" ]
+      ;then
+          MATMUL_GCC_VER_MAJOR=${MATMUL_GCC_VER:0:1}
+          && MATMUL_GCC_VER_MINOR=${MATMUL_GCC_VER:2:1}
+          && echo ${MATMUL_GCC_VER_MAJOR}
+          && echo ${MATMUL_GCC_VER_MINOR}
+      ;fi
+    # gcc version 5+ require boost-develop (1.59).
+    - if [ "${CXX}" == "clang++" ]
+      ;then
+          if (( ${MATMUL_GCC_VER_MAJOR} == 5 ))
+          ;then
+              export MATMUL_BOOST_BRANCH=develop
+              && echo MATMUL_BOOST_BRANCH=${MATMUL_BOOST_BRANCH} because gcc 5+ is only supported by boost 1.59+!
+          ;fi
+      ;fi
+
+    #-------------------------------------------------------------------------------
+    # Install clang.
+    # We have to prepend /usr/bin to the path because else the preinstalled clang from usr/bin/local/ is used.
+    - if [ "${CXX}" == "clang++" ]
+      ;then
+          sudo apt-get install libstdc++-${MATMUL_CLANG_LIBSTDCPP_VERSION}-dev
+          && sudo apt-get install clang-${MATMUL_CLANG_VER}
+          && sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-${MATMUL_CLANG_VER} 50
+          && sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-${MATMUL_CLANG_VER} 50
+          && sudo update-alternatives --install /usr/bin/cc cc /usr/bin/clang 50
+          && sudo update-alternatives --install /usr/bin/c++ c++ /usr/bin/clang++ 50
+          && export PATH=/usr/bin:$PATH
+      ;fi
+    # Extract the version numbers.
+    - if [ "${CXX}" == "clang++" ]
+      ;then
+          MATMUL_CLANG_VER_MAJOR=${MATMUL_CLANG_VER:0:1}
+          && MATMUL_CLANG_VER_MINOR=${MATMUL_CLANG_VER:2:1}
+          && echo ${MATMUL_CLANG_VER_MAJOR}
+          && echo ${MATMUL_CLANG_VER_MINOR}
+      ;fi
+    # clang versions lower than 3.7 do not support OpenMP 2.0, OpenMP 4.0 is not currently supported by any version.
+    - if [ "${CXX}" == "clang++" ]
+      ;then
+          if (( (( ${MATMUL_CLANG_VER_MAJOR} < 3 )) || ( (( ${MATMUL_CLANG_VER_MAJOR} == 3 )) && (( ${MATMUL_CLANG_VER_MINOR} < 7 )) ) ))
+          ;then
+              if [ "${BENCHMARK_OPENMP2_ENABLE}" == "ON" ]
+              ;then
+                  export BENCHMARK_OPENMP2_ENABLE=OFF
+                  && echo BENCHMARK_OPENMP2_ENABLE=${BENCHMARK_OPENMP2_ENABLE} and BENCHMARK_OPENMP2_ENABLE=${BENCHMARK_OPENMP2_ENABLE} because the clang version does not support it!
+              ;fi
+          ;fi
+          && if (( (( ${MATMUL_CLANG_VER_MAJOR} < 3 )) || ( (( ${MATMUL_CLANG_VER_MAJOR} == 3 )) && (( ${MATMUL_CLANG_VER_MINOR} < 8 )) ) ))
+          ;then
+              if [ "${BENCHMARK_OPENMP4_ENABLE}" == "ON" ]
+              ;then
+                  export BENCHMARK_OPENMP4_ENABLE=OFF
+                  && echo BENCHMARK_OPENMP4_ENABLE=${BENCHMARK_OPENMP4_ENABLE} because the clang version does not support it!
+              ;fi
+          ;fi
+      ;fi
+
+    #-------------------------------------------------------------------------------
+    # Install CUDA. It is required irrespective of the fact whether CUDA code is build because cuBLAS is required.
+    # Extract the CUDA version numbers.
+    #- if [ "${BENCHMARK_CUDA}" == "ON" ]
+    #  ;then
+    - MATMUL_CUDA_VER_MAJOR=${MATMUL_CUDA_VERSION:0:1}
+      && MATMUL_CUDA_VER_MINOR=${MATMUL_CUDA_VERSION:2:1}
+      && echo ${MATMUL_CUDA_VER_MAJOR}
+      && echo ${MATMUL_CUDA_VER_MINOR}
+    #  ;fi
+    # CUDA 7.0 does not support gcc > 4.9.2
+    - if [ "${BENCHMARK_CUDA}" == "ON" ]
+      ;then
+          if [ "${CXX}" == "g++" ]
+          ;then
+              if (( (( ${MATMUL_GCC_VER_MAJOR} > 4 )) || ( (( ${MATMUL_GCC_VER_MAJOR} == 4 )) && (( ${MATMUL_GCC_VER_MINOR} > 9 )) ) ))
+              ;then
+                  if (( (( ${MATMUL_CUDA_VER_MAJOR} == 7 )) && (( ${MATMUL_CUDA_VER_MINOR} == 0 )) ))
+                  ;then
+                      export BENCHMARK_CUDA=OFF
+                      && echo BENCHMARK_CUDA=${BENCHMARK_CUDA} because CUDA 7.0 does not support the gcc version!
+                  ;fi
+              ;fi
+          ;fi
+      ;fi
+    # clang is not a supported compiler for CUDA on linux
+    - if [ "${BENCHMARK_CUDA}" == "ON" ]
+      ;then
+          if [ "${CXX}" == "clang++" ]
+          ;then
+              if [ ${TRAVIS_OS_NAME} == "linux" ]
+              ;then
+                  export BENCHMARK_CUDA=OFF
+                  && echo BENCHMARK_CUDA=${BENCHMARK_CUDA} because clang is not a supported compiler for CUDA on linux!
+              ;fi
+          ;fi
+      ;fi
+    # nvcc does not currently support boost correctly so fibers / threads have to be disabled.
+    # boost/utility/detail/result_of_iterate.hpp:148:75: error: invalid use of qualified-name 'std::allocator_traits<_Alloc>::propagate_on_container_swap'
+    - if [ "${BENCHMARK_CUDA}" == "ON" ]
+      ;then
+          export BENCHMARK_ALPAKA_FIBERS_ENABLE=OFF
+          && echo BENCHMARK_ALPAKA_FIBERS_ENABLE=${BENCHMARK_ALPAKA_FIBERS_ENABLE} because nvcc does not support boost correctly!
+          && export BENCHMARK_ALPAKA_THREADS_ENABLE=OFF
+          && echo BENCHMARK_ALPAKA_THREADS_ENABLE=${BENCHMARK_ALPAKA_THREADS_ENABLE} because nvcc does not support boost correctly!
+      ;fi
+    # Install nvcc
+    #- if [ "${BENCHMARK_CUDA}" == "ON" ]
+    #  ;then
+    - MATMUL_CUDA_PKG_FILE_NAME=cuda-repo-ubuntu1204-${MATMUL_CUDA_VER_MAJOR}-${MATMUL_CUDA_VER_MINOR}-local_${MATMUL_CUDA_VERSION}-28_amd64.deb
+      && wget http://developer.download.nvidia.com/compute/cuda/${MATMUL_CUDA_VER_MAJOR}_${MATMUL_CUDA_VER_MINOR}/Prod/local_installers/rpmdeb/${MATMUL_CUDA_PKG_FILE_NAME}
+      && sudo dpkg -i ${MATMUL_CUDA_PKG_FILE_NAME}
+      && sudo apt-get -y update
+      && sudo apt-get -y install cuda-core-${MATMUL_CUDA_VERSION} cuda-cudart-${MATMUL_CUDA_VERSION} cuda-cudart-dev-${MATMUL_CUDA_VERSION} cuda-curand-${MATMUL_CUDA_VERSION} cuda-curand-dev-${MATMUL_CUDA_VERSION} cuda-cublas-${MATMUL_CUDA_VERSION} cuda-cublas-dev-${MATMUL_CUDA_VERSION}
+      && sudo ln -s /usr/local/cuda-${MATMUL_CUDA_VERSION} /usr/local/cuda
+      && export PATH=/usr/local/cuda-${MATMUL_CUDA_VERSION}/bin:$PATH
+      && export LD_LIBRARY_PATH=/usr/local/cuda-${MATMUL_CUDA_VERSION}/lib64:$LD_LIBRARY_PATH
+      && sudo rm -f ${MATMUL_CUDA_PKG_FILE_NAME}
+    #  ;fi
+    # Currently we do not install CUDA fully: sudo apt-get -y install cuda
+    # We only install the minimal packages. Because of our manual partial installation we have to create a symlink at /usr/local/cuda
+
+    #-------------------------------------------------------------------------------
+    # CMake 2.8.7 is too old...
+    # Remove the old version.
+    - sudo apt-get remove cmake
+    # Extract the version numbers.
+    - MATMUL_CMAKE_VER_MAJOR=${MATMUL_CMAKE_VER:0:1}
+    - echo ${MATMUL_CMAKE_VER_MAJOR}
+    - MATMUL_CMAKE_VER_MINOR=${MATMUL_CMAKE_VER:2:1}
+    - echo ${MATMUL_CMAKE_VER_MINOR}
+    # NOTE: Older versions have to be built from source because CMake does not provide older x64 binaries.
+    - if (( (( ${MATMUL_CMAKE_VER_MAJOR} < 3 )) || ( (( ${MATMUL_CMAKE_VER_MAJOR} == 3 )) && (( ${MATMUL_CMAKE_VER_MINOR} < 1 )) ) ))
+      ;then
+          MATMUL_CMAKE_PKG_FILE_NAME=cmake-${MATMUL_CMAKE_VER}
+          && wget http://www.cmake.org/files/v${MATMUL_CMAKE_VER_MAJOR}.${MATMUL_CMAKE_VER_MINOR}/${MATMUL_CMAKE_PKG_FILE_NAME}.tar.gz
+          && tar -xzf ${MATMUL_CMAKE_PKG_FILE_NAME}.tar.gz
+          && cd cmake-${MATMUL_CMAKE_VER}
+          && ./bootstrap --prefix=/usr
+          && make
+          && sudo make install
+          && cd ../
+          && sudo rm -rf ${MATMUL_CMAKE_PKG_FILE_NAME}.tar.gz ${MATMUL_CMAKE_PKG_FILE_NAME}
+      ;else
+          MATMUL_CMAKE_PKG_FILE_NAME=cmake-${MATMUL_CMAKE_VER}-Linux-x86_64
+          && wget http://www.cmake.org/files/v${MATMUL_CMAKE_VER_MAJOR}.${MATMUL_CMAKE_VER_MINOR}/${MATMUL_CMAKE_PKG_FILE_NAME}.tar.gz
+          && tar -xzf ${MATMUL_CMAKE_PKG_FILE_NAME}.tar.gz
+          && sudo cp -fR cmake-${MATMUL_CMAKE_VER}-Linux-x86_64/* /usr
+          && sudo rm -rf ${MATMUL_CMAKE_PKG_FILE_NAME}.tar.gz ${MATMUL_CMAKE_PKG_FILE_NAME}
+      ;fi
+
+    #-------------------------------------------------------------------------------
+    # Clone boost.
+    # If fibers are enabled we need boost.context 1.58+.
+    - if [ "${BENCHMARK_ALPAKA_FIBERS_ENABLE}" == "ON" ]
+      ;then
+          if [ "${MATMUL_BOOST_BRANCH}" != "develop" ]
+          ;then
+              export MATMUL_BOOST_BRANCH=develop
+              && echo MATMUL_BOOST_BRANCH=${MATMUL_BOOST_BRANCH} set because boost fibers requires boost version 1.58.0+!
+          ;fi
+      ;fi
+
+    - git clone -b ${MATMUL_BOOST_BRANCH} --recursive --single-branch --depth 1 https://github.com/boostorg/boost.git boost
+    - cd boost/
+    - export MATMUL_BOOST_ROOT_DIR=`pwd`
+    - echo MATMUL_BOOST_ROOT_DIR="${MATMUL_BOOST_ROOT_DIR}"
+
+    - cd libs/
+
+    # Clone boost.fiber.
+    - if [ "${BENCHMARK_ALPAKA_FIBERS_ENABLE}" == "ON" ]
+      ;then
+          git clone -b develop --single-branch --depth 1 https://github.com/olk/boost-fiber.git fiber
+      ;fi
+
+    - cd ../
+
+    # Prepare building of boost.
+    - sudo ./bootstrap.sh --with-toolset=${CC}
+    # Create file links.
+    - sudo ./b2 headers
+    # Prepare the library destination directory.
+    - cd ..
+    - mkdir boost_libs
+    - cd boost_libs/
+    - mkdir x64
+    - export MATMUL_BOOST_LIB_DIR=`pwd`/x64/lib
+    - echo MATMUL_BOOST_LIB_DIR="${MATMUL_BOOST_LIB_DIR}"
+    - cd ../
+    - cd boost/
+
+    # Create the boost build command.
+    #  --layout=versioned
+    - MATMUL_BOOST_B2_CXXFLAGS=
+    # There is not enough RAM (3 GB) to use both available cores for compiling.
+    - MATMUL_BOOST_B2="sudo ./b2 -j1 --layout=tagged --toolset=${CC}"
+    - MATMUL_BOOST_B2+=" architecture=x86 address-model=64 variant=debug,release link=static threading=multi runtime-link=shared"
+    # Clang is not supported by the FindBoost script.
+    # boost (especially old versions) produces too much warnings when using clang (newer versions) so that the 4 MiB log is too short.
+    - if [ "${CXX}" == "clang++" ]
+      ;then
+          export MATMUL_BOOST_COMPILER=-clang${MATMUL_CLANG_VER_MAJOR}${MATMUL_CLANG_VER_MINOR}
+          && echo MATMUL_BOOST_COMPILER="${MATMUL_BOOST_COMPILER}"
+          && MATMUL_BOOST_B2_CXXFLAGS+="-Wno-unused-local-typedef -Wno-c99-extensions -Wno-variadic-macros -Wunknown-warning-option"
+      ;fi
+    # Select the libraries required.
+    - MATMUL_BOOST_B2+=" --with-program_options"
+    - if [ "${BENCHMARK_ALPAKA_FIBERS_ENABLE}" == "ON" ]
+      ;then
+          MATMUL_BOOST_B2_CXXFLAGS+=" -std=c++14"
+          && MATMUL_BOOST_B2+=" --with-fiber --with-context --with-thread --with-system --with-atomic --with-chrono --with-date_time"
+      ;fi
+    - if [ "${MATMUL_BOOST_B2_CXXFLAGS}" != "" ]
+      ;then
+          MATMUL_BOOST_B2+=' cxxflags="'
+          MATMUL_BOOST_B2+="${MATMUL_BOOST_B2_CXXFLAGS}"
+          MATMUL_BOOST_B2+='"'
+      ;fi
+    - MATMUL_BOOST_B2+=" --stagedir=../boost_libs/x64 stage"
+    # Build boost.
+    - echo MATMUL_BOOST_B2="${MATMUL_BOOST_B2}"
+    - eval "${MATMUL_BOOST_B2}"
+
+    # Clean the intermediate build files.
+    - sudo rm -rf bin.v2
+
+    - cd ../
+
+    #-------------------------------------------------------------------------------
+    # Install MPI
+    - sudo apt-get install openmpi-bin libopenmpi-dev
+
+    #-------------------------------------------------------------------------------
+    # Clone alpaka.
+    - git clone -b develop --single-branch --depth 1 https://github.com/ComputationalRadiationPhysics/alpaka.git alpaka
+    - cd alpaka/
+    - export MATMUL_ALPAKA_ROOT_DIR=`pwd`
+    - echo MATMUL_ALPAKA_ROOT_DIR="${MATMUL_ALPAKA_ROOT_DIR}"
+    - cd ../
+
+################################################################################
+# Use this to prepare your build for testing.
+################################################################################
+before_script:
+    - cd ${TRAVIS_BUILD_DIR}/
+    - pwd
+
+    - which cmake
+    - cmake --version
+
+    - which ${CXX}
+    - ${CXX} -v
+
+    - if [ "${BENCHMARK_CUDA}" == "ON" ]
+      ;then
+          which nvcc
+          && nvcc -V
+      ;fi
+
+################################################################################
+# All commands must exit with code 0 on success. Anything else is considered failure.
+################################################################################
+script:
+    #-------------------------------------------------------------------------------
+    # sloc
+    - if [ "${MATMUL_ANALYSIS}" == "ON" ] ;then sloccount . ;fi
+
+    #-------------------------------------------------------------------------------
+    # TODO/FIXME/HACK
+    - if [ "${MATMUL_ANALYSIS}" == "ON" ] ;then grep -r HACK * ;fi || true
+    - if [ "${MATMUL_ANALYSIS}" == "ON" ] ;then grep -r FIXME * ;fi || true
+    - if [ "${MATMUL_ANALYSIS}" == "ON" ] ;then grep -r TODO * ;fi || true
+
+    #-------------------------------------------------------------------------------
+    # Build and execute all tests.
+    - cd benchmark/
+    - mkdir build/
+    - cd build/
+    - mkdir make/
+    - cd make/
+    # TODO: BENCHMARK_PAR_OPENACC BENCHMARK_PAR_BLAS_MKL BENCHMARK_PAR_PHI_OFF_OPENMP BENCHMARK_PAR_PHI_OFF_BLAS_MKL DBENCHMARK_PAR_PHI_OFF_OPENMP BENCHMARK_PAR_MPI_CANNON_MKL
+    - if [ "${BENCHMARK_MPI}" == "OFF" ]
+      ;then
+        cmake -G "Unix Makefiles"
+          -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+          -DBOOST_ROOT="${MATMUL_BOOST_ROOT_DIR}" -DBOOST_LIBRARYDIR="${MATMUL_BOOST_LIB_DIR}" -DBoost_COMPILER="${MATMUL_BOOST_COMPILER}" -DBoost_USE_STATIC_LIBS=ON -DBoost_USE_MULTITHREADED=ON -DBoost_USE_STATIC_RUNTIME=OFF
+          -DALPAKA_ROOT="${MATMUL_ALPAKA_ROOT_DIR}" -DALPAKA_DEBUG=${MATMUL_DEBUG}
+          -DBENCHMARK_SEQ_BASIC=ON -DBENCHMARK_SEQ_SINGLE_OPTS=ON -DBENCHMARK_SEQ_MULTIPLE_OPTS=ON
+          -DBENCHMARK_SEQ_STRASSEN=ON
+          -DBENCHMARK_PAR_OPENMP=${BENCHMARK_OPENMP2_ENABLE} -DBENCHMARK_PAR_STRASSEN_OMP=${BENCHMARK_OPENMP2_ENABLE}
+          -DBENCHMARK_PAR_CUDA=${BENCHMARK_CUDA}
+          -DBENCHMARK_PAR_BLAS_CUBLAS=${BENCHMARK_CUDA}
+          -DBENCHMARK_PAR_ALPAKA_ACC_CPU_B_SEQ_T_SEQ=ON -DBENCHMARK_PAR_ALPAKA_ACC_CPU_B_OMP2_T_SEQ=${BENCHMARK_OPENMP2_ENABLE} -DBENCHMARK_PAR_ALPAKA_ACC_CPU_B_SEQ_T_OMP2=${BENCHMARK_OPENMP2_ENABLE} -DBENCHMARK_PAR_ALPAKA_ACC_CPU_BT_OMP4=${BENCHMARK_OPENMP4_ENABLE} -DBENCHMARK_PAR_ALPAKA_ACC_CPU_B_SEQ_T_FIBERS=${BENCHMARK_ALPAKA_FIBERS_ENABLE} -DBENCHMARK_PAR_ALPAKA_ACC_CPU_B_SEQ_T_THREADS=${BENCHMARK_ALPAKA_THREADS_ENABLE} -DBENCHMARK_PAR_ALPAKA_ACC_GPU_CUDA=${BENCHMARK_CUDA}
+          -DBENCHMARK_MIN_N=4 -DBENCHMARK_STEP_N=16 -DBENCHMARK_MAX_N=128 -DBENCHMARK_REPEAT_COUNT=1 -DBENCHMARK_REPEAT_TAKE_MINIMUM=ON -DBENCHMARK_VERIFY_RESULT=ON
+          -DMATMUL_DEBUG=${MATMUL_DEBUG} -DMATMUL_CUDA_VERSION=${MATMUL_CUDA_VERSION}
+          -DMATMUL_ALIGNED_MALLOC=ON
+          "../../"
+      ;else
+        cmake -G "Unix Makefiles"
+          -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+          -DBOOST_ROOT="${MATMUL_BOOST_ROOT_DIR}" -DBOOST_LIBRARYDIR="${MATMUL_BOOST_LIB_DIR}" -DBoost_COMPILER="${MATMUL_BOOST_COMPILER}" -DBoost_USE_STATIC_LIBS=ON -DBoost_USE_MULTITHREADED=ON -DBoost_USE_STATIC_RUNTIME=OFF
+          -DALPAKA_ROOT="${MATMUL_ALPAKA_ROOT_DIR}" -DALPAKA_DEBUG=${MATMUL_DEBUG}
+          -DBENCHMARK_PAR_MPI_CANNON_STD=ON -DBENCHMARK_PAR_MPI_CANNON_CUBLAS=${BENCHMARK_CUDA} -DBENCHMARK_PAR_MPI_DNS=ON
+          -DBENCHMARK_MIN_N=4 -DBENCHMARK_STEP_N=16 -DBENCHMARK_MAX_N=128 -DBENCHMARK_REPEAT_COUNT=1 -DBENCHMARK_REPEAT_TAKE_MINIMUM=ON -DBENCHMARK_VERIFY_RESULT=ON
+          -DMATMUL_DEBUG=${MATMUL_DEBUG} -DMATMUL_CUDA_VERSION=${MATMUL_CUDA_VERSION}
+          -DMATMUL_ALIGNED_MALLOC=ON
+          "../../"
+      ;fi
+    - make VERBOSE=1
+    - if [ "${BENCHMARK_CUDA}" == "OFF" ]
+      ;then
+          if [ "${BENCHMARK_MPI}" == "OFF" ]
+          ;then
+              ./matmul_benchmark
+          ;else
+              mpiexec ./matmul_benchmark -n 4
+          ;fi
+      ;fi
+    - cd ../../../
+
+################################################################################
+#
+################################################################################
+notifications:
+    email: false
