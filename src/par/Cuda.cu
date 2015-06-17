@@ -147,4 +147,60 @@
         cudaFree(pBDev);
         cudaFree(pCDev);
     }
+    //-----------------------------------------------------------------------------
+    //
+    //-----------------------------------------------------------------------------
+    /*void matmul_gemm_par_cuda_stream(
+        size_t const m, size_t const n, size_t const k,
+        TElem const alpha,
+        TElem const * const MATMUL_RESTRICT A, size_t const lda,
+        TElem const * const MATMUL_RESTRICT B, size_t const ldb,
+        TElem const beta,
+        TElem * const MATMUL_RESTRICT C, size_t const ldc)
+    {
+        if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
+        {
+            return;
+        }
+
+        cudaStream_t stream;
+        MATMUL_CUDA_RT_CHECK(cudaStreamCreate(&stream));
+
+        size_t const uiBytesA = lda*m*sizeof(TElem);
+        size_t const uiBytesB = ldb*k*sizeof(TElem);
+        size_t const uiBytesC = ldc*m*sizeof(TElem);
+
+        TElem *pADev, *pBDev, *pCDev;
+        MATMUL_CUDA_RT_CHECK(cudaMalloc((void **)&pADev, uiBytesA));
+        MATMUL_CUDA_RT_CHECK(cudaMemcpyAsync(pADev, A, uiBytesA, cudaMemcpyHostToDevice, stream));
+        MATMUL_CUDA_RT_CHECK(cudaMalloc((void **)&pBDev, uiBytesB));
+        MATMUL_CUDA_RT_CHECK(cudaMemcpyAsync(pBDev, B, uiBytesB, cudaMemcpyHostToDevice, stream));
+        MATMUL_CUDA_RT_CHECK(cudaMalloc((void **)&pCDev, uiBytesC));
+        MATMUL_CUDA_RT_CHECK(cudaMemcpyAsync(pCDev, C, uiBytesC, cudaMemcpyHostToDevice, stream));
+
+        dim3 const dimBlock(MATMUL_CUDA_BLOCKSIZE, MATMUL_CUDA_BLOCKSIZE);
+        float const fGridThreadExtentX = ceil(((float)n)/((float)MATMUL_CUDA_BLOCKSIZE));
+        float const fGridThreadExtentY = ceil(((float)m)/((float)MATMUL_CUDA_BLOCKSIZE));
+        unsigned int const uiGridThreadExtentX = (unsigned int)fGridThreadExtentX;
+        unsigned int const uiGridThreadExtentY = (unsigned int)fGridThreadExtentY;
+        dim3 const dimGrid(uiGridThreadExtentX, uiGridThreadExtentY);
+
+        matmul_gemm_par_cuda_kernel<<<dimGrid, dimBlock, 0, stream>>>(
+            m, n, k,
+            alpha,
+            pADev, lda,
+            pBDev, ldb,
+            beta,
+            pCDev, ldc);
+
+        MATMUL_CUDA_RT_CHECK(cudaMemcpyAsync(C, pCDev, uiBytesC, cudaMemcpyDeviceToHost, stream));
+
+        MATMUL_CUDA_RT_CHECK(cudaStreamSynchronize(stream));
+
+        cudaFree(pADev);
+        cudaFree(pBDev);
+        cudaFree(pCDev);
+
+        MATMUL_CUDA_RT_CHECK(cudaStreamDestroy(stream));
+    }*/
 #endif
