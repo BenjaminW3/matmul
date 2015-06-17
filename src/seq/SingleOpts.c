@@ -317,7 +317,7 @@
         }
 
         size_t const S = MATMUL_SEQ_BLOCK_FACTOR;
-        
+
         for(size_t ii = 0; ii<m; ii += S)
         {
             size_t const iiS = ii+S;

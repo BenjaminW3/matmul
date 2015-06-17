@@ -21,7 +21,7 @@
     #include <omp.h>
 
     #include <stdio.h>              // printf
-    
+
     #if _OPENMP >= 200203   // OpenMP 2.0
         //-----------------------------------------------------------------------------
         //
@@ -197,7 +197,7 @@
                 return;
             }
             #pragma omp target if(0) map(to: m, n, k, alpha, A[0:lda*m], lda, B[0:ldb*k], ldb, beta, ldc) map(tofrom: C[0:ldc*m])
-            
+
             #pragma omp teams /*num_teams(...) thread_limit(...)*/
             {
                 #pragma omp distribute

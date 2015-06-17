@@ -21,7 +21,7 @@
     #include <omp.h>
 
     #include <stdio.h>                  // printf
-    
+
     #if _OPENMP >= 200203   // OpenMP 2.0
         //-----------------------------------------------------------------------------
         // http://software.intel.com/sites/products/documentation/doclib/mkl_sa/11/mkl_userguide_lnx/GUID-8B7FF103-0319-4D33-B36F-503917E847B4.htm
@@ -202,7 +202,7 @@
             }
 
             #pragma omp target device(0) map(to: m, n, k, alpha, A[0:lda*m], lda, B[0:ldb*k], ldb, beta, ldc) map(tofrom: C[0:ldc*m])
-            
+
             #pragma omp teams /*num_teams(...) thread_limit(...)*/
             {
                 #pragma omp distribute

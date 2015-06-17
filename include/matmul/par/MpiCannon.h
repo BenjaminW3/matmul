@@ -19,7 +19,7 @@
     #include <matmul/common/Config.h>   // TElem
 
     #include <stddef.h>                 // size_t
-    
+
     #ifdef __cplusplus
         extern "C"
         {

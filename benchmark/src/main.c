@@ -148,7 +148,7 @@ double measureRandomMatMul(
 #ifdef MATMUL_MPI
         }
 #endif
-    
+
 #ifdef MATMUL_MPI
         double fTimeStart = 0;
         // Only the root process does the printing.
@@ -176,7 +176,7 @@ double measureRandomMatMul(
 #endif
         // Matrix multiplication.
         (algo->pMatMul)(n, n, n, alpha, A, n, B, n, beta, C, n);
-            
+
 #ifdef MATMUL_MPI
         // Only the root process does the printing.
         if(iRank1D==MATMUL_MPI_ROOT)
@@ -212,7 +212,7 @@ double measureRandomMatMul(
         }
 #endif
     }
-        
+
 #ifdef MATMUL_MPI
     // Only the root process does the printing.
     if(iRank1D==MATMUL_MPI_ROOT)
@@ -347,7 +347,7 @@ measureRandomMatMuls(
                     , &bResultsCorrectAlgo
 #endif
                     );
-                    
+
 #ifdef BENCHMARK_VERIFY_RESULT
                     bAllResultsCorrect &= bResultsCorrectAlgo;
 #endif
@@ -551,7 +551,7 @@ int main(
         (size_t)BENCHMARK_MIN_N,
         (size_t)BENCHMARK_STEP_N,
         (size_t)BENCHMARK_MAX_N);
-        
+
 #ifdef BENCHMARK_VERIFY_RESULT
     bool const bAllResultsCorrect =
 #endif

@@ -20,7 +20,7 @@ Available Implementations
     * restrict + Loop Reordering + Blocking
     * restrict + Loop Reordering
   * Strassen algorithm
-  
+
 * Parallel:
   * OpenMP 2.0:
     * guided schedule
@@ -39,7 +39,7 @@ Available Implementations
     * OpenMP 4.0 (Host only)
     * std::thread
     * Boost.Fiber
-  * BLAS: 
+  * BLAS:
     * MKL
     * MKL Offload to Intel XeonPhi
     * cuBLAS2

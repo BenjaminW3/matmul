@@ -62,9 +62,9 @@
         // In contrast to many other libraries, cuBLAS expects the matrices in column major storage order.
         // Because the storage order of multidimensional C arrays is row-major we have to change the order of the arguments given to `cublasDgemm`.
         // By swapping the matrix A with the matrix B the result is still correct.
-        // Because cuBLAS sees the matrices in transposed order due to the inverse storage order it expects, the following computation is executed: 
+        // Because cuBLAS sees the matrices in transposed order due to the inverse storage order it expects, the following computation is executed:
         //  C^T <- alpha * B^T * A^T + beta * C^T.
-        // By reading the transposed matrix C^T that has been written in column major order as row major matrix we receive the expected untransposed result C. 
+        // By reading the transposed matrix C^T that has been written in column major order as row major matrix we receive the expected untransposed result C.
         #ifdef MATMUL_ELEMENT_TYPE_DOUBLE
             MATMUL_CUBLAS_CHECK(cublasDgemm(
                 handle, CUBLAS_OP_N, CUBLAS_OP_N,
