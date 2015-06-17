@@ -63,16 +63,6 @@
             static_cast<alpaka::Vec2<>::Val>(m),
             static_cast<alpaka::Vec2<>::Val>(n));
 
-        // Let alpaka calculate good block and grid sizes given our full problem extents.
-        alpaka::workdiv::WorkDivMembers<alpaka::dim::Dim2> workDiv(
-            alpaka::workdiv::getValidWorkDiv<boost::mpl::vector<TAcc>>(v2uiExtentsC, false));
-        // Assure that the extents are square.
-        auto const uiMinExtent(std::min(workDiv.m_vuiBlockThreadExtents[0u], workDiv.m_vuiBlockThreadExtents[1u]));
-        workDiv.m_vuiGridBlockExtents[0u] = static_cast<alpaka::Vec2<>::Val>(std::ceil(static_cast<double>(m) / static_cast<double>(uiMinExtent)));
-        workDiv.m_vuiBlockThreadExtents[0u] = uiMinExtent;
-        workDiv.m_vuiGridBlockExtents[1u] = static_cast<alpaka::Vec2<>::Val>(std::ceil(static_cast<double>(n) / static_cast<double>(uiMinExtent)));
-        workDiv.m_vuiBlockThreadExtents[1u] = uiMinExtent;
-
         // Wrap the Pointers into memory buffer objects.
         using MemBufWrapperC = alpaka::mem::buf::BufPlainPtrWrapper<
             TElem const,
@@ -86,15 +76,23 @@
             std::decay<decltype(devHost)>::type>;
         MemBufWrapper bufCHost(C, devHost, v2uiExtentsC, ldc);
 
-        // Allocate the buffers on the accelerator.
+        // Allocate the buffers on the accelerator and copy Host -> Acc (Interleaved for better performance)
         auto bufAAcc(alpaka::mem::buf::alloc<TElem>(devAcc, v2uiExtentsA));
-        auto bufBAcc(alpaka::mem::buf::alloc<TElem>(devAcc, v2uiExtentsB));
-        auto bufCAcc(alpaka::mem::buf::alloc<TElem>(devAcc, v2uiExtentsC));
-
-        // Copy Host -> Acc.
         alpaka::mem::view::copy(bufAAcc, bufAHost, v2uiExtentsA, stream);
+        auto bufBAcc(alpaka::mem::buf::alloc<TElem>(devAcc, v2uiExtentsB));
         alpaka::mem::view::copy(bufBAcc, bufBHost, v2uiExtentsB, stream);
+        auto bufCAcc(alpaka::mem::buf::alloc<TElem>(devAcc, v2uiExtentsC));
         alpaka::mem::view::copy(bufCAcc, bufCHost, v2uiExtentsC, stream);
+
+        // Let alpaka calculate good block and grid sizes given our full problem extents.
+        alpaka::workdiv::WorkDivMembers<alpaka::dim::Dim2> workDiv(
+            alpaka::workdiv::getValidWorkDiv<boost::mpl::vector<TAcc>>(v2uiExtentsC, false));
+        // Assure that the extents are square.
+        auto const uiMinExtent(std::min(workDiv.m_vuiBlockThreadExtents[0u], workDiv.m_vuiBlockThreadExtents[1u]));
+        workDiv.m_vuiGridBlockExtents[0u] = static_cast<alpaka::Vec2<>::Val>(std::ceil(static_cast<double>(m) / static_cast<double>(uiMinExtent)));
+        workDiv.m_vuiBlockThreadExtents[0u] = uiMinExtent;
+        workDiv.m_vuiGridBlockExtents[1u] = static_cast<alpaka::Vec2<>::Val>(std::ceil(static_cast<double>(n) / static_cast<double>(uiMinExtent)));
+        workDiv.m_vuiBlockThreadExtents[1u] = uiMinExtent;
 
         // Create the executor.
         auto exec(alpaka::exec::create<TAcc>(workDiv, stream));

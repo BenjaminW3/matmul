@@ -14,7 +14,7 @@
 //! HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
 
-#ifdef MATMUL_BUILD_PAR_OPENMP
+#if defined(MATMUL_BUILD_PAR_OMP2) || defined(MATMUL_BUILD_PAR_OMP3) || defined(MATMUL_BUILD_PAR_OMP4)
 
     #include <matmul/common/Config.h>   // TElem
 
@@ -24,99 +24,105 @@
         extern "C"
         {
     #endif
-    #if _OPENMP >= 200203   // OpenMP 2.0
-        //-----------------------------------------------------------------------------
-        //! (S/D)GEMM matrix-matrix product C := A * B + C using OpenMP 2.0 parallel for guided schedule.
-        //!
-        //! \param m Specifies the number of rows of the matrix A and of the matrix C.
-        //! \param n Specifies the number of columns of the matrix B and the number of columns of the matrix C.
-        //! \param k Specifies the number of columns of the matrix A and the number of rows of the matrix B.
-        //! \param alpha Scalar value used to scale the product of matrices A and B.
-        //! \param A Array, size lda-by-k. The leading m-by-k part of the array must contain the matrix A.
-        //! \param lda Specifies the leading dimension of A.
-        //! \param B Array, size ldb-by-n. The leading k-by-n part of the array must contain the matrix B.
-        //! \param ldb Specifies the leading dimension of B.
-        //! \param beta Scalar value used to scale matrix C.
-        //! \param C Array, size ldc-by-n. The leading m-by-n part of the array must contain the matrix C.
-        //! \param ldc Specifies the leading dimension of C.
-        //-----------------------------------------------------------------------------
-        void matmul_gemm_par_omp2_guided_schedule(
-            size_t const m, size_t const n, size_t const k,
-            TElem const alpha,
-            TElem const * const MATMUL_RESTRICT A, size_t const lda,
-            TElem const * const MATMUL_RESTRICT B, size_t const ldb,
-            TElem const beta,
-            TElem * const MATMUL_RESTRICT C, size_t const ldc);
-        //-----------------------------------------------------------------------------
-        //! (S/D)GEMM matrix-matrix product C := A * B + C using OpenMP 2.0 parallel for static schedule.
-        //!
-        //! \param m Specifies the number of rows of the matrix A and of the matrix C.
-        //! \param n Specifies the number of columns of the matrix B and the number of columns of the matrix C.
-        //! \param k Specifies the number of columns of the matrix A and the number of rows of the matrix B.
-        //! \param alpha Scalar value used to scale the product of matrices A and B.
-        //! \param A Array, size lda-by-k. The leading m-by-k part of the array must contain the matrix A.
-        //! \param lda Specifies the leading dimension of A.
-        //! \param B Array, size ldb-by-n. The leading k-by-n part of the array must contain the matrix B.
-        //! \param ldb Specifies the leading dimension of B.
-        //! \param beta Scalar value used to scale matrix C.
-        //! \param C Array, size ldc-by-n. The leading m-by-n part of the array must contain the matrix C.
-        //! \param ldc Specifies the leading dimension of C.
-        //-----------------------------------------------------------------------------
-        void matmul_gemm_par_omp2_static_schedule(
-            size_t const m, size_t const n, size_t const k,
-            TElem const alpha,
-            TElem const * const MATMUL_RESTRICT A, size_t const lda,
-            TElem const * const MATMUL_RESTRICT B, size_t const ldb,
-            TElem const beta,
-            TElem * const MATMUL_RESTRICT C, size_t const ldc);
+    #ifdef MATMUL_BUILD_PAR_OMP2
+        #if _OPENMP >= 200203   // OpenMP 2.0
+            //-----------------------------------------------------------------------------
+            //! (S/D)GEMM matrix-matrix product C := A * B + C using OpenMP 2.0 parallel for guided schedule.
+            //!
+            //! \param m Specifies the number of rows of the matrix A and of the matrix C.
+            //! \param n Specifies the number of columns of the matrix B and the number of columns of the matrix C.
+            //! \param k Specifies the number of columns of the matrix A and the number of rows of the matrix B.
+            //! \param alpha Scalar value used to scale the product of matrices A and B.
+            //! \param A Array, size lda-by-k. The leading m-by-k part of the array must contain the matrix A.
+            //! \param lda Specifies the leading dimension of A.
+            //! \param B Array, size ldb-by-n. The leading k-by-n part of the array must contain the matrix B.
+            //! \param ldb Specifies the leading dimension of B.
+            //! \param beta Scalar value used to scale matrix C.
+            //! \param C Array, size ldc-by-n. The leading m-by-n part of the array must contain the matrix C.
+            //! \param ldc Specifies the leading dimension of C.
+            //-----------------------------------------------------------------------------
+            void matmul_gemm_par_omp2_guided_schedule(
+                size_t const m, size_t const n, size_t const k,
+                TElem const alpha,
+                TElem const * const MATMUL_RESTRICT A, size_t const lda,
+                TElem const * const MATMUL_RESTRICT B, size_t const ldb,
+                TElem const beta,
+                TElem * const MATMUL_RESTRICT C, size_t const ldc);
+            //-----------------------------------------------------------------------------
+            //! (S/D)GEMM matrix-matrix product C := A * B + C using OpenMP 2.0 parallel for static schedule.
+            //!
+            //! \param m Specifies the number of rows of the matrix A and of the matrix C.
+            //! \param n Specifies the number of columns of the matrix B and the number of columns of the matrix C.
+            //! \param k Specifies the number of columns of the matrix A and the number of rows of the matrix B.
+            //! \param alpha Scalar value used to scale the product of matrices A and B.
+            //! \param A Array, size lda-by-k. The leading m-by-k part of the array must contain the matrix A.
+            //! \param lda Specifies the leading dimension of A.
+            //! \param B Array, size ldb-by-n. The leading k-by-n part of the array must contain the matrix B.
+            //! \param ldb Specifies the leading dimension of B.
+            //! \param beta Scalar value used to scale matrix C.
+            //! \param C Array, size ldc-by-n. The leading m-by-n part of the array must contain the matrix C.
+            //! \param ldc Specifies the leading dimension of C.
+            //-----------------------------------------------------------------------------
+            void matmul_gemm_par_omp2_static_schedule(
+                size_t const m, size_t const n, size_t const k,
+                TElem const alpha,
+                TElem const * const MATMUL_RESTRICT A, size_t const lda,
+                TElem const * const MATMUL_RESTRICT B, size_t const ldb,
+                TElem const beta,
+                TElem * const MATMUL_RESTRICT C, size_t const ldc);
+        #endif
     #endif
-    #if _OPENMP >= 200805   // OpenMP 3.0
-        //-----------------------------------------------------------------------------
-        //! (S/D)GEMM matrix-matrix product C := A * B + C using OpenMP 3.0 parallel for collapse static schedule.
-        //!
-        //! \param m Specifies the number of rows of the matrix A and of the matrix C.
-        //! \param n Specifies the number of columns of the matrix B and the number of columns of the matrix C.
-        //! \param k Specifies the number of columns of the matrix A and the number of rows of the matrix B.
-        //! \param alpha Scalar value used to scale the product of matrices A and B.
-        //! \param A Array, size lda-by-k. The leading m-by-k part of the array must contain the matrix A.
-        //! \param lda Specifies the leading dimension of A.
-        //! \param B Array, size ldb-by-n. The leading k-by-n part of the array must contain the matrix B.
-        //! \param ldb Specifies the leading dimension of B.
-        //! \param beta Scalar value used to scale matrix C.
-        //! \param C Array, size ldc-by-n. The leading m-by-n part of the array must contain the matrix C.
-        //! \param ldc Specifies the leading dimension of C.
-        //-----------------------------------------------------------------------------
-        void matmul_gemm_par_omp3_static_schedule_collapse(
-            size_t const m, size_t const n, size_t const k,
-            TElem const alpha,
-            TElem const * const MATMUL_RESTRICT A,  size_t const lda,
-            TElem const * const MATMUL_RESTRICT B,  size_t const ldb,
-            TElem const beta,
-            TElem * const MATMUL_RESTRICT C,  size_t const ldc);
+    #ifdef MATMUL_BUILD_PAR_OMP3
+        #if _OPENMP >= 200805   // OpenMP 3.0
+            //-----------------------------------------------------------------------------
+            //! (S/D)GEMM matrix-matrix product C := A * B + C using OpenMP 3.0 parallel for collapse static schedule.
+            //!
+            //! \param m Specifies the number of rows of the matrix A and of the matrix C.
+            //! \param n Specifies the number of columns of the matrix B and the number of columns of the matrix C.
+            //! \param k Specifies the number of columns of the matrix A and the number of rows of the matrix B.
+            //! \param alpha Scalar value used to scale the product of matrices A and B.
+            //! \param A Array, size lda-by-k. The leading m-by-k part of the array must contain the matrix A.
+            //! \param lda Specifies the leading dimension of A.
+            //! \param B Array, size ldb-by-n. The leading k-by-n part of the array must contain the matrix B.
+            //! \param ldb Specifies the leading dimension of B.
+            //! \param beta Scalar value used to scale matrix C.
+            //! \param C Array, size ldc-by-n. The leading m-by-n part of the array must contain the matrix C.
+            //! \param ldc Specifies the leading dimension of C.
+            //-----------------------------------------------------------------------------
+            void matmul_gemm_par_omp3_static_schedule_collapse(
+                size_t const m, size_t const n, size_t const k,
+                TElem const alpha,
+                TElem const * const MATMUL_RESTRICT A,  size_t const lda,
+                TElem const * const MATMUL_RESTRICT B,  size_t const ldb,
+                TElem const beta,
+                TElem * const MATMUL_RESTRICT C,  size_t const ldc);
+        #endif
     #endif
-    #if _OPENMP >= 201307   // OpenMP 4.0
-        //-----------------------------------------------------------------------------
-        //! (S/D)GEMM matrix-matrix product C := A * B + C using OpenMP 4.0 teams distribute parallel for static schedule.
-        //!
-        //! \param m Specifies the number of rows of the matrix A and of the matrix C.
-        //! \param n Specifies the number of columns of the matrix B and the number of columns of the matrix C.
-        //! \param k Specifies the number of columns of the matrix A and the number of rows of the matrix B.
-        //! \param alpha Scalar value used to scale the product of matrices A and B.
-        //! \param A Array, size lda-by-k. The leading m-by-k part of the array must contain the matrix A.
-        //! \param lda Specifies the leading dimension of A.
-        //! \param B Array, size ldb-by-n. The leading k-by-n part of the array must contain the matrix B.
-        //! \param ldb Specifies the leading dimension of B.
-        //! \param beta Scalar value used to scale matrix C.
-        //! \param C Array, size ldc-by-n. The leading m-by-n part of the array must contain the matrix C.
-        //! \param ldc Specifies the leading dimension of C.
-        //-----------------------------------------------------------------------------
-        void matmul_gemm_par_omp4(
-            size_t const m, size_t const n, size_t const k,
-            TElem const alpha,
-            TElem const * const MATMUL_RESTRICT A,  size_t const lda,
-            TElem const * const MATMUL_RESTRICT B,  size_t const ldb,
-            TElem const beta,
-            TElem * const MATMUL_RESTRICT C,  size_t const ldc);
+    #ifdef MATMUL_BUILD_PAR_OMP4
+        #if _OPENMP >= 201307   // OpenMP 4.0
+            //-----------------------------------------------------------------------------
+            //! (S/D)GEMM matrix-matrix product C := A * B + C using OpenMP 4.0 teams distribute parallel for static schedule.
+            //!
+            //! \param m Specifies the number of rows of the matrix A and of the matrix C.
+            //! \param n Specifies the number of columns of the matrix B and the number of columns of the matrix C.
+            //! \param k Specifies the number of columns of the matrix A and the number of rows of the matrix B.
+            //! \param alpha Scalar value used to scale the product of matrices A and B.
+            //! \param A Array, size lda-by-k. The leading m-by-k part of the array must contain the matrix A.
+            //! \param lda Specifies the leading dimension of A.
+            //! \param B Array, size ldb-by-n. The leading k-by-n part of the array must contain the matrix B.
+            //! \param ldb Specifies the leading dimension of B.
+            //! \param beta Scalar value used to scale matrix C.
+            //! \param C Array, size ldc-by-n. The leading m-by-n part of the array must contain the matrix C.
+            //! \param ldc Specifies the leading dimension of C.
+            //-----------------------------------------------------------------------------
+            void matmul_gemm_par_omp4(
+                size_t const m, size_t const n, size_t const k,
+                TElem const alpha,
+                TElem const * const MATMUL_RESTRICT A,  size_t const lda,
+                TElem const * const MATMUL_RESTRICT B,  size_t const ldb,
+                TElem const beta,
+                TElem * const MATMUL_RESTRICT C,  size_t const ldc);
+        #endif
     #endif
     #ifdef __cplusplus
         }

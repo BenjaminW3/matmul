@@ -309,8 +309,12 @@ measureRandomMatMuls(
     if(iRank1D==MATMUL_MPI_ROOT)
     {
 #endif
+#ifndef BENCHMARK_PRINT_GFLOPS
+        printf("\n#time in s");
+#else
+        printf("\n#GFLOPS");
+#endif
         printf("\nm=n=k");
-
         // Table heading
         for(size_t uiAlgoIdx = 0; uiAlgoIdx < uiNumAlgos; ++uiAlgoIdx)
         {
@@ -464,31 +468,39 @@ int main(
     #ifdef BENCHMARK_SEQ_STRASSEN
         {matmul_gemm_seq_strassen, "gemm_seq_strassen", 2.80735},   // 2.80735 = log(7.0) / log(2.0)
     #endif
-    #ifdef BENCHMARK_PAR_OPENMP
+    #ifdef BENCHMARK_PAR_OMP2
         #if _OPENMP >= 200203   // OpenMP 2.0
         {matmul_gemm_par_omp2_guided_schedule, "gemm_par_omp2_guided_schedule", 3.0},
         {matmul_gemm_par_omp2_static_schedule, "gemm_par_omp2_static_schedule", 3.0},
         #endif
+    #endif
+    #ifdef BENCHMARK_PAR_OMP3
         #if _OPENMP >= 200805   // OpenMP 3.0 (3.1=201107)
         {matmul_gemm_par_omp3_static_schedule_collapse, "gemm_par_omp3_static_schedule_collapse", 3.0},
         #endif
+    #endif
+    #ifdef BENCHMARK_PAR_OMP4
         #if _OPENMP >= 201307   // OpenMP 4.0
         {matmul_gemm_par_omp4, "gemm_par_omp4", 3.0},
         #endif
     #endif
-    #ifdef BENCHMARK_PAR_PHI_OFF_OPENMP
+    #ifdef BENCHMARK_PAR_PHI_OFF_OMP2
         #if _OPENMP >= 200203   // OpenMP 2.0
         {matmul_gemm_par_phi_off_omp2_guided_schedule, "gemm_par_phi_off_omp2_guided_schedule", 3.0},
         {matmul_gemm_par_phi_off_omp2_static_schedule, "gemm_par_phi_off_omp2_static_schedule", 3.0},
         #endif
+    #endif
+    #ifdef BENCHMARK_PAR_PHI_OFF_OMP3
         #if _OPENMP >= 200805   // OpenMP 3.0
         {matmul_gemm_par_phi_off_omp3_static_schedule_collapse, "gemm_par_phi_off_omp3_static_schedule_collapse", 3.0},
         #endif
+    #endif
+    #ifdef BENCHMARK_PAR_PHI_OFF_OMP4
         #if _OPENMP >= 201307   // OpenMP 4.0
         {matmul_gemm_par_phi_off_omp4, "gemm_par_phi_off_omp4", 3.0},
         #endif
     #endif
-    #ifdef BENCHMARK_PAR_STRASSEN_OMP
+    #ifdef BENCHMARK_PAR_STRASSEN_OMP2
         #if _OPENMP >= 200203   // OpenMP 2.0
         {matmul_gemm_par_strassen_omp2, "gemm_par_strassen_omp", 2.80735},   // 2.80735 = log(7.0) / log(2.0)
         #endif

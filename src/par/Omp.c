@@ -12,7 +12,7 @@
 //! HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
 
-#ifdef MATMUL_BUILD_PAR_OPENMP
+#if defined(MATMUL_BUILD_PAR_OMP2) || defined(MATMUL_BUILD_PAR_OMP3) || defined(MATMUL_BUILD_PAR_OMP4)
 
     #include <matmul/par/Omp.h>
 
@@ -22,203 +22,208 @@
 
     #include <stdio.h>              // printf
 
-    #if _OPENMP >= 200203   // OpenMP 2.0
-        //-----------------------------------------------------------------------------
-        //
-        //-----------------------------------------------------------------------------
-        void matmul_gemm_par_omp2_guided_schedule(
-            size_t const m, size_t const n, size_t const k,
-            TElem const alpha,
-            TElem const * const MATMUL_RESTRICT A, size_t const lda,
-            TElem const * const MATMUL_RESTRICT B, size_t const ldb,
-            TElem const beta,
-            TElem * const MATMUL_RESTRICT C, size_t const ldc)
-        {
-            if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
+    #ifdef MATMUL_BUILD_PAR_OMP2
+        #if _OPENMP >= 200203   // OpenMP 2.0
+            //-----------------------------------------------------------------------------
+            //
+            //-----------------------------------------------------------------------------
+            void matmul_gemm_par_omp2_guided_schedule(
+                size_t const m, size_t const n, size_t const k,
+                TElem const alpha,
+                TElem const * const MATMUL_RESTRICT A, size_t const lda,
+                TElem const * const MATMUL_RESTRICT B, size_t const ldb,
+                TElem const beta,
+                TElem * const MATMUL_RESTRICT C, size_t const ldc)
             {
-                return;
-            }
-
-            #pragma omp parallel// shared(n,lda,A,ldb,B,ldc,C)
-            {
-        #ifdef MATMUL_OPENMP_PRINT_NUM_CORES
-                #pragma omp single
+                if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
                 {
-                    printf(" p=%d ", omp_get_num_threads());
+                    return;
                 }
-        #endif
 
-        #if _OPENMP < 200805    // For OpenMP < 3.0 you have to declare the loop index outside of the loop header.
-                int iM = (int)m;
-                int i;
-                #pragma omp for schedule(guided)
-                for(i = 0; i < iM; ++i)
-        #else
-                #pragma omp for schedule(guided)
-                for(size_t i = 0; i < m; ++i)
-        #endif
+                #pragma omp parallel// shared(n,lda,A,ldb,B,ldc,C)
                 {
-                    for(size_t j = 0; j < n; ++j)
+            #ifdef MATMUL_OMP_PRINT_NUM_CORES
+                    #pragma omp single
                     {
-                        C[i*ldc + j] *= beta;
+                        printf(" p=%d ", omp_get_num_threads());
                     }
-                    for(size_t k2 = 0; k2 < k; ++k2)
-                    {
-                        TElem const a = alpha * A[i*lda + k2];
+            #endif
 
+            #if _OPENMP < 200805    // For OpenMP < 3.0 you have to declare the loop index outside of the loop header.
+                    int iM = (int)m;
+                    int i;
+                    #pragma omp for schedule(guided)
+                    for(i = 0; i < iM; ++i)
+            #else
+                    #pragma omp for schedule(guided)
+                    for(size_t i = 0; i < m; ++i)
+            #endif
+                    {
                         for(size_t j = 0; j < n; ++j)
                         {
-                            C[i*ldc + j] += a * B[k2*ldb + j];
+                            C[i*ldc + j] *= beta;
+                        }
+                        for(size_t k2 = 0; k2 < k; ++k2)
+                        {
+                            TElem const a = alpha * A[i*lda + k2];
+
+                            for(size_t j = 0; j < n; ++j)
+                            {
+                                C[i*ldc + j] += a * B[k2*ldb + j];
+                            }
                         }
                     }
                 }
             }
-        }
-
-        //-----------------------------------------------------------------------------
-        //
-        //-----------------------------------------------------------------------------
-        void matmul_gemm_par_omp2_static_schedule(
-            size_t const m, size_t const n, size_t const k,
-            TElem const alpha,
-            TElem const * const MATMUL_RESTRICT A, size_t const lda,
-            TElem const * const MATMUL_RESTRICT B, size_t const ldb,
-            TElem const beta,
-            TElem * const MATMUL_RESTRICT C, size_t const ldc)
-        {
-            if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
+            //-----------------------------------------------------------------------------
+            //
+            //-----------------------------------------------------------------------------
+            void matmul_gemm_par_omp2_static_schedule(
+                size_t const m, size_t const n, size_t const k,
+                TElem const alpha,
+                TElem const * const MATMUL_RESTRICT A, size_t const lda,
+                TElem const * const MATMUL_RESTRICT B, size_t const ldb,
+                TElem const beta,
+                TElem * const MATMUL_RESTRICT C, size_t const ldc)
             {
-                return;
-            }
-
-            #pragma omp parallel //shared(A,B,C)
-            {
-                #ifdef MATMUL_OPENMP_PRINT_NUM_CORES
-        #pragma omp single
+                if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
                 {
-                    printf(" p=%d ", omp_get_num_threads());
+                    return;
                 }
-        #endif
 
-        #if _OPENMP < 200805    // For OpenMP < 3.0 you have to declare the loop index outside of the loop header.
-                int iM = (int)m;
-                int i;
-                #pragma omp for schedule(static)
-                for(i = 0; i < iM; ++i)
-        #else
-                #pragma omp for schedule(static)
-                for(size_t i = 0; i < m; ++i)
-        #endif
+                #pragma omp parallel //shared(A,B,C)
                 {
-                    for(size_t j = 0; j < n; ++j)
+                    #ifdef MATMUL_OMP_PRINT_NUM_CORES
+            #pragma omp single
                     {
-                        C[i*ldc + j] *= beta;
+                        printf(" p=%d ", omp_get_num_threads());
                     }
-                    for(size_t k2 = 0; k2 < k; ++k2)
-                    {
-                        TElem const a = alpha * A[i*lda + k2];
+            #endif
 
+            #if _OPENMP < 200805    // For OpenMP < 3.0 you have to declare the loop index outside of the loop header.
+                    int iM = (int)m;
+                    int i;
+                    #pragma omp for schedule(static)
+                    for(i = 0; i < iM; ++i)
+            #else
+                    #pragma omp for schedule(static)
+                    for(size_t i = 0; i < m; ++i)
+            #endif
+                    {
                         for(size_t j = 0; j < n; ++j)
                         {
-                            C[i*ldc + j] += a * B[k2*ldb + j];
+                            C[i*ldc + j] *= beta;
+                        }
+                        for(size_t k2 = 0; k2 < k; ++k2)
+                        {
+                            TElem const a = alpha * A[i*lda + k2];
+
+                            for(size_t j = 0; j < n; ++j)
+                            {
+                                C[i*ldc + j] += a * B[k2*ldb + j];
+                            }
                         }
                     }
                 }
             }
-        }
-    #endif
-    #if _OPENMP >= 200805   // OpenMP 3.0
-        //-----------------------------------------------------------------------------
-        //
-        //-----------------------------------------------------------------------------
-        void matmul_gemm_par_omp3_static_schedule_collapse(
-            size_t const m, size_t const n, size_t const k,
-            TElem const alpha,
-            TElem const * const MATMUL_RESTRICT A,  size_t const lda,
-            TElem const * const MATMUL_RESTRICT B,  size_t const ldb,
-            TElem const beta,
-            TElem * const MATMUL_RESTRICT C,  size_t const ldc)
-        {
-            if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
-            {
-                return;
-            }
-
-            #pragma omp parallel //shared(A,B,C)
-            {
-        #ifdef MATMUL_OPENMP_PRINT_NUM_CORES
-                #pragma omp single
-                {
-                    printf(" p=%d ", omp_get_num_threads());
-                }
         #endif
-
-                #pragma omp for collapse(2) schedule(static)
-                for(size_t i = 0; i < m; ++i)
-                {
-                    for(size_t j = 0; j < n; ++j)
-                    {
-                        C[i*ldc + j] *= beta;
-                    }
-                }
-
-                // NOTE:
-                // - ikj-order not possible.
-                // - In ijk order we can only collapse the outer two loops.
-                // Both restrictions are due to the non-atomic write to C (multiple threads could write to the same indices i and j of C)
-                #pragma omp for collapse(2) schedule(static)    // http://software.intel.com/en-us/articles/openmp-loop-collapse-directive
-                for(size_t i = 0; i < m; ++i)
-                {
-                    for(size_t j = 0; j < n; ++j)
-                    {
-                        for(size_t k2 = 0; k2 < k; ++k2)
-                        {
-                            C[i*ldc + j] += alpha * A[i*lda + k2] * B[k2*ldb + j];
-                        }
-                    }
-                }
-            }
-        }
     #endif
-    #if _OPENMP >= 201307   // OpenMP 4.0
-        //-----------------------------------------------------------------------------
-        //
-        //-----------------------------------------------------------------------------
-        void matmul_gemm_par_omp4(
-            size_t const m, size_t const n, size_t const k,
-            TElem const alpha,
-            TElem const * const MATMUL_RESTRICT A,  size_t const lda,
-            TElem const * const MATMUL_RESTRICT B,  size_t const ldb,
-            TElem const beta,
-            TElem * const MATMUL_RESTRICT C,  size_t const ldc)
-        {
-            if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
+    #ifdef MATMUL_BUILD_PAR_OMP3
+        #if _OPENMP >= 200805   // OpenMP 3.0
+            //-----------------------------------------------------------------------------
+            //
+            //-----------------------------------------------------------------------------
+            void matmul_gemm_par_omp3_static_schedule_collapse(
+                size_t const m, size_t const n, size_t const k,
+                TElem const alpha,
+                TElem const * const MATMUL_RESTRICT A,  size_t const lda,
+                TElem const * const MATMUL_RESTRICT B,  size_t const ldb,
+                TElem const beta,
+                TElem * const MATMUL_RESTRICT C,  size_t const ldc)
             {
-                return;
-            }
-            #pragma omp target if(0) map(to: m, n, k, alpha, A[0:lda*m], lda, B[0:ldb*k], ldb, beta, ldc) map(tofrom: C[0:ldc*m])
-
-            #pragma omp teams /*num_teams(...) thread_limit(...)*/
-            {
-                #pragma omp distribute
-                for(size_t i = 0; i < m; ++i)
+                if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
                 {
-                    #pragma omp parallel for  /*num_threads(...)*/ schedule(static)
-                    for(size_t j = 0; j < n; ++j)
+                    return;
+                }
+
+                #pragma omp parallel //shared(A,B,C)
+                {
+            #ifdef MATMUL_OMP_PRINT_NUM_CORES
+                    #pragma omp single
                     {
-                        C[i*ldc + j] *= beta;
+                        printf(" p=%d ", omp_get_num_threads());
                     }
-                    // NOTE: ikj-order not possible due to the non-atomic write to C (multiple threads could write to the same indices i and j of C)
-                    #pragma omp parallel for  /*num_threads(...)*/ schedule(static)
-                    for(size_t j = 0; j < n; ++j)
+            #endif
+
+                    #pragma omp for collapse(2) schedule(static)
+                    for(size_t i = 0; i < m; ++i)
                     {
-                        for(size_t k2 = 0; k2 < k; ++k2)
+                        for(size_t j = 0; j < n; ++j)
                         {
-                            C[i*ldc + j] += alpha * A[i*lda + k2] * B[k2*ldb + j];
+                            C[i*ldc + j] *= beta;
+                        }
+                    }
+
+                    // NOTE:
+                    // - ikj-order not possible.
+                    // - In ijk order we can only collapse the outer two loops.
+                    // Both restrictions are due to the non-atomic write to C (multiple threads could write to the same indices i and j of C)
+                    #pragma omp for collapse(2) schedule(static)    // http://software.intel.com/en-us/articles/openmp-loop-collapse-directive
+                    for(size_t i = 0; i < m; ++i)
+                    {
+                        for(size_t j = 0; j < n; ++j)
+                        {
+                            for(size_t k2 = 0; k2 < k; ++k2)
+                            {
+                                C[i*ldc + j] += alpha * A[i*lda + k2] * B[k2*ldb + j];
+                            }
                         }
                     }
                 }
             }
-        }
+        #endif
+    #endif
+    #ifdef MATMUL_BUILD_PAR_OMP2
+        #if _OPENMP >= 201307   // OpenMP 4.0
+            //-----------------------------------------------------------------------------
+            //
+            //-----------------------------------------------------------------------------
+            void matmul_gemm_par_omp4(
+                size_t const m, size_t const n, size_t const k,
+                TElem const alpha,
+                TElem const * const MATMUL_RESTRICT A,  size_t const lda,
+                TElem const * const MATMUL_RESTRICT B,  size_t const ldb,
+                TElem const beta,
+                TElem * const MATMUL_RESTRICT C,  size_t const ldc)
+            {
+                if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
+                {
+                    return;
+                }
+                #pragma omp target if(0) map(to: m, n, k, alpha, A[0:lda*m], lda, B[0:ldb*k], ldb, beta, ldc) map(tofrom: C[0:ldc*m])
+
+                #pragma omp teams /*num_teams(...) thread_limit(...)*/
+                {
+                    #pragma omp distribute
+                    for(size_t i = 0; i < m; ++i)
+                    {
+                        #pragma omp parallel for  /*num_threads(...)*/ schedule(static)
+                        for(size_t j = 0; j < n; ++j)
+                        {
+                            C[i*ldc + j] *= beta;
+                        }
+                        // NOTE: ikj-order not possible due to the non-atomic write to C (multiple threads could write to the same indices i and j of C)
+                        #pragma omp parallel for  /*num_threads(...)*/ schedule(static)
+                        for(size_t j = 0; j < n; ++j)
+                        {
+                            for(size_t k2 = 0; k2 < k; ++k2)
+                            {
+                                C[i*ldc + j] += alpha * A[i*lda + k2] * B[k2*ldb + j];
+                            }
+                        }
+                    }
+                }
+            }
+        #endif
     #endif
 #endif
