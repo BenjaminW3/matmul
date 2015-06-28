@@ -14,7 +14,7 @@
 //! HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
 
-#ifdef MATMUL_BUILD_SEQ_MULTIPLE_OPTS
+#if defined(MATMUL_BUILD_SEQ_MULTIPLE_OPTS) || defined(MATMUL_BUILD_SEQ_MULTIPLE_OPTS_BLOCK)
 
     #include <matmul/common/Config.h>   // TElem
 
@@ -24,74 +24,54 @@
         extern "C"
         {
     #endif
-    //-----------------------------------------------------------------------------
-    //! (S/D)GEMM matrix-matrix product C := A * B + C using an optimized (non-blocked) version of the basic sequential algorithm.
-    //!
-    //! \param m Specifies the number of rows of the matrix A and of the matrix C.
-    //! \param n Specifies the number of columns of the matrix B and the number of columns of the matrix C.
-    //! \param k Specifies the number of columns of the matrix A and the number of rows of the matrix B.
-    //! \param alpha Scalar value used to scale the product of matrices A and B.
-    //! \param A Array, size lda-by-k. The leading m-by-k part of the array must contain the matrix A.
-    //! \param lda Specifies the leading dimension of A.
-    //! \param B Array, size ldb-by-n. The leading k-by-n part of the array must contain the matrix B.
-    //! \param ldb Specifies the leading dimension of B.
-    //! \param beta Scalar value used to scale matrix C.
-    //! \param C Array, size ldc-by-n. The leading m-by-n part of the array must contain the matrix C.
-    //! \param ldc Specifies the leading dimension of C.
-    //-----------------------------------------------------------------------------
-    void matmul_gemm_seq_multiple_opts_no_block(
-        size_t const m, size_t const n, size_t const k,
-        TElem const alpha,
-        TElem const * const MATMUL_RESTRICT A, size_t const lda,
-        TElem const * const MATMUL_RESTRICT B, size_t const ldb,
-        TElem const beta,
-        TElem * const MATMUL_RESTRICT C, size_t const ldc);
-
-    //-----------------------------------------------------------------------------
-    //! (S/D)GEMM matrix-matrix product C := A * B + C using an optimized (blocked) version of the basic sequential algorithm.
-    //!
-    //! \param m Specifies the number of rows of the matrix A and of the matrix C.
-    //! \param n Specifies the number of columns of the matrix B and the number of columns of the matrix C.
-    //! \param k Specifies the number of columns of the matrix A and the number of rows of the matrix B.
-    //! \param alpha Scalar value used to scale the product of matrices A and B.
-    //! \param A Array, size lda-by-k. The leading m-by-k part of the array must contain the matrix A.
-    //! \param lda Specifies the leading dimension of A.
-    //! \param B Array, size ldb-by-n. The leading k-by-n part of the array must contain the matrix B.
-    //! \param ldb Specifies the leading dimension of B.
-    //! \param beta Scalar value used to scale matrix C.
-    //! \param C Array, size ldc-by-n. The leading m-by-n part of the array must contain the matrix C.
-    //! \param ldc Specifies the leading dimension of C.
-    //-----------------------------------------------------------------------------
-    void matmul_gemm_seq_multiple_opts_block(
-        size_t const m, size_t const n, size_t const k,
-        TElem const alpha,
-        TElem const * const MATMUL_RESTRICT A, size_t const lda,
-        TElem const * const MATMUL_RESTRICT B, size_t const ldb,
-        TElem const beta,
-        TElem * const MATMUL_RESTRICT C, size_t const ldc);
-
-    //-----------------------------------------------------------------------------
-    //! (S/D)GEMM matrix-matrix product C := A * B + C using an optimized version of the basic sequential algorithm (blocked/non-blocked is selcetd depending on size).
-    //!
-    //! \param m Specifies the number of rows of the matrix A and of the matrix C.
-    //! \param n Specifies the number of columns of the matrix B and the number of columns of the matrix C.
-    //! \param k Specifies the number of columns of the matrix A and the number of rows of the matrix B.
-    //! \param alpha Scalar value used to scale the product of matrices A and B.
-    //! \param A Array, size lda-by-k. The leading m-by-k part of the array must contain the matrix A.
-    //! \param lda Specifies the leading dimension of A.
-    //! \param B Array, size ldb-by-n. The leading k-by-n part of the array must contain the matrix B.
-    //! \param ldb Specifies the leading dimension of B.
-    //! \param beta Scalar value used to scale matrix C.
-    //! \param C Array, size ldc-by-n. The leading m-by-n part of the array must contain the matrix C.
-    //! \param ldc Specifies the leading dimension of C.
-    //-----------------------------------------------------------------------------
-    void matmul_gemm_seq_multiple_opts(
-        size_t const m, size_t const n, size_t const k,
-        TElem const alpha,
-        TElem const * const MATMUL_RESTRICT A, size_t const lda,
-        TElem const * const MATMUL_RESTRICT B, size_t const ldb,
-        TElem const beta,
-        TElem * const MATMUL_RESTRICT C, size_t const ldc);
+    #ifdef MATMUL_BUILD_SEQ_MULTIPLE_OPTS
+        //-----------------------------------------------------------------------------
+        //! (S/D)GEMM matrix-matrix product C := A * B + C using an optimized (non-blocked) version of the basic sequential algorithm.
+        //!
+        //! \param m Specifies the number of rows of the matrix A and of the matrix C.
+        //! \param n Specifies the number of columns of the matrix B and the number of columns of the matrix C.
+        //! \param k Specifies the number of columns of the matrix A and the number of rows of the matrix B.
+        //! \param alpha Scalar value used to scale the product of matrices A and B.
+        //! \param A Array, size lda-by-k. The leading m-by-k part of the array must contain the matrix A.
+        //! \param lda Specifies the leading dimension of A.
+        //! \param B Array, size ldb-by-n. The leading k-by-n part of the array must contain the matrix B.
+        //! \param ldb Specifies the leading dimension of B.
+        //! \param beta Scalar value used to scale matrix C.
+        //! \param C Array, size ldc-by-n. The leading m-by-n part of the array must contain the matrix C.
+        //! \param ldc Specifies the leading dimension of C.
+        //-----------------------------------------------------------------------------
+        void matmul_gemm_seq_multiple_opts(
+            size_t const m, size_t const n, size_t const k,
+            TElem const alpha,
+            TElem const * const MATMUL_RESTRICT A, size_t const lda,
+            TElem const * const MATMUL_RESTRICT B, size_t const ldb,
+            TElem const beta,
+            TElem * const MATMUL_RESTRICT C, size_t const ldc);
+    #endif
+    #ifdef MATMUL_BUILD_SEQ_MULTIPLE_OPTS_BLOCK
+        //-----------------------------------------------------------------------------
+        //! (S/D)GEMM matrix-matrix product C := A * B + C using an optimized (blocked) version of the basic sequential algorithm.
+        //!
+        //! \param m Specifies the number of rows of the matrix A and of the matrix C.
+        //! \param n Specifies the number of columns of the matrix B and the number of columns of the matrix C.
+        //! \param k Specifies the number of columns of the matrix A and the number of rows of the matrix B.
+        //! \param alpha Scalar value used to scale the product of matrices A and B.
+        //! \param A Array, size lda-by-k. The leading m-by-k part of the array must contain the matrix A.
+        //! \param lda Specifies the leading dimension of A.
+        //! \param B Array, size ldb-by-n. The leading k-by-n part of the array must contain the matrix B.
+        //! \param ldb Specifies the leading dimension of B.
+        //! \param beta Scalar value used to scale matrix C.
+        //! \param C Array, size ldc-by-n. The leading m-by-n part of the array must contain the matrix C.
+        //! \param ldc Specifies the leading dimension of C.
+        //-----------------------------------------------------------------------------
+        void matmul_gemm_seq_multiple_opts_block(
+            size_t const m, size_t const n, size_t const k,
+            TElem const alpha,
+            TElem const * const MATMUL_RESTRICT A, size_t const lda,
+            TElem const * const MATMUL_RESTRICT B, size_t const ldb,
+            TElem const beta,
+            TElem * const MATMUL_RESTRICT C, size_t const ldc);
+    #endif
     #ifdef __cplusplus
         }
     #endif

@@ -85,14 +85,12 @@
         alpaka::mem::view::copy(bufCAcc, bufCHost, v2uiExtentsC, stream);
 
         // Let alpaka calculate good block and grid sizes given our full problem extents.
-        alpaka::workdiv::WorkDivMembers<alpaka::dim::Dim2> workDiv(
-            alpaka::workdiv::getValidWorkDiv<boost::mpl::vector<TAcc>>(v2uiExtentsC, false));
-        // Assure that the extents are square.
-        auto const uiMinExtent(std::min(workDiv.m_vuiBlockThreadExtents[0u], workDiv.m_vuiBlockThreadExtents[1u]));
-        workDiv.m_vuiGridBlockExtents[0u] = static_cast<alpaka::Vec2<>::Val>(std::ceil(static_cast<double>(m) / static_cast<double>(uiMinExtent)));
-        workDiv.m_vuiBlockThreadExtents[0u] = uiMinExtent;
-        workDiv.m_vuiGridBlockExtents[1u] = static_cast<alpaka::Vec2<>::Val>(std::ceil(static_cast<double>(n) / static_cast<double>(uiMinExtent)));
-        workDiv.m_vuiBlockThreadExtents[1u] = uiMinExtent;
+        alpaka::workdiv::WorkDivMembers<alpaka::dim::Dim2> const workDiv(
+            alpaka::workdiv::getValidWorkDiv<TAcc>(
+                devAcc,
+                v2uiExtentsC,
+                false,
+                alpaka::workdiv::BlockExtentsSubDivRestrictions::EqualExtents));
 
         // Create the executor.
         auto exec(alpaka::exec::create<TAcc>(workDiv, stream));
@@ -104,12 +102,12 @@
             k,
             alpha,
             alpaka::mem::view::getPtrNative(bufAAcc),
-            alpaka::mem::view::getPitchElements<1u, std::size_t>(bufAAcc),
+            alpaka::mem::view::getPitchBytes<1u, std::size_t>(bufAAcc) / sizeof(TElem),
             alpaka::mem::view::getPtrNative(bufBAcc),
-            alpaka::mem::view::getPitchElements<1u, std::size_t>(bufBAcc),
+            alpaka::mem::view::getPitchBytes<1u, std::size_t>(bufBAcc) / sizeof(TElem),
             beta,
             alpaka::mem::view::getPtrNative(bufCAcc),
-            alpaka::mem::view::getPitchElements<1u, std::size_t>(bufCAcc));
+            alpaka::mem::view::getPitchBytes<1u, std::size_t>(bufCAcc) / sizeof(TElem));
 
         // Copy back the result.
         alpaka::mem::view::copy(bufCHost, bufCAcc, v2uiExtentsC, stream);

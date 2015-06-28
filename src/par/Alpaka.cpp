@@ -52,14 +52,12 @@
             static_cast<alpaka::Vec2<>::Val>(n));
 
         // Let alpaka calculate good block and grid sizes given our full problem extents.
-        alpaka::workdiv::WorkDivMembers<alpaka::dim::Dim2> workDiv(
-            alpaka::workdiv::getValidWorkDiv<boost::mpl::vector<TAcc>>(v2uiExtentsC, false));
-        // Assure that the extents are square.
-        auto const uiMinExtent(std::min(workDiv.m_vuiBlockThreadExtents[0u], workDiv.m_vuiBlockThreadExtents[1u]));
-        workDiv.m_vuiGridBlockExtents[0u] = static_cast<alpaka::Vec2<>::Val>(std::ceil(static_cast<double>(m) / static_cast<double>(uiMinExtent)));
-        workDiv.m_vuiBlockThreadExtents[0u] = uiMinExtent;
-        workDiv.m_vuiGridBlockExtents[1u] = static_cast<alpaka::Vec2<>::Val>(std::ceil(static_cast<double>(n) / static_cast<double>(uiMinExtent)));
-        workDiv.m_vuiBlockThreadExtents[1u] = uiMinExtent;
+        alpaka::workdiv::WorkDivMembers<alpaka::dim::Dim2> const workDiv(
+            alpaka::workdiv::getValidWorkDiv<TAcc>(
+                devHost,
+                v2uiExtentsC,
+                false,
+                alpaka::workdiv::BlockExtentsSubDivRestrictions::EqualExtents));
 
         // Create the executor.
         auto exec(alpaka::exec::create<TAcc>(workDiv, stream));

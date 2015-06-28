@@ -318,7 +318,7 @@ measureRandomMatMuls(
         // Table heading
         for(size_t uiAlgoIdx = 0; uiAlgoIdx < uiNumAlgos; ++uiAlgoIdx)
         {
-                printf("\t%s", pMatMulAlgos[uiAlgoIdx].pszName);
+                printf(" \t%s", pMatMulAlgos[uiAlgoIdx].pszName);
         }
 #ifdef MATMUL_MPI
     }
@@ -460,9 +460,10 @@ int main(
         {matmul_gemm_seq_loop_unroll_16, "gemm_seq_loop_unroll_16", 3.0},
         {matmul_gemm_seq_block, "gemm_seq_block", 3.0},
     #endif
-    #ifdef BENCHMARK_SEQ_MULTIPLE_OPTS
+    #ifdef BENCHMARK_SEQ_MULTIPLE_OPTS_BLOCK
         {matmul_gemm_seq_multiple_opts_block, "gemm_seq_complete_opt_block", 3.0},
-        {matmul_gemm_seq_multiple_opts_no_block, "gemm_seq_complete_opt_no_block", 3.0},
+    #endif
+    #ifdef BENCHMARK_SEQ_MULTIPLE_OPTS
         {matmul_gemm_seq_multiple_opts, "gemm_seq_complete_opt", 3.0},
     #endif
     #ifdef BENCHMARK_SEQ_STRASSEN
