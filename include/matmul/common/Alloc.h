@@ -14,9 +14,7 @@
 //! HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
 
-#include <matmul/common/Config.h>
-
-#include <stddef.h>    // size_t
+#include <matmul/common/Config.h>   // TElem
 
 #ifdef __cplusplus
     extern "C"
@@ -28,7 +26,7 @@
 //! \param uiNumElements The number of elements in the matrix.
 //-----------------------------------------------------------------------------
 TElem * matmul_arr_alloc(
-    size_t const uiNumBytes);
+    TIdx const uiNumBytes);
 
 //-----------------------------------------------------------------------------
 //! \return A array of random values of the given type.

@@ -32,10 +32,10 @@
         //
         //-----------------------------------------------------------------------------
         void matmul_mat_add_pitch_par_omp2(
-            size_t const m, size_t const n,
-            TElem const * const MATMUL_RESTRICT A, size_t const lda,
-            TElem const * const MATMUL_RESTRICT B, size_t const ldb,
-            TElem * const MATMUL_RESTRICT C, size_t const ldc)
+            TIdx const m, TIdx const n,
+            TElem const * const MATMUL_RESTRICT A, TIdx const lda,
+            TElem const * const MATMUL_RESTRICT B, TIdx const ldb,
+            TElem * const MATMUL_RESTRICT C, TIdx const ldc)
         {
         #if _OPENMP < 200805    // For OpenMP < 3.0 you have to declare the loop index outside of the loop header.
             int iM = (int)m;
@@ -44,10 +44,10 @@
             for(i = 0; i < iM; ++i)
         #else
             #pragma omp parallel for
-            for(size_t i = 0; i < m; ++i)
+            for(TIdx i = 0; i < m; ++i)
         #endif
             {
-                for(size_t j = 0; j < n; ++j)
+                for(TIdx j = 0; j < n; ++j)
                 {
                     C[i*ldc + j] = A[i*lda + j] + B[i*ldb + j];
                 }
@@ -57,9 +57,9 @@
         //
         //-----------------------------------------------------------------------------
         void matmul_mat_add2_pitch_par_omp2(
-            size_t const m, size_t const n,
-            TElem const * const MATMUL_RESTRICT A, size_t const lda,
-            TElem * const MATMUL_RESTRICT C, size_t const ldc)
+            TIdx const m, TIdx const n,
+            TElem const * const MATMUL_RESTRICT A, TIdx const lda,
+            TElem * const MATMUL_RESTRICT C, TIdx const ldc)
         {
         #if _OPENMP < 200805    // For OpenMP < 3.0 you have to declare the loop index outside of the loop header.
             int iM = (int)m;
@@ -68,10 +68,10 @@
             for(i = 0; i < iM; ++i)
         #else
             #pragma omp parallel for
-            for(size_t i = 0; i < m; ++i)
+            for(TIdx i = 0; i < m; ++i)
         #endif
             {
-                for(size_t j = 0; j < n; ++j)
+                for(TIdx j = 0; j < n; ++j)
                 {
                     C[i*ldc + j] += A[i*lda + j];
                 }
@@ -81,10 +81,10 @@
         //
         //-----------------------------------------------------------------------------
         void matmul_mat_sub_pitch_par_omp2(
-            size_t const m, size_t const n,
-            TElem const * const MATMUL_RESTRICT A, size_t const lda,
-            TElem const * const MATMUL_RESTRICT B, size_t const ldb,
-            TElem * const MATMUL_RESTRICT C, size_t const ldc)
+            TIdx const m, TIdx const n,
+            TElem const * const MATMUL_RESTRICT A, TIdx const lda,
+            TElem const * const MATMUL_RESTRICT B, TIdx const ldb,
+            TElem * const MATMUL_RESTRICT C, TIdx const ldc)
         {
         #if _OPENMP < 200805    // For OpenMP < 3.0 you have to declare the loop index outside of the loop header.
             int iM = (int)m;
@@ -93,10 +93,10 @@
             for(i = 0; i < iM; ++i)
         #else
             #pragma omp parallel for
-            for(size_t i = 0; i < m; ++i)
+            for(TIdx i = 0; i < m; ++i)
         #endif
             {
-                for(size_t j = 0; j < n; ++j)
+                for(TIdx j = 0; j < n; ++j)
                 {
                     C[i*ldc + j] = A[i*lda + j] - B[i*ldb + j];
                 }
@@ -107,12 +107,12 @@
         //
         //-----------------------------------------------------------------------------
         void matmul_gemm_par_strassen_omp2(
-            size_t const m, size_t const n, size_t const k,
+            TIdx const m, TIdx const n, TIdx const k,
             TElem const alpha,
-            TElem const * const MATMUL_RESTRICT X, size_t const lda,
-            TElem const * const MATMUL_RESTRICT Y, size_t const ldb,
+            TElem const * const MATMUL_RESTRICT X, TIdx const lda,
+            TElem const * const MATMUL_RESTRICT Y, TIdx const ldb,
             TElem const beta,
-            TElem * const MATMUL_RESTRICT Z, size_t const ldc)
+            TElem * const MATMUL_RESTRICT Z, TIdx const ldc)
         {
             if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
             {
@@ -129,10 +129,10 @@
                 for(i = 0; i < iM; ++i)
         #else
                 #pragma omp parallel for
-                for(size_t i = 0; i < m; ++i)
+                for(TIdx i = 0; i < m; ++i)
         #endif
                 {
-                    for(size_t j = 0; j < n; ++j)
+                    for(TIdx j = 0; j < n; ++j)
                     {
                         Z[i*ldc + j] *= beta;
                     }
@@ -154,22 +154,22 @@
                     return;
                 }
 
-                size_t const h = n/2;      // size of sub-matrices
+                TIdx const h = n/2;             // size of sub-matrices
 
-                TElem const * const A = X;    // A-D matrices embedded in X
+                TElem const * const A = X;      // A-D matrices embedded in X
                 TElem const * const B = X + h;
                 TElem const * const C = X + h*lda;
                 TElem const * const D = C + h;
 
-                TElem const * const E = Y;    // E-H matrices embeded in Y
+                TElem const * const E = Y;      // E-H matrices embeded in Y
                 TElem const * const F = Y + h;
                 TElem const * const G = Y + h*ldb;
                 TElem const * const H = G + h;
 
                 // Allocate temporary matrices.
-                size_t const uiNumElements = h * h;
+                TIdx const uiNumElements = h * h;
                 TElem * P[7];
-                for(size_t i = 0; i < 7; ++i)
+                for(TIdx i = 0; i < 7; ++i)
                 {
                     P[i] = matmul_arr_alloc_zero_fill(uiNumElements);
                 }
@@ -259,7 +259,7 @@
                 // Deallocate temporary matrices.
                 matmul_arr_free(U);
                 matmul_arr_free(T);
-                for(size_t i = 0; i < 7; ++i)
+                for(TIdx i = 0; i < 7; ++i)
                 {
                     matmul_arr_free(P[i]);
                 }

@@ -29,12 +29,12 @@
             // http://www.cism.ucl.ac.be/Services/Formations/Accelerators.pdf !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             //-----------------------------------------------------------------------------
             void matmul_gemm_par_phi_off_omp2_guided_schedule(
-                size_t const m, size_t const n, size_t const k,
+                TIdx const m, TIdx const n, TIdx const k,
                 TElem const alpha,
-                TElem const * const MATMUL_RESTRICT A, size_t const lda,
-                TElem const * const MATMUL_RESTRICT B, size_t const ldb,
+                TElem const * const MATMUL_RESTRICT A, TIdx const lda,
+                TElem const * const MATMUL_RESTRICT B, TIdx const ldb,
                 TElem const beta,
-                TElem * const MATMUL_RESTRICT C, size_t const ldc)
+                TElem * const MATMUL_RESTRICT C, TIdx const ldc)
             {
                 if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
                 {
@@ -58,18 +58,18 @@
                     for(i = 0; i < iM; ++i)
             #else
                     #pragma omp for schedule(guided)
-                    for(size_t i = 0; i < m; ++i)
+                    for(TIdx i = 0; i < m; ++i)
             #endif
                     {
-                        for(size_t j = 0; j < n; ++j)
+                        for(TIdx j = 0; j < n; ++j)
                         {
                             C[i*ldc + j] *= beta;
                         }
-                        for(size_t k2 = 0; k2 < k; ++k2)
+                        for(TIdx k2 = 0; k2 < k; ++k2)
                         {
                             TElem const a = alpha * A[i*lda + k2];
 
-                            for(size_t j = 0; j < n; ++j)
+                            for(TIdx j = 0; j < n; ++j)
                             {
                                 C[i*ldc + j] += a * B[k2*ldb + j];
                             }
@@ -82,12 +82,12 @@
             //
             //-----------------------------------------------------------------------------
             void matmul_gemm_par_phi_off_omp2_static_schedule(
-                size_t const m, size_t const n, size_t const k,
+                TIdx const m, TIdx const n, TIdx const k,
                 TElem const alpha,
-                TElem const * const MATMUL_RESTRICT A, size_t const lda,
-                TElem const * const MATMUL_RESTRICT B, size_t const ldb,
+                TElem const * const MATMUL_RESTRICT A, TIdx const lda,
+                TElem const * const MATMUL_RESTRICT B, TIdx const ldb,
                 TElem const beta,
-                TElem * const MATMUL_RESTRICT C, size_t const ldc)
+                TElem * const MATMUL_RESTRICT C, TIdx const ldc)
             {
                 if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
                 {
@@ -111,18 +111,18 @@
                     for(i = 0; i < iM; ++i)
             #else
                     #pragma omp for schedule(static)
-                    for(size_t i = 0; i < m; ++i)
+                    for(TIdx i = 0; i < m; ++i)
             #endif
                     {
-                        for(size_t j = 0; j < n; ++j)
+                        for(TIdx j = 0; j < n; ++j)
                         {
                             C[i*ldc + j] *= beta;
                         }
-                        for(size_t k2 = 0; k2 < k; ++k2)
+                        for(TIdx k2 = 0; k2 < k; ++k2)
                         {
                             TElem const a = alpha * A[i*lda + k2];
 
-                            for(size_t j = 0; j < n; ++j)
+                            for(TIdx j = 0; j < n; ++j)
                             {
                                 C[i*ldc + j] += a * B[k2*ldb + j];
                             }
@@ -138,12 +138,12 @@
             // http://software.intel.com/en-us/articles/openmp-loop-collapse-directive
             //-----------------------------------------------------------------------------
             void matmul_gemm_par_phi_off_omp3_static_schedule_collapse(
-                size_t const m, size_t const n, size_t const k,
+                TIdx const m, TIdx const n, TIdx const k,
                 TElem const alpha,
-                TElem const * const MATMUL_RESTRICT A, size_t const lda,
-                TElem const * const MATMUL_RESTRICT B, size_t const ldb,
+                TElem const * const MATMUL_RESTRICT A, TIdx const lda,
+                TElem const * const MATMUL_RESTRICT B, TIdx const ldb,
                 TElem const beta,
-                TElem * const MATMUL_RESTRICT C, size_t const ldc)
+                TElem * const MATMUL_RESTRICT C, TIdx const ldc)
             {
                 if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
                 {
@@ -161,9 +161,9 @@
             #endif
 
                     #pragma omp for collapse(2) schedule(static)
-                    for(size_t i = 0; i < m; ++i)
+                    for(TIdx i = 0; i < m; ++i)
                     {
-                        for(size_t j = 0; j < n; ++j)
+                        for(TIdx j = 0; j < n; ++j)
                         {
                             C[i*ldc + j] *= beta;
                         }
@@ -174,11 +174,11 @@
                     // - In ijk order we can only collapse the outer two loops.
                     // Both restrictions are due to the non-atomic write to C (multiple threads could write to the same indices i and j of C)
                     #pragma omp for collapse(2) schedule(static)
-                    for(size_t i = 0; i < m; ++i)
+                    for(TIdx i = 0; i < m; ++i)
                     {
-                        for(size_t j = 0; j < n; ++j)
+                        for(TIdx j = 0; j < n; ++j)
                         {
-                            for(size_t k2 = 0; k2 < k; ++k2)
+                            for(TIdx k2 = 0; k2 < k; ++k2)
                             {
                                 C[i*ldc + j] += alpha * A[i*lda + k2] * B[k2*ldb + j];
                             }
@@ -194,12 +194,12 @@
             //
             //-----------------------------------------------------------------------------
             void matmul_gemm_par_phi_off_omp4(
-                size_t const m, size_t const n, size_t const k,
+                TIdx const m, TIdx const n, TIdx const k,
                 TElem const alpha,
-                TElem const * const MATMUL_RESTRICT A,  size_t const lda,
-                TElem const * const MATMUL_RESTRICT B,  size_t const ldb,
+                TElem const * const MATMUL_RESTRICT A,  TIdx const lda,
+                TElem const * const MATMUL_RESTRICT B,  TIdx const ldb,
                 TElem const beta,
-                TElem * const MATMUL_RESTRICT C,  size_t const ldc)
+                TElem * const MATMUL_RESTRICT C,  TIdx const ldc)
             {
                 if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
                 {
@@ -211,18 +211,18 @@
                 #pragma omp teams /*num_teams(...) thread_limit(...)*/
                 {
                     #pragma omp distribute
-                    for(size_t i = 0; i < m; ++i)
+                    for(TIdx i = 0; i < m; ++i)
                     {
                         #pragma omp parallel for  /*num_threads(...)*/ schedule(static)
-                        for(size_t j = 0; j < n; ++j)
+                        for(TIdx j = 0; j < n; ++j)
                         {
                             C[i*ldc + j] *= beta;
                         }
                         // NOTE: ikj-order not possible due to the non-atomic write to C (multiple threads could write to the same indices i and j of C)
                         #pragma omp parallel for  /*num_threads(...)*/ schedule(static)
-                        for(size_t j = 0; j < n; ++j)
+                        for(TIdx j = 0; j < n; ++j)
                         {
-                            for(size_t k2 = 0; k2 < k; ++k2)
+                            for(TIdx k2 = 0; k2 < k; ++k2)
                             {
                                 C[i*ldc + j] += alpha * A[i*lda + k2] * B[k2*ldb + j];
                             }

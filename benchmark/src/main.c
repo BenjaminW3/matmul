@@ -70,7 +70,7 @@
 //-----------------------------------------------------------------------------
 typedef struct SMatMulAlgo
 {
-    void(*pMatMul)(size_t const, size_t const, size_t const, TElem const, TElem const * const, size_t const, TElem const * const, size_t const, TElem const, TElem * const, size_t const);
+    void(*pMatMul)(TIdx const, TIdx const, TIdx const, TElem const, TElem const * const, TIdx const, TElem const * const, TIdx const, TElem const, TElem * const, TIdx const);
     char const * pszName;
     double const fExponentOmega;
 } SMatMulAlgo;
@@ -81,8 +81,8 @@ typedef struct SMatMulAlgo
 //-----------------------------------------------------------------------------
 double measureRandomMatMul(
     SMatMulAlgo const * const algo,
-    size_t const m, size_t const n, size_t const k,
-    size_t const uiRepeatCount
+    TIdx const m, TIdx const n, TIdx const k,
+    TIdx const uiRepeatCount
  #ifdef BENCHMARK_VERIFY_RESULT
     ,bool * pbResultsCorrect
 #endif
@@ -94,7 +94,7 @@ double measureRandomMatMul(
 
     // Allocate and initialize the matrices of the given size.
 #ifdef MATMUL_MPI
-    size_t const uiNumElements = n * n;
+    TIdx const uiNumElements = n * n;
     TElem const * /*const*/ A = 0;
     TElem const * /*const*/ B = 0;
     TElem * /*const*/ C = 0;
@@ -114,7 +114,7 @@ double measureRandomMatMul(
     #endif
     }
 #else
-    size_t const uiNumElements = n * n;
+    TIdx const uiNumElements = n * n;
     TElem const * const A = matmul_arr_alloc_rand_fill(uiNumElements);
     TElem const * const B = matmul_arr_alloc_rand_fill(uiNumElements);
     TElem * const C = matmul_arr_alloc(uiNumElements);
@@ -131,7 +131,7 @@ double measureRandomMatMul(
 #endif
 
     // Iterate.
-    for(size_t i = 0; i < uiRepeatCount; ++i)
+    for(TIdx i = 0; i < uiRepeatCount; ++i)
     {
 #ifdef MATMUL_MPI
         if(iRank1D==MATMUL_MPI_ROOT)
@@ -164,7 +164,7 @@ double measureRandomMatMul(
                 {
                     printf("; ");
                 }
-                printf("\ti=%"MATMUL_PRINTF_SIZE_T, i);
+                printf("\ti=%"MATMUL_PRINTF_SIZE_T, (size_t)i);
             }
 #endif
 
@@ -224,7 +224,7 @@ double measureRandomMatMul(
         printf("\t%12.8lf", fTimeMeasuredSec);
 #else
         // Print the GFLOPS.
-        double const fOperations = 2.0*pow((double)n, (algo.pMatMul)->fExponentOmega);
+        double const fOperations = 2.0*pow((double)n, algo->fExponentOmega);
         double const fFLOPS = (fTimeMeasuredSec!=0) ? (fOperations/fTimeMeasuredSec) : 0.0;
         printf("\t%12.8lf", fFLOPS*1.0e-9);
 #endif
@@ -248,8 +248,8 @@ double measureRandomMatMul(
 //-----------------------------------------------------------------------------
 typedef struct SMatMulSizes
 {
-    size_t uiNumSizes;
-    size_t * puiSizes;
+    TIdx uiNumSizes;
+    TIdx * puiSizes;
 } SMatMulSizes;
 
 //-----------------------------------------------------------------------------
@@ -259,23 +259,23 @@ typedef struct SMatMulSizes
 //! \param uiNMax The macimum matrix dimension.
 //-----------------------------------------------------------------------------
 SMatMulSizes buildSizes(
-    size_t const uiNMin,
-    size_t const uiStepWidth,
-    size_t const uiNMax)
+    TIdx const uiNMin,
+    TIdx const uiStepWidth,
+    TIdx const uiNMax)
 {
     SMatMulSizes sizes;
     sizes.uiNumSizes = 0;
     sizes.puiSizes = 0;
 
-    size_t uiN;
+    TIdx uiN;
     for(uiN = uiNMin; uiN <= uiNMax; uiN += (uiStepWidth == 0) ? uiN : uiStepWidth)
     {
         ++sizes.uiNumSizes;
     }
 
-    sizes.puiSizes = (size_t *)malloc(sizes.uiNumSizes * sizeof(size_t));
+    sizes.puiSizes = (TIdx *)malloc(sizes.uiNumSizes * sizeof(TIdx));
 
-    size_t uiIdx = 0;
+    TIdx uiIdx = 0;
     for(uiN = uiNMin; uiN <= uiNMax; uiN += (uiStepWidth == 0) ? uiN : uiStepWidth)
     {
         sizes.puiSizes[uiIdx] = uiN;
@@ -299,9 +299,9 @@ SMatMulSizes buildSizes(
 #endif
 measureRandomMatMuls(
     SMatMulAlgo const * const pMatMulAlgos,
-    size_t const uiNumAlgos,
+    TIdx const uiNumAlgos,
     SMatMulSizes const * const pSizes,
-    size_t const uiRepeatCount)
+    TIdx const uiRepeatCount)
 {
 #ifdef MATMUL_MPI
     int iRank1D;
@@ -316,7 +316,7 @@ measureRandomMatMuls(
 #endif
         printf("\nm=n=k");
         // Table heading
-        for(size_t uiAlgoIdx = 0; uiAlgoIdx < uiNumAlgos; ++uiAlgoIdx)
+        for(TIdx uiAlgoIdx = 0; uiAlgoIdx < uiNumAlgos; ++uiAlgoIdx)
         {
                 printf(" \t%s", pMatMulAlgos[uiAlgoIdx].pszName);
         }
@@ -329,13 +329,13 @@ measureRandomMatMuls(
 #endif
     if(pSizes)
     {
-        for(size_t uiSizeIdx = 0; uiSizeIdx < pSizes->uiNumSizes; ++uiSizeIdx)
+        for(TIdx uiSizeIdx = 0; uiSizeIdx < pSizes->uiNumSizes; ++uiSizeIdx)
         {
-            size_t const n = pSizes->puiSizes[uiSizeIdx];
+            TIdx const n = pSizes->puiSizes[uiSizeIdx];
             // Print the operation
-            printf("\n%"MATMUL_PRINTF_SIZE_T, n);
+            printf("\n%"MATMUL_PRINTF_SIZE_T, (size_t)n);
 
-            for(size_t uiAlgoIdx = 0; uiAlgoIdx < uiNumAlgos; ++uiAlgoIdx)
+            for(TIdx uiAlgoIdx = 0; uiAlgoIdx < uiNumAlgos; ++uiAlgoIdx)
             {
 #ifdef BENCHMARK_VERIFY_RESULT
                 bool bResultsCorrectAlgo = true;
@@ -368,6 +368,9 @@ measureRandomMatMuls(
 #endif
 }
 
+#define MATMUL_STRINGIFY(s) MATMUL_STRINGIFY_INTERNAL(s)
+#define MATMUL_STRINGIFY_INTERNAL(s) #s
+
 //-----------------------------------------------------------------------------
 //! Prints some startup informations.
 //-----------------------------------------------------------------------------
@@ -379,6 +382,13 @@ void main_print_startup()
 #else
     printf(" Debug");
 #endif
+    printf("; element type:");
+#ifdef MATMUL_ELEMENT_TYPE_DOUBLE
+    printf("; double precision");
+#else
+    printf("; single precision");
+#endif
+    printf("; index type: %s", MATMUL_STRINGIFY(MATMUL_INDEX_TYPE));
     printf("; BENCHMARK_MIN_N=%"MATMUL_PRINTF_SIZE_T, (size_t)BENCHMARK_MIN_N);
     printf("; BENCHMARK_STEP_N=%"MATMUL_PRINTF_SIZE_T, (size_t)BENCHMARK_STEP_N);
     printf("; BENCHMARK_MAX_N=%"MATMUL_PRINTF_SIZE_T, (size_t)BENCHMARK_MAX_N);
@@ -561,9 +571,9 @@ int main(
     };
 
     SMatMulSizes const sizes = buildSizes(
-        (size_t)BENCHMARK_MIN_N,
-        (size_t)BENCHMARK_STEP_N,
-        (size_t)BENCHMARK_MAX_N);
+        (TIdx)BENCHMARK_MIN_N,
+        (TIdx)BENCHMARK_STEP_N,
+        (TIdx)BENCHMARK_MAX_N);
 
 #ifdef BENCHMARK_VERIFY_RESULT
     bool const bAllResultsCorrect =

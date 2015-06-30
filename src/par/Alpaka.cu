@@ -24,12 +24,12 @@
     template<
         typename TAcc>
     void matmul_gemm_par_alpaka_gpu(
-        size_t const m, size_t const n, size_t const k,
+        TIdx const m, TIdx const n, TIdx const k,
         TElem const alpha,
-        TElem const * const MATMUL_RESTRICT A, size_t const lda,
-        TElem const * const MATMUL_RESTRICT B, size_t const ldb,
+        TElem const * const MATMUL_RESTRICT A, TIdx const lda,
+        TElem const * const MATMUL_RESTRICT B, TIdx const ldb,
         TElem const beta,
-        TElem * const MATMUL_RESTRICT C, size_t const ldc)
+        TElem * const MATMUL_RESTRICT C, TIdx const ldc)
     {
         if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
         {
@@ -102,12 +102,12 @@
             k,
             alpha,
             alpaka::mem::view::getPtrNative(bufAAcc),
-            alpaka::mem::view::getPitchBytes<1u, std::size_t>(bufAAcc) / sizeof(TElem),
+            alpaka::mem::view::getPitchBytes<1u, TIdx>(bufAAcc) / sizeof(TElem),
             alpaka::mem::view::getPtrNative(bufBAcc),
-            alpaka::mem::view::getPitchBytes<1u, std::size_t>(bufBAcc) / sizeof(TElem),
+            alpaka::mem::view::getPitchBytes<1u, TIdx>(bufBAcc) / sizeof(TElem),
             beta,
             alpaka::mem::view::getPtrNative(bufCAcc),
-            alpaka::mem::view::getPitchBytes<1u, std::size_t>(bufCAcc) / sizeof(TElem));
+            alpaka::mem::view::getPitchBytes<1u, TIdx>(bufCAcc) / sizeof(TElem));
 
         // Copy back the result.
         alpaka::mem::view::copy(bufCHost, bufCAcc, v2uiExtentsC, stream);
@@ -120,12 +120,12 @@
     //
     //-----------------------------------------------------------------------------
     void matmul_gemm_par_alpaka_gpu_cuda(
-        size_t const m, size_t const n, size_t const k,
+        TIdx const m, TIdx const n, TIdx const k,
         TElem const alpha,
-        TElem const * const MATMUL_RESTRICT A, size_t const lda,
-        TElem const * const MATMUL_RESTRICT B, size_t const ldb,
+        TElem const * const MATMUL_RESTRICT A, TIdx const lda,
+        TElem const * const MATMUL_RESTRICT B, TIdx const ldb,
         TElem const beta,
-        TElem * const MATMUL_RESTRICT C, size_t const ldc)
+        TElem * const MATMUL_RESTRICT C, TIdx const ldc)
     {
         if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
         {

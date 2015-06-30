@@ -26,7 +26,7 @@
 //
 //-----------------------------------------------------------------------------
 void * matmul_arr_aligned_alloc_internal(
-    size_t const uiNumBytes)
+    TIdx const uiNumBytes)
 {
 #if defined MATMUL_ALIGNED_MALLOC
     // If c11 were supported we could use void *aligned_alloc(size_t alignment, size_t size);
@@ -48,9 +48,9 @@ void * matmul_arr_aligned_alloc_internal(
 //
 //-----------------------------------------------------------------------------
 TElem * matmul_arr_alloc(
-    size_t const uiNumElements)
+    TIdx const uiNumElements)
 {
-    size_t const uiNumBytes = uiNumElements * sizeof(TElem);
+    TIdx const uiNumBytes = uiNumElements * sizeof(TElem);
 
     return (TElem*) matmul_arr_aligned_alloc_internal(uiNumBytes);
 }

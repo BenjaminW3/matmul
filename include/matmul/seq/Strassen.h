@@ -16,9 +16,7 @@
 
 #ifdef MATMUL_BUILD_SEQ_STRASSEN
 
-    #include <matmul/common/Config.h>   // TElem
-
-    #include <stddef.h>                 // size_t
+    #include <matmul/common/Config.h>   // TElem, TIdx
 
     #ifdef __cplusplus
         extern "C"
@@ -39,10 +37,10 @@
     //! \param C The input and result matrix.
     //-----------------------------------------------------------------------------
     void matmul_mat_add_pitch_seq(
-        size_t const m, size_t const n,
-        TElem const * const MATMUL_RESTRICT A, size_t const lda,
-        TElem const * const MATMUL_RESTRICT B, size_t const ldb,
-        TElem * const MATMUL_RESTRICT C, size_t const ldc);
+        TIdx const m, TIdx const n,
+        TElem const * const MATMUL_RESTRICT A, TIdx const lda,
+        TElem const * const MATMUL_RESTRICT B, TIdx const ldb,
+        TElem * const MATMUL_RESTRICT C, TIdx const ldc);
 
     //-----------------------------------------------------------------------------
     //! Matrix-matrix subtraction C := A - B using OpenMP parallel for.
@@ -59,10 +57,10 @@
     //! \param C The input and result matrix.
     //-----------------------------------------------------------------------------
     void matmul_mat_sub_pitch_seq(
-        size_t const m, size_t const n,
-        TElem const * const MATMUL_RESTRICT A, size_t const lda,
-        TElem const * const MATMUL_RESTRICT B, size_t const ldb,
-        TElem * const MATMUL_RESTRICT C, size_t const ldc);
+        TIdx const m, TIdx const n,
+        TElem const * const MATMUL_RESTRICT A, TIdx const lda,
+        TElem const * const MATMUL_RESTRICT B, TIdx const ldb,
+        TElem * const MATMUL_RESTRICT C, TIdx const ldc);
 
     //-----------------------------------------------------------------------------
     //! (S/D)GEMM matrix-matrix product C := A * B + C using the (Volker) Strassen algorithm.
@@ -106,12 +104,12 @@
     //! http://en.wikipedia.org/wiki/Strassen_algorithm
     //-----------------------------------------------------------------------------
     void matmul_gemm_seq_strassen(
-        size_t const m, size_t const n, size_t const k,
+        TIdx const m, TIdx const n, TIdx const k,
         TElem const alpha,
-        TElem const * const MATMUL_RESTRICT A, size_t const lda,
-        TElem const * const MATMUL_RESTRICT B, size_t const ldb,
+        TElem const * const MATMUL_RESTRICT A, TIdx const lda,
+        TElem const * const MATMUL_RESTRICT B, TIdx const ldb,
         TElem const beta,
-        TElem * const MATMUL_RESTRICT C, size_t const ldc);
+        TElem * const MATMUL_RESTRICT C, TIdx const ldc);
     #ifdef __cplusplus
         }
     #endif

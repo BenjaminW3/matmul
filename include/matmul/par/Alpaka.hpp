@@ -32,12 +32,12 @@
             typename TElem>
         ALPAKA_FCT_ACC auto operator()(
             TAcc const & acc,
-            size_t const & m, size_t const & n, size_t const & k,
+            TIdx const & m, TIdx const & n, TIdx const & k,
             TElem const & alpha,
-            TElem const * const MATMUL_RESTRICT A, size_t const & lda,
-            TElem const * const MATMUL_RESTRICT B, size_t const & ldb,
+            TElem const * const MATMUL_RESTRICT A, TIdx const & lda,
+            TElem const * const MATMUL_RESTRICT B, TIdx const & ldb,
             TElem const & beta,
-            TElem * const MATMUL_RESTRICT C, size_t const & ldc) const
+            TElem * const MATMUL_RESTRICT C, TIdx const & ldc) const
         -> void
         {
             static_assert(alpaka::dim::DimT<TAcc>::value == 2u,
@@ -45,20 +45,20 @@
 
             // Column and row of C to calculate.
             auto const v2uiGridThreadIdx(alpaka::idx::getIdx<alpaka::Grid, alpaka::Threads>(acc));
-            size_t const & uiGridThreadIdxX(v2uiGridThreadIdx[1u]);
-            size_t const & uiGridThreadIdxY(v2uiGridThreadIdx[0u]);
+            TIdx const & uiGridThreadIdxX(v2uiGridThreadIdx[1u]);
+            TIdx const & uiGridThreadIdxY(v2uiGridThreadIdx[0u]);
 
             // Column and row inside the block of C to calculate.
             auto const v2uiBlockThreadIdx(alpaka::idx::getIdx<alpaka::Block, alpaka::Threads>(acc));
-            size_t const & uiBlockThreadIdxX(v2uiBlockThreadIdx[1u]);
-            size_t const & uiBlockThreadIdxY(v2uiBlockThreadIdx[0u]);
+            TIdx const & uiBlockThreadIdxX(v2uiBlockThreadIdx[1u]);
+            TIdx const & uiBlockThreadIdxY(v2uiBlockThreadIdx[0u]);
 
             // The block threads extents.
             auto const v2uiBlockThreadsExtents(alpaka::workdiv::getWorkDiv<alpaka::Block, alpaka::Threads>(acc));
-            size_t const & uiBlockThreadsExtentX(v2uiBlockThreadsExtents[1u]);
-            size_t const & uiBlockThreadsExtentY(v2uiBlockThreadsExtents[0u]);
+            TIdx const & uiBlockThreadsExtentX(v2uiBlockThreadsExtents[1u]);
+            TIdx const & uiBlockThreadsExtentY(v2uiBlockThreadsExtents[0u]);
             //assert(uiBlockThreadsExtentX == uiBlockThreadsExtentY);
-            size_t const & uiBlockThreadsExtent(uiBlockThreadsExtentX);
+            TIdx const & uiBlockThreadsExtent(uiBlockThreadsExtentX);
 
             // Shared memory used to store the current blocks of A and B.
             auto * const pBlockSharedA(acc.template getBlockSharedExternMem<TElem>());
@@ -75,22 +75,22 @@
 
             // Loop over all blocks of A and B that are required to compute the C block.
             auto const uiBlockMulCount(
-                static_cast<size_t>(
+                static_cast<TIdx>(
                     alpaka::math::ceil(
                         acc,
                         static_cast<float>(k)/static_cast<float>(uiBlockThreadsExtent))));
-            for(size_t k2(0); k2<uiBlockMulCount; ++k2)
+            for(TIdx k2(0); k2<uiBlockMulCount; ++k2)
             {
                 // Copy data to shared memory.
-                auto const uiAIdxX(k2*uiBlockThreadsExtentX + uiBlockThreadIdxX);
-                auto const uiAIdx1d(uiGridThreadIdxY*lda + uiAIdxX);
+                TIdx const uiAIdxX(k2*uiBlockThreadsExtentX + uiBlockThreadIdxX);
+                TIdx const uiAIdx1d(uiGridThreadIdxY*lda + uiAIdxX);
                 pBlockSharedA[uiSharedBlockIdx1d] = (
                     ((!bInsideA) || (uiAIdxX>=k))
                     ? static_cast<TElem>(0)
                     : A[uiAIdx1d]);
 
-                auto const uiBIdxY(k2*uiBlockThreadsExtentY + uiBlockThreadIdxY);
-                auto const uiBIdx1d(uiBIdxY*ldb + uiGridThreadIdxX);
+                TIdx const uiBIdxY(k2*uiBlockThreadsExtentY + uiBlockThreadIdxY);
+                TIdx const uiBIdx1d(uiBIdxY*ldb + uiGridThreadIdxX);
                 pBlockSharedB[uiSharedBlockIdx1d] = (
                     ((!bInsideB) || (uiBIdxY>=k))
                     ? static_cast<TElem>(0)
@@ -100,7 +100,7 @@
                 acc.syncBlockThreads();
 
                 // Dyadic product within shared memory.
-                for(size_t k3(0); k3<uiBlockThreadsExtent; ++k3)
+                for(TIdx k3(0); k3<uiBlockThreadsExtent; ++k3)
                 {
                     fCSum += pBlockSharedA[uiBlockThreadIdxY*uiBlockThreadsExtentX + k3]
                         * pBlockSharedB[k3*uiBlockThreadsExtentY + uiBlockThreadIdxX];
@@ -140,17 +140,17 @@
                         typename TElem>
                     ALPAKA_FCT_HOST static auto getBlockSharedExternMemSizeBytes(
                         alpaka::Vec<alpaka::dim::DimT<TAcc>> const & vuiBlockThreadsExtents,
-                        size_t const & m,
-                        size_t const & n,
-                        size_t const & k,
+                        TIdx const & m,
+                        TIdx const & n,
+                        TIdx const & k,
                         TElem const & alpha,
                         TElem const * const A,
-                        size_t const & lda,
+                        TIdx const & lda,
                         TElem const * const B,
-                        size_t const & ldb,
+                        TIdx const & ldb,
                         TElem const & beta,
                         TElem * const C,
-                        size_t const & ldc)
+                        TIdx const & ldc)
                     -> alpaka::Uint
                     {
                         boost::ignore_unused(m);

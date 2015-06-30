@@ -14,9 +14,7 @@
 //! HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
 
-#include <matmul/common/Config.h>
-
-#include <stddef.h>    // size_t
+#include <matmul/common/Config.h>   // TElem, TIdx
 
 #ifdef __cplusplus
     extern "C"
@@ -36,7 +34,7 @@ TElem matmul_gen_rand_val(
 //-----------------------------------------------------------------------------
 void matmul_arr_zero_fill(
     TElem * pArray,
-    size_t const uiNumElements);
+    TIdx const uiNumElements);
 
 //-----------------------------------------------------------------------------
 //! Fills the array with random numbers.
@@ -45,21 +43,21 @@ void matmul_arr_zero_fill(
 //-----------------------------------------------------------------------------
 void matmul_arr_rand_fill(
     TElem * pArray,
-    size_t const uiNumElements);
+    TIdx const uiNumElements);
 
 //-----------------------------------------------------------------------------
 //! \return A array of the given type initialized with zero.
 //! \param uiNumElements The number of elements in the array.
 //-----------------------------------------------------------------------------
 TElem * matmul_arr_alloc_zero_fill(
-    size_t const uiNumElements);
+    TIdx const uiNumElements);
 
 //-----------------------------------------------------------------------------
 //! \return A array of random values of the given type.
 //! \param uiNumElements The number of elements in the array.
 //-----------------------------------------------------------------------------
 TElem * matmul_arr_alloc_rand_fill(
-    size_t const uiNumElements);
+    TIdx const uiNumElements);
 #ifdef __cplusplus
     }
 #endif

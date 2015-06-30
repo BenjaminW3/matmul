@@ -44,6 +44,11 @@
     #endif
 #endif
 
+#include <stddef.h>                 // size_t
+#include <stdint.h>                 // int32_t
+
+typedef MATMUL_INDEX_TYPE TIdx;
+
 //-----------------------------------------------------------------------------
 // Compiler Settings.
 //-----------------------------------------------------------------------------

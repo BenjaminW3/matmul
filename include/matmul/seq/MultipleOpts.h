@@ -16,9 +16,7 @@
 
 #if defined(MATMUL_BUILD_SEQ_MULTIPLE_OPTS) || defined(MATMUL_BUILD_SEQ_MULTIPLE_OPTS_BLOCK)
 
-    #include <matmul/common/Config.h>   // TElem
-
-    #include <stddef.h>                 // size_t
+    #include <matmul/common/Config.h>   // TElem, TIdx
 
     #ifdef __cplusplus
         extern "C"
@@ -41,12 +39,12 @@
         //! \param ldc Specifies the leading dimension of C.
         //-----------------------------------------------------------------------------
         void matmul_gemm_seq_multiple_opts(
-            size_t const m, size_t const n, size_t const k,
+            TIdx const m, TIdx const n, TIdx const k,
             TElem const alpha,
-            TElem const * const MATMUL_RESTRICT A, size_t const lda,
-            TElem const * const MATMUL_RESTRICT B, size_t const ldb,
+            TElem const * const MATMUL_RESTRICT A, TIdx const lda,
+            TElem const * const MATMUL_RESTRICT B, TIdx const ldb,
             TElem const beta,
-            TElem * const MATMUL_RESTRICT C, size_t const ldc);
+            TElem * const MATMUL_RESTRICT C, TIdx const ldc);
     #endif
     #ifdef MATMUL_BUILD_SEQ_MULTIPLE_OPTS_BLOCK
         //-----------------------------------------------------------------------------
@@ -65,12 +63,12 @@
         //! \param ldc Specifies the leading dimension of C.
         //-----------------------------------------------------------------------------
         void matmul_gemm_seq_multiple_opts_block(
-            size_t const m, size_t const n, size_t const k,
+            TIdx const m, TIdx const n, TIdx const k,
             TElem const alpha,
-            TElem const * const MATMUL_RESTRICT A, size_t const lda,
-            TElem const * const MATMUL_RESTRICT B, size_t const ldb,
+            TElem const * const MATMUL_RESTRICT A, TIdx const lda,
+            TElem const * const MATMUL_RESTRICT B, TIdx const ldb,
             TElem const beta,
-            TElem * const MATMUL_RESTRICT C, size_t const ldc);
+            TElem * const MATMUL_RESTRICT C, TIdx const ldc);
     #endif
     #ifdef __cplusplus
         }

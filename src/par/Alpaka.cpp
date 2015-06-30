@@ -24,12 +24,12 @@
     template<
         typename TAcc>
     void matmul_gemm_par_alpaka_cpu(
-        size_t const m, size_t const n, size_t const k,
+        TIdx const m, TIdx const n, TIdx const k,
         TElem const alpha,
-        TElem const * const MATMUL_RESTRICT A, size_t const lda,
-        TElem const * const MATMUL_RESTRICT B, size_t const ldb,
+        TElem const * const MATMUL_RESTRICT A, TIdx const lda,
+        TElem const * const MATMUL_RESTRICT B, TIdx const ldb,
         TElem const beta,
-        TElem * const MATMUL_RESTRICT C, size_t const ldc)
+        TElem * const MATMUL_RESTRICT C, TIdx const ldc)
     {
         if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
         {
@@ -87,12 +87,12 @@
         //
         //-----------------------------------------------------------------------------
         void matmul_gemm_par_alpaka_cpu_b_seq_t_seq(
-            size_t const m, size_t const n, size_t const k,
+            TIdx const m, TIdx const n, TIdx const k,
             TElem const alpha,
-            TElem const * const MATMUL_RESTRICT A, size_t const lda,
-            TElem const * const MATMUL_RESTRICT B, size_t const ldb,
+            TElem const * const MATMUL_RESTRICT A, TIdx const lda,
+            TElem const * const MATMUL_RESTRICT B, TIdx const ldb,
             TElem const beta,
-            TElem * const MATMUL_RESTRICT C, size_t const ldc)
+            TElem * const MATMUL_RESTRICT C, TIdx const ldc)
         {
             if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
             {
@@ -113,12 +113,12 @@
         //
         //-----------------------------------------------------------------------------
         void matmul_gemm_par_alpaka_cpu_b_omp2_t_seq(
-            size_t const m, size_t const n, size_t const k,
+            TIdx const m, TIdx const n, TIdx const k,
             TElem const alpha,
-            TElem const * const MATMUL_RESTRICT A, size_t const lda,
-            TElem const * const MATMUL_RESTRICT B, size_t const ldb,
+            TElem const * const MATMUL_RESTRICT A, TIdx const lda,
+            TElem const * const MATMUL_RESTRICT B, TIdx const ldb,
             TElem const beta,
-            TElem * const MATMUL_RESTRICT C, size_t const ldc)
+            TElem * const MATMUL_RESTRICT C, TIdx const ldc)
         {
             if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
             {
@@ -139,12 +139,12 @@
         //
         //-----------------------------------------------------------------------------
         void matmul_gemm_par_alpaka_cpu_b_seq_t_omp2(
-            size_t const m, size_t const n, size_t const k,
+            TIdx const m, TIdx const n, TIdx const k,
             TElem const alpha,
-            TElem const * const MATMUL_RESTRICT A, size_t const lda,
-            TElem const * const MATMUL_RESTRICT B, size_t const ldb,
+            TElem const * const MATMUL_RESTRICT A, TIdx const lda,
+            TElem const * const MATMUL_RESTRICT B, TIdx const ldb,
             TElem const beta,
-            TElem * const MATMUL_RESTRICT C, size_t const ldc)
+            TElem * const MATMUL_RESTRICT C, TIdx const ldc)
         {
             if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
             {
@@ -165,12 +165,12 @@
         //
         //-----------------------------------------------------------------------------
         void matmul_gemm_par_alpaka_cpu_bt_omp4(
-            size_t const m, size_t const n, size_t const k,
+            TIdx const m, TIdx const n, TIdx const k,
             TElem const alpha,
-            TElem const * const MATMUL_RESTRICT A, size_t const lda,
-            TElem const * const MATMUL_RESTRICT B, size_t const ldb,
+            TElem const * const MATMUL_RESTRICT A, TIdx const lda,
+            TElem const * const MATMUL_RESTRICT B, TIdx const ldb,
             TElem const beta,
-            TElem * const MATMUL_RESTRICT C, size_t const ldc)
+            TElem * const MATMUL_RESTRICT C, TIdx const ldc)
         {
             if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
             {
@@ -191,12 +191,12 @@
         //
         //-----------------------------------------------------------------------------
         void matmul_gemm_par_alpaka_cpu_b_seq_t_threads(
-            size_t const m, size_t const n, size_t const k,
+            TIdx const m, TIdx const n, TIdx const k,
             TElem const alpha,
-            TElem const * const MATMUL_RESTRICT A, size_t const lda,
-            TElem const * const MATMUL_RESTRICT B, size_t const ldb,
+            TElem const * const MATMUL_RESTRICT A, TIdx const lda,
+            TElem const * const MATMUL_RESTRICT B, TIdx const ldb,
             TElem const beta,
-            TElem * const MATMUL_RESTRICT C, size_t const ldc)
+            TElem * const MATMUL_RESTRICT C, TIdx const ldc)
         {
             if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
             {
@@ -217,12 +217,12 @@
         //
         //-----------------------------------------------------------------------------
         void matmul_gemm_par_alpaka_cpu_b_seq_t_fibers(
-            size_t const m, size_t const n, size_t const k,
+            TIdx const m, TIdx const n, TIdx const k,
             TElem const alpha,
-            TElem const * const MATMUL_RESTRICT A, size_t const lda,
-            TElem const * const MATMUL_RESTRICT B, size_t const ldb,
+            TElem const * const MATMUL_RESTRICT A, TIdx const lda,
+            TElem const * const MATMUL_RESTRICT B, TIdx const ldb,
             TElem const beta,
-            TElem * const MATMUL_RESTRICT C, size_t const ldc)
+            TElem * const MATMUL_RESTRICT C, TIdx const ldc)
         {
             if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
             {

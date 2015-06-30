@@ -22,24 +22,24 @@
     //
     //-----------------------------------------------------------------------------
     void matmul_gemm_seq_basic(
-        size_t const m, size_t const n, size_t const k,
+        TIdx const m, TIdx const n, TIdx const k,
         TElem const alpha,
-        TElem const * const A, size_t const lda,
-        TElem const * const B, size_t const ldb,
+        TElem const * const A, TIdx const lda,
+        TElem const * const B, TIdx const ldb,
         TElem const beta,
-        TElem * const C, size_t const ldc)
+        TElem * const C, TIdx const ldc)
     {
         if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
         {
             return;
         }
 
-        for(size_t i = 0; i < m; ++i)
+        for(TIdx i = 0; i < m; ++i)
         {
-            for(size_t j = 0; j < n; ++j)
+            for(TIdx j = 0; j < n; ++j)
             {
                 C[i*ldc + j] *= beta;
-                for(size_t k2 = 0; k2 < k; ++k2)
+                for(TIdx k2 = 0; k2 < k; ++k2)
                 {
                     C[i*ldc + j] += alpha * A[i*lda + k2] * B[k2*ldb + j];
                 }

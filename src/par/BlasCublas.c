@@ -30,21 +30,21 @@
     //
     //-----------------------------------------------------------------------------
     void matmul_gemm_par_blas_cublas2(
-        size_t const m, size_t const n, size_t const k,
+        TIdx const m, TIdx const n, TIdx const k,
         TElem const alpha,
-        TElem const * const MATMUL_RESTRICT A, size_t const lda,
-        TElem const * const MATMUL_RESTRICT B, size_t const ldb,
+        TElem const * const MATMUL_RESTRICT A, TIdx const lda,
+        TElem const * const MATMUL_RESTRICT B, TIdx const ldb,
         TElem const beta,
-        TElem * const MATMUL_RESTRICT C, size_t const ldc)
+        TElem * const MATMUL_RESTRICT C, TIdx const ldc)
     {
         if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
         {
             return;
         }
 
-        size_t const uiBytesA = lda*m*sizeof(TElem);
-        size_t const uiBytesB = ldb*k*sizeof(TElem);
-        size_t const uiBytesC = ldc*m*sizeof(TElem);
+        TIdx const uiBytesA = lda*m*sizeof(TElem);
+        TIdx const uiBytesB = ldb*k*sizeof(TElem);
+        TIdx const uiBytesC = ldc*m*sizeof(TElem);
 
         TElem *pADev, *pBDev, *pCDev;
         MATMUL_CUDA_RT_CHECK(cudaMalloc((void **)&pADev, uiBytesA));

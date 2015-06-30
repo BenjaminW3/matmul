@@ -16,9 +16,7 @@
 
 #if defined(MATMUL_BUILD_PAR_ALPAKA_ACC_CPU_B_SEQ_T_SEQ) || defined(MATMUL_BUILD_PAR_ALPAKA_ACC_GPU_CUDA) || defined(MATMUL_BUILD_PAR_ALPAKA_ACC_CPU_B_OMP2_T_SEQ) || defined(MATMUL_BUILD_PAR_ALPAKA_ACC_CPU_B_SEQ_T_OMP2) || defined(MATMUL_BUILD_PAR_ALPAKA_ACC_CPU_BT_OMP4) || defined(MATMUL_BUILD_PAR_ALPAKA_ACC_CPU_B_SEQ_T_THREADS) || defined(MATMUL_BUILD_PAR_ALPAKA_ACC_CPU_B_SEQ_T_FIBERS)
 
-    #include <matmul/common/Config.h>   // TElem
-
-    #include <stddef.h>                 // size_t
+    #include <matmul/common/Config.h>   // TElem, TIdx
 
     #ifdef __cplusplus
         extern "C"
@@ -41,12 +39,12 @@
         //! \param ldc Specifies the leading dimension of C.
         //-----------------------------------------------------------------------------
         void matmul_gemm_par_alpaka_cpu_b_seq_t_seq(
-            size_t const m, size_t const n, size_t const k,
+            TIdx const m, TIdx const n, TIdx const k,
             TElem const alpha,
-            TElem const * const MATMUL_RESTRICT A, size_t const lda,
-            TElem const * const MATMUL_RESTRICT B, size_t const ldb,
+            TElem const * const MATMUL_RESTRICT A, TIdx const lda,
+            TElem const * const MATMUL_RESTRICT B, TIdx const ldb,
             TElem const beta,
-            TElem * const MATMUL_RESTRICT C, size_t const ldc);
+            TElem * const MATMUL_RESTRICT C, TIdx const ldc);
     #endif
     #ifdef MATMUL_BUILD_PAR_ALPAKA_ACC_CPU_B_OMP2_T_SEQ
         //-----------------------------------------------------------------------------
@@ -65,12 +63,12 @@
         //! \param ldc Specifies the leading dimension of C.
         //-----------------------------------------------------------------------------
         void matmul_gemm_par_alpaka_cpu_b_omp2_t_seq(
-            size_t const m, size_t const n, size_t const k,
+            TIdx const m, TIdx const n, TIdx const k,
             TElem const alpha,
-            TElem const * const MATMUL_RESTRICT A, size_t const lda,
-            TElem const * const MATMUL_RESTRICT B, size_t const ldb,
+            TElem const * const MATMUL_RESTRICT A, TIdx const lda,
+            TElem const * const MATMUL_RESTRICT B, TIdx const ldb,
             TElem const beta,
-            TElem * const MATMUL_RESTRICT C, size_t const ldc);
+            TElem * const MATMUL_RESTRICT C, TIdx const ldc);
     #endif
     #ifdef MATMUL_BUILD_PAR_ALPAKA_ACC_CPU_B_SEQ_T_OMP2
         //-----------------------------------------------------------------------------
@@ -89,12 +87,12 @@
         //! \param ldc Specifies the leading dimension of C.
         //-----------------------------------------------------------------------------
         void matmul_gemm_par_alpaka_cpu_b_seq_t_omp2(
-            size_t const m, size_t const n, size_t const k,
+            TIdx const m, TIdx const n, TIdx const k,
             TElem const alpha,
-            TElem const * const MATMUL_RESTRICT A, size_t const lda,
-            TElem const * const MATMUL_RESTRICT B, size_t const ldb,
+            TElem const * const MATMUL_RESTRICT A, TIdx const lda,
+            TElem const * const MATMUL_RESTRICT B, TIdx const ldb,
             TElem const beta,
-            TElem * const MATMUL_RESTRICT C, size_t const ldc);
+            TElem * const MATMUL_RESTRICT C, TIdx const ldc);
     #endif
     #ifdef MATMUL_BUILD_PAR_ALPAKA_ACC_CPU_BT_OMP4
         //-----------------------------------------------------------------------------
@@ -113,12 +111,12 @@
         //! \param ldc Specifies the leading dimension of C.
         //-----------------------------------------------------------------------------
         void matmul_gemm_par_alpaka_cpu_bt_omp4(
-            size_t const m, size_t const n, size_t const k,
+            TIdx const m, TIdx const n, TIdx const k,
             TElem const alpha,
-            TElem const * const MATMUL_RESTRICT A, size_t const lda,
-            TElem const * const MATMUL_RESTRICT B, size_t const ldb,
+            TElem const * const MATMUL_RESTRICT A, TIdx const lda,
+            TElem const * const MATMUL_RESTRICT B, TIdx const ldb,
             TElem const beta,
-            TElem * const MATMUL_RESTRICT C, size_t const ldc);
+            TElem * const MATMUL_RESTRICT C, TIdx const ldc);
     #endif
     #ifdef MATMUL_BUILD_PAR_ALPAKA_ACC_CPU_B_SEQ_T_THREADS
         //-----------------------------------------------------------------------------
@@ -137,12 +135,12 @@
         //! \param ldc Specifies the leading dimension of C.
         //-----------------------------------------------------------------------------
         void matmul_gemm_par_alpaka_cpu_b_seq_t_threads(
-            size_t const m, size_t const n, size_t const k,
+            TIdx const m, TIdx const n, TIdx const k,
             TElem const alpha,
-            TElem const * const MATMUL_RESTRICT A, size_t const lda,
-            TElem const * const MATMUL_RESTRICT B, size_t const ldb,
+            TElem const * const MATMUL_RESTRICT A, TIdx const lda,
+            TElem const * const MATMUL_RESTRICT B, TIdx const ldb,
             TElem const beta,
-            TElem * const MATMUL_RESTRICT C, size_t const ldc);
+            TElem * const MATMUL_RESTRICT C, TIdx const ldc);
     #endif
     #ifdef MATMUL_BUILD_PAR_ALPAKA_ACC_CPU_B_SEQ_T_FIBERS
         //-----------------------------------------------------------------------------
@@ -161,12 +159,12 @@
         //! \param ldc Specifies the leading dimension of C.
         //-----------------------------------------------------------------------------
         void matmul_gemm_par_alpaka_cpu_b_seq_t_fibers(
-            size_t const m, size_t const n, size_t const k,
+            TIdx const m, TIdx const n, TIdx const k,
             TElem const alpha,
-            TElem const * const MATMUL_RESTRICT A, size_t const lda,
-            TElem const * const MATMUL_RESTRICT B, size_t const ldb,
+            TElem const * const MATMUL_RESTRICT A, TIdx const lda,
+            TElem const * const MATMUL_RESTRICT B, TIdx const ldb,
             TElem const beta,
-            TElem * const MATMUL_RESTRICT C, size_t const ldc);
+            TElem * const MATMUL_RESTRICT C, TIdx const ldc);
     #endif
     #ifdef MATMUL_BUILD_PAR_ALPAKA_ACC_GPU_CUDA
         //-----------------------------------------------------------------------------
@@ -185,12 +183,12 @@
         //! \param ldc Specifies the leading dimension of C.
         //-----------------------------------------------------------------------------
         void matmul_gemm_par_alpaka_gpu_cuda(
-            size_t const m, size_t const n, size_t const k,
+            TIdx const m, TIdx const n, TIdx const k,
             TElem const alpha,
-            TElem const * const MATMUL_RESTRICT A, size_t const lda,
-            TElem const * const MATMUL_RESTRICT B, size_t const ldb,
+            TElem const * const MATMUL_RESTRICT A, TIdx const lda,
+            TElem const * const MATMUL_RESTRICT B, TIdx const ldb,
             TElem const beta,
-            TElem * const MATMUL_RESTRICT C, size_t const ldc);
+            TElem * const MATMUL_RESTRICT C, TIdx const ldc);
     #endif
     #ifdef __cplusplus
         }

@@ -36,11 +36,11 @@ TElem matmul_gen_rand_val(
 //-----------------------------------------------------------------------------
 void matmul_arr_zero_fill(
     TElem * pArray,
-    size_t const uiNumElements)
+    TIdx const uiNumElements)
 {
     assert(pArray);
 
-    for(size_t i = 0; i<uiNumElements; ++i)
+    for(TIdx i = 0; i<uiNumElements; ++i)
     {
         pArray[i] = (TElem)0;
     }
@@ -51,11 +51,11 @@ void matmul_arr_zero_fill(
 //-----------------------------------------------------------------------------
 void matmul_arr_rand_fill(
     TElem * pArray,
-    size_t const uiNumElements)
+    TIdx const uiNumElements)
 {
     assert(pArray);
 
-    for(size_t i = 0; i<uiNumElements; ++i)
+    for(TIdx i = 0; i<uiNumElements; ++i)
     {
         pArray[i] = matmul_gen_rand_val((TElem)0, (TElem)1);
     }
@@ -65,7 +65,7 @@ void matmul_arr_rand_fill(
 //
 //-----------------------------------------------------------------------------
 TElem * matmul_arr_alloc_zero_fill(
-    size_t const uiNumElements)
+    TIdx const uiNumElements)
 {
     TElem * arr = matmul_arr_alloc(uiNumElements);
 
@@ -77,7 +77,7 @@ TElem * matmul_arr_alloc_zero_fill(
 //
 //-----------------------------------------------------------------------------
 TElem * matmul_arr_alloc_rand_fill(
-    size_t const uiNumElements)
+    TIdx const uiNumElements)
 {
     TElem * arr = matmul_arr_alloc(uiNumElements);
 

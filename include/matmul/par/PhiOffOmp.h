@@ -16,9 +16,7 @@
 
 #if defined(MATMUL_BUILD_PAR_PHI_OFF_OMP2) ||  defined(MATMUL_BUILD_PAR_PHI_OFF_OMP3) ||  defined(MATMUL_BUILD_PAR_PHI_OFF_OMP4)
 
-    #include <matmul/common/Config.h>   // TElem
-
-    #include <stddef.h>                 // size_t
+    #include <matmul/common/Config.h>   // TElem, TIdx
 
     #ifdef __cplusplus
         extern "C"
@@ -42,12 +40,12 @@
             //! \param ldc Specifies the leading dimension of C.
             //-----------------------------------------------------------------------------
             void matmul_gemm_par_phi_off_omp2_guided_schedule(
-                size_t const m, size_t const n, size_t const k,
+                TIdx const m, TIdx const n, TIdx const k,
                 TElem const alpha,
-                TElem const * const MATMUL_RESTRICT A, size_t const lda,
-                TElem const * const MATMUL_RESTRICT B, size_t const ldb,
+                TElem const * const MATMUL_RESTRICT A, TIdx const lda,
+                TElem const * const MATMUL_RESTRICT B, TIdx const ldb,
                 TElem const beta,
-                TElem * const MATMUL_RESTRICT C, size_t const ldc);
+                TElem * const MATMUL_RESTRICT C, TIdx const ldc);
 
             //-----------------------------------------------------------------------------
             //! (S/D)GEMM matrix-matrix product C := A * B + C using OpenMP 2.0 parallel for static schedule offloading to Xeon Phi.
@@ -65,12 +63,12 @@
             //! \param ldc Specifies the leading dimension of C.
             //-----------------------------------------------------------------------------
             void matmul_gemm_par_phi_off_omp2_static_schedule(
-                size_t const m, size_t const n, size_t const k,
+                TIdx const m, TIdx const n, TIdx const k,
                 TElem const alpha,
-                TElem const * const MATMUL_RESTRICT A, size_t const lda,
-                TElem const * const MATMUL_RESTRICT B, size_t const ldb,
+                TElem const * const MATMUL_RESTRICT A, TIdx const lda,
+                TElem const * const MATMUL_RESTRICT B, TIdx const ldb,
                 TElem const beta,
-                TElem * const MATMUL_RESTRICT C, size_t const ldc);
+                TElem * const MATMUL_RESTRICT C, TIdx const ldc);
         #endif
     #endif
     #ifdef MATMUL_BUILD_PAR_PHI_OFF_OMP3
@@ -91,12 +89,12 @@
             //! \param ldc Specifies the leading dimension of C.
             //-----------------------------------------------------------------------------
             void matmul_gemm_par_phi_off_omp3_static_schedule_collapse(
-                size_t const m, size_t const n, size_t const k,
+                TIdx const m, TIdx const n, TIdx const k,
                 TElem const alpha,
-                TElem const * const MATMUL_RESTRICT A, size_t const lda,
-                TElem const * const MATMUL_RESTRICT B, size_t const ldb,
+                TElem const * const MATMUL_RESTRICT A, TIdx const lda,
+                TElem const * const MATMUL_RESTRICT B, TIdx const ldb,
                 TElem const beta,
-                TElem * const MATMUL_RESTRICT C, size_t const ldc);
+                TElem * const MATMUL_RESTRICT C, TIdx const ldc);
         #endif
     #endif
     #ifdef MATMUL_BUILD_PAR_PHI_OFF_OMP4
@@ -117,12 +115,12 @@
             //! \param ldc Specifies the leading dimension of C.
             //-----------------------------------------------------------------------------
             void matmul_gemm_par_phi_off_omp4(
-                size_t const m, size_t const n, size_t const k,
+                TIdx const m, TIdx const n, TIdx const k,
                 TElem const alpha,
-                TElem const * const MATMUL_RESTRICT A, size_t const lda,
-                TElem const * const MATMUL_RESTRICT B, size_t const ldb,
+                TElem const * const MATMUL_RESTRICT A, TIdx const lda,
+                TElem const * const MATMUL_RESTRICT B, TIdx const ldb,
                 TElem const beta,
-                TElem * const MATMUL_RESTRICT C, size_t const ldc);
+                TElem * const MATMUL_RESTRICT C, TIdx const ldc);
         #endif
     #endif
     #ifdef __cplusplus

@@ -16,9 +16,7 @@
 
 #ifdef MATMUL_BUILD_SEQ_SINGLE_OPTS
 
-    #include <matmul/common/Config.h>   // TElem
-
-    #include <stddef.h>                 // size_t
+    #include <matmul/common/Config.h>   // TElem, TIdx
 
     #ifdef __cplusplus
         extern "C"
@@ -40,12 +38,12 @@
     //! \param ldc Specifies the leading dimension of C.
     //-----------------------------------------------------------------------------
     void matmul_gemm_seq_index_pointer(
-        size_t const m, size_t const n, size_t const k,
+        TIdx const m, TIdx const n, TIdx const k,
         TElem const alpha,
-        TElem const * const A, size_t const lda,
-        TElem const * const B, size_t const ldb,
+        TElem const * const A, TIdx const lda,
+        TElem const * const B, TIdx const ldb,
         TElem const beta,
-        TElem * const C, size_t const ldc);
+        TElem * const C, TIdx const ldc);
 
     //-----------------------------------------------------------------------------
     //! (S/D)GEMM matrix-matrix product C := A * B + C using the basic sequential algorithm with MATMUL_RESTRICT-ed matrix pointers.
@@ -63,12 +61,12 @@
     //! \param ldc Specifies the leading dimension of C.
     //-----------------------------------------------------------------------------
     void matmul_gemm_seq_restrict(
-        size_t const m, size_t const n, size_t const k,
+        TIdx const m, TIdx const n, TIdx const k,
         TElem const alpha,
-        TElem const * const MATMUL_RESTRICT A, size_t const lda,
-        TElem const * const MATMUL_RESTRICT B, size_t const ldb,
+        TElem const * const MATMUL_RESTRICT A, TIdx const lda,
+        TElem const * const MATMUL_RESTRICT B, TIdx const ldb,
         TElem const beta,
-        TElem * const MATMUL_RESTRICT C, size_t const ldc);
+        TElem * const MATMUL_RESTRICT C, TIdx const ldc);
 
     //-----------------------------------------------------------------------------
     //! (S/D)GEMM matrix-matrix product C := A * B + C using the basic sequential algorithm with ikj loop order.
@@ -86,12 +84,12 @@
     //! \param ldc Specifies the leading dimension of C.
     //-----------------------------------------------------------------------------
     void matmul_gemm_seq_loop_reorder(
-        size_t const m, size_t const n, size_t const k,
+        TIdx const m, TIdx const n, TIdx const k,
         TElem const alpha,
-        TElem const * const A, size_t const lda,
-        TElem const * const B, size_t const ldb,
+        TElem const * const A, TIdx const lda,
+        TElem const * const B, TIdx const ldb,
         TElem const beta,
-        TElem * const C, size_t const ldc);
+        TElem * const C, TIdx const ldc);
 
     //-----------------------------------------------------------------------------
     //! (S/D)GEMM matrix-matrix product C := A * B + C using the basic sequential algorithm with index calculations moved out of the inner loop.
@@ -109,12 +107,12 @@
     //! \param ldc Specifies the leading dimension of C.
     //-----------------------------------------------------------------------------
     void matmul_gemm_seq_index_precalculate(
-        size_t const m, size_t const n, size_t const k,
+        TIdx const m, TIdx const n, TIdx const k,
         TElem const alpha,
-        TElem const * const A, size_t const lda,
-        TElem const * const B, size_t const ldb,
+        TElem const * const A, TIdx const lda,
+        TElem const * const B, TIdx const ldb,
         TElem const beta,
-        TElem * const C, size_t const ldc);
+        TElem * const C, TIdx const ldc);
 
     //-----------------------------------------------------------------------------
     //! (S/D)GEMM matrix-matrix product C := A * B + C using the basic sequential algorithm with the inner loop being unrolled 4 times.
@@ -132,12 +130,12 @@
     //! \param ldc Specifies the leading dimension of C.
     //-----------------------------------------------------------------------------
     void matmul_gemm_seq_loop_unroll_4(
-        size_t const m, size_t const n, size_t const k,
+        TIdx const m, TIdx const n, TIdx const k,
         TElem const alpha,
-        TElem const * const A, size_t const lda,
-        TElem const * const B, size_t const ldb,
+        TElem const * const A, TIdx const lda,
+        TElem const * const B, TIdx const ldb,
         TElem const beta,
-        TElem * const C, size_t const ldc);
+        TElem * const C, TIdx const ldc);
 
     //-----------------------------------------------------------------------------
     //! (S/D)GEMM matrix-matrix product C := A * B + C using the basic sequential algorithm with the inner loop being unrolled 8 times.
@@ -155,12 +153,12 @@
     //! \param ldc Specifies the leading dimension of C.
     //-----------------------------------------------------------------------------
     void matmul_gemm_seq_loop_unroll_8(
-        size_t const m, size_t const n, size_t const k,
+        TIdx const m, TIdx const n, TIdx const k,
         TElem const alpha,
-        TElem const * const A, size_t const lda,
-        TElem const * const B, size_t const ldb,
+        TElem const * const A, TIdx const lda,
+        TElem const * const B, TIdx const ldb,
         TElem const beta,
-        TElem * const C, size_t const ldc);
+        TElem * const C, TIdx const ldc);
 
     //-----------------------------------------------------------------------------
     //! (S/D)GEMM matrix-matrix product C := A * B + C using the basic sequential algorithm with the inner loop being unrolled 16 times.
@@ -178,12 +176,12 @@
     //! \param ldc Specifies the leading dimension of C.
     //-----------------------------------------------------------------------------
     void matmul_gemm_seq_loop_unroll_16(
-        size_t const m, size_t const n, size_t const k,
+        TIdx const m, TIdx const n, TIdx const k,
         TElem const alpha,
-        TElem const * const A, size_t const lda,
-        TElem const * const B, size_t const ldb,
+        TElem const * const A, TIdx const lda,
+        TElem const * const B, TIdx const ldb,
         TElem const beta,
-        TElem * const C, size_t const ldc);
+        TElem * const C, TIdx const ldc);
 
     //-----------------------------------------------------------------------------
     //! (S/D)GEMM matrix-matrix product C := A * B + C using the basic sequential algorithm blocked by in all dimensions by block-factor MATMUL_SEQ_BLOCK_FACTOR.
@@ -201,12 +199,12 @@
     //! \param ldc Specifies the leading dimension of C.
     //-----------------------------------------------------------------------------
     void matmul_gemm_seq_block(
-        size_t const m, size_t const n, size_t const k,
+        TIdx const m, TIdx const n, TIdx const k,
         TElem const alpha,
-        TElem const * const A, size_t const lda,
-        TElem const * const B, size_t const ldb,
+        TElem const * const A, TIdx const lda,
+        TElem const * const B, TIdx const ldb,
         TElem const beta,
-        TElem * const C, size_t const ldc);
+        TElem * const C, TIdx const ldc);
     #ifdef __cplusplus
         }
     #endif

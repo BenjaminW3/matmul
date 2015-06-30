@@ -33,7 +33,7 @@
     //
     //-----------------------------------------------------------------------------
     void matmul_gemm_par_mpi_cannon_block_local(
-        size_t const b,
+        TIdx const b,
         TElem const alpha,
         TElem * const MATMUL_RESTRICT pALocal,
         TElem * const MATMUL_RESTRICT pBLocal,
@@ -41,13 +41,13 @@
         TElem * const MATMUL_RESTRICT pCLocal,
         MPI_Comm * const comm2D,
         int aiGridCoords[2],
-        size_t q,
-        void(*pMatMul)(size_t const, size_t const, size_t const, TElem const, TElem const * const, size_t const, TElem const * const, size_t const, TElem const, TElem * const, size_t const))
+        TIdx q,
+        void(*pMatMul)(TIdx const, TIdx const, TIdx const, TElem const, TElem const * const, TIdx const, TElem const * const, TIdx const, TElem const, TElem * const, TIdx const))
     {
         assert(comm2D);
         assert(q>0);
 
-        size_t const uiNumElementsBlock = b * b;
+        TIdx const uiNumElementsBlock = b * b;
 
         MPI_Status status;
         int const iInitialShiftSendRecTag = 5;
@@ -67,7 +67,7 @@
 
         // Compute the current block.
         int const iComputeShiftSendRecTag = 7;
-        for(size_t i = 0; i<q; ++i)
+        for(TIdx i = 0; i<q; ++i)
         {
             // Perform the local calculation.
             pMatMul(b, b, b, alpha, pALocal, b, pBLocal, b, beta, pCLocal, b);
@@ -98,7 +98,7 @@
     //
     //-----------------------------------------------------------------------------
     void matmul_gemm_par_mpi_cannon_nonblock_local(
-        size_t const b,
+        TIdx const b,
         TElem const alpha,
         TElem * const MATMUL_RESTRICT pALocal,
         TElem * const MATMUL_RESTRICT pBLocal,
@@ -106,13 +106,13 @@
         TElem * const MATMUL_RESTRICT pCLocal,
         MPI_Comm * const comm2D,
         int aiGridCoords[2],
-        size_t q,
-        void(*pMatMul)(size_t const, size_t const, size_t const, TElem const, TElem const * const, size_t const, TElem const * const, size_t const, TElem const, TElem * const, size_t const))
+        TIdx q,
+        void(*pMatMul)(TIdx const, TIdx const, TIdx const, TElem const, TElem const * const, TIdx const, TElem const * const, TIdx const, TElem const, TElem * const, TIdx const))
     {
         assert(comm2D);
         assert(q>0);
 
-        size_t const uiNumElementsBlock = b * b;
+        TIdx const uiNumElementsBlock = b * b;
 
         MPI_Status status;
         int const iShiftSendRecTag = 1;
@@ -140,7 +140,7 @@
         MPI_Cart_shift(*comm2D, 0, -1, &iRankDown, &iRankUp);
 
         // Compute the current block.
-        for(size_t i = 0; i<q; ++i)
+        for(TIdx i = 0; i<q; ++i)
         {
             MPI_Request reqs[4];
 
@@ -153,7 +153,7 @@
             // Perform the local calculation.
             pMatMul(b, b, b, alpha, apALocal[i%2], b, apBLocal[i%2], b, beta, pCLocal, b);
 
-            for(size_t j = 0; j<4; ++j)
+            for(TIdx j = 0; j<4; ++j)
             {
                 MPI_Wait(&reqs[j], &status);
             }
@@ -176,14 +176,14 @@
     //
     //-----------------------------------------------------------------------------
     void matmul_gemm_par_mpi_cannon(
-        size_t const m, size_t const n, size_t const k,
+        TIdx const m, TIdx const n, TIdx const k,
         TElem const alpha,
-        TElem const * const MATMUL_RESTRICT A, size_t const lda,
-        TElem const * const MATMUL_RESTRICT B, size_t const ldb,
+        TElem const * const MATMUL_RESTRICT A, TIdx const lda,
+        TElem const * const MATMUL_RESTRICT B, TIdx const ldb,
         TElem const beta,
-        TElem * const MATMUL_RESTRICT C, size_t const ldc,
+        TElem * const MATMUL_RESTRICT C, TIdx const ldc,
         bool const bBlockingComm,
-        void(*pMatMul)(size_t const, size_t const, size_t const, TElem const, TElem const * const, size_t const, TElem const * const, size_t const, TElem const, TElem * const, size_t const))
+        void(*pMatMul)(TIdx const, TIdx const, TIdx const, TElem const, TElem const * const, TIdx const, TElem const * const, TIdx const, TElem const, TElem * const, TIdx const))
     {
         if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
         {
@@ -200,9 +200,9 @@
         // Apply beta multiplication to C.
         if(beta != (TElem)1)
         {
-            for(size_t i = 0; i < m; ++i)
+            for(TIdx i = 0; i < m; ++i)
             {
-                for(size_t j = 0; j < n; ++j)
+                for(TIdx j = 0; j < n; ++j)
                 {
                     C[i*ldc + j] *= beta;
                 }
@@ -225,7 +225,7 @@
 #endif
 
         // Set up the sizes for a cartesian 2d grid topology.
-        size_t const q = (int)sqrt((double)iNumProcesses);
+        TIdx const q = (TIdx)sqrt((double)iNumProcesses);
 
         // Test if it is a square.
         if(q * q != iNumProcesses)
@@ -245,7 +245,7 @@
 #endif
 
         // Determine block size of the local block.
-        size_t const b = n/q;
+        TIdx const b = n/q;
 
         // Test if the matrix can be divided equally. This can fail if e.g. the matrix is 3x3 and the preocesses are 2x2.
         if(n % q != 0)
@@ -285,7 +285,7 @@
         printf("%d iRankDown:%d iRankUp:%d\n", iRank2D, iRankDown, iRankUp);*/
 
         // Initialize the local buffers
-        size_t const uiNumElementsBlock = b * b;
+        TIdx const uiNumElementsBlock = b * b;
 
         TElem * const pALocal = matmul_arr_alloc(uiNumElementsBlock);
         TElem * const pBLocal = matmul_arr_alloc(uiNumElementsBlock);
@@ -301,7 +301,7 @@
         // Send the blocks.
         TElem * apBuffersLocal[3] = {pALocal, pBLocal, pCLocal};
         TElem const * apBuffersGlobal[3] = {A, B, C};
-        size_t const ald[3] = {lda, ldb, ldc};
+        TIdx const ald[3] = {lda, ldb, ldc};
 
 #ifdef MATMUL_MPI_ADDITIONAL_DEBUG_OUTPUT
         if(iRank1D==MATMUL_MPI_ROOT)
@@ -309,7 +309,7 @@
             printf(" Begin sending Blocks.\n");
         }
 #endif
-        for(size_t uiBuffer = 0; uiBuffer<3; ++uiBuffer)
+        for(TIdx uiBuffer = 0; uiBuffer<3; ++uiBuffer)
         {
             int const iInitSendRecTag = 2;
 
@@ -402,12 +402,12 @@
     //
     //-----------------------------------------------------------------------------
     void matmul_gemm_par_mpi_cannon_block(
-        size_t const m, size_t const n, size_t const k,
+        TIdx const m, TIdx const n, TIdx const k,
         TElem const alpha,
-        TElem const * const MATMUL_RESTRICT A, size_t const lda,
-        TElem const * const MATMUL_RESTRICT B, size_t const ldb,
+        TElem const * const MATMUL_RESTRICT A, TIdx const lda,
+        TElem const * const MATMUL_RESTRICT B, TIdx const ldb,
         TElem const beta,
-        TElem * const MATMUL_RESTRICT C, size_t const ldc)
+        TElem * const MATMUL_RESTRICT C, TIdx const ldc)
     {
         if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
         {
@@ -421,12 +421,12 @@
     //
     //-----------------------------------------------------------------------------
     void matmul_gemm_par_mpi_cannon_nonblock(
-        size_t const m, size_t const n, size_t const k,
+        TIdx const m, TIdx const n, TIdx const k,
         TElem const alpha,
-        TElem const * const MATMUL_RESTRICT A, size_t const lda,
-        TElem const * const MATMUL_RESTRICT B, size_t const ldb,
+        TElem const * const MATMUL_RESTRICT A, TIdx const lda,
+        TElem const * const MATMUL_RESTRICT B, TIdx const ldb,
         TElem const beta,
-        TElem * const MATMUL_RESTRICT C, size_t const ldc)
+        TElem * const MATMUL_RESTRICT C, TIdx const ldc)
     {
         if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
         {
@@ -444,12 +444,12 @@
     //
     //-----------------------------------------------------------------------------
     void matmul_gemm_par_mpi_cannon_nonblock_blas_mkl(
-        size_t const m, size_t const n, size_t const k,
+        TIdx const m, TIdx const n, TIdx const k,
         TElem const alpha,
-        TElem const * const MATMUL_RESTRICT A, size_t const lda,
-        TElem const * const MATMUL_RESTRICT B, size_t const ldb,
+        TElem const * const MATMUL_RESTRICT A, TIdx const lda,
+        TElem const * const MATMUL_RESTRICT B, TIdx const ldb,
         TElem const beta,
-        TElem * const MATMUL_RESTRICT C, size_t const ldc)
+        TElem * const MATMUL_RESTRICT C, TIdx const ldc)
     {
         if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
         {
@@ -467,12 +467,12 @@
     //
     //-----------------------------------------------------------------------------
     void matmul_gemm_par_mpi_cannon_nonblock_blas_cublas(
-        size_t const m, size_t const n, size_t const k,
+        TIdx const m, TIdx const n, TIdx const k,
         TElem const alpha,
-        TElem const * const MATMUL_RESTRICT A, size_t const lda,
-        TElem const * const MATMUL_RESTRICT B, size_t const ldb,
+        TElem const * const MATMUL_RESTRICT A, TIdx const lda,
+        TElem const * const MATMUL_RESTRICT B, TIdx const ldb,
         TElem const beta,
-        TElem * const MATMUL_RESTRICT C, size_t const ldc)
+        TElem * const MATMUL_RESTRICT C, TIdx const ldc)
     {
         if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
         {
