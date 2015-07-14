@@ -43,21 +43,21 @@
         auto devHost(alpaka::dev::cpu::getDev());
 
         // Get a stream on this device.
-        alpaka::stream::StreamT<alpaka::dev::DevT<TAcc>> stream(
+        alpaka::stream::Stream<alpaka::dev::Dev<TAcc>> stream(
             alpaka::stream::create(devHost));
 
         // Result matrix is MxN. We create one worker per result matrix cell.
-        alpaka::Vec2<> const v2uiExtentsC(
-            static_cast<alpaka::Vec2<>::Val>(m),
-            static_cast<alpaka::Vec2<>::Val>(n));
+        alpaka::Vec2<TIdx> const v2uiExtentsC(
+            m,
+            n);
 
         // Let alpaka calculate good block and grid sizes given our full problem extents.
-        alpaka::workdiv::WorkDivMembers<alpaka::dim::Dim2> const workDiv(
+        alpaka::workdiv::WorkDivMembers<alpaka::dim::DimInt<2u>, TIdx> const workDiv(
             alpaka::workdiv::getValidWorkDiv<TAcc>(
                 devHost,
                 v2uiExtentsC,
                 false,
-                alpaka::workdiv::BlockExtentsSubDivRestrictions::EqualExtents));
+                alpaka::workdiv::GridBlockExtentsSubDivRestrictions::EqualExtents));
 
         // Create the executor.
         auto exec(alpaka::exec::create<TAcc>(workDiv, stream));
@@ -99,7 +99,7 @@
                 return;
             }
 
-            matmul_gemm_par_alpaka_cpu<alpaka::AccCpuSerial<alpaka::dim::Dim2>>(
+            matmul_gemm_par_alpaka_cpu<alpaka::AccCpuSerial<alpaka::dim::DimInt<2u>, TIdx>>(
                 m, n, k,
                 alpha,
                 A, lda,
@@ -125,7 +125,7 @@
                 return;
             }
 
-            matmul_gemm_par_alpaka_cpu<alpaka::AccCpuOmp2Blocks<alpaka::dim::Dim2>>(
+            matmul_gemm_par_alpaka_cpu<alpaka::AccCpuOmp2Blocks<alpaka::dim::DimInt<2u>, TIdx>>(
                 m, n, k,
                 alpha,
                 A, lda,
@@ -151,7 +151,7 @@
                 return;
             }
 
-            matmul_gemm_par_alpaka_cpu<alpaka::AccCpuOmp2Threads<alpaka::dim::Dim2>>(
+            matmul_gemm_par_alpaka_cpu<alpaka::AccCpuOmp2Threads<alpaka::dim::DimInt<2u>, TIdx>>(
                 m, n, k,
                 alpha,
                 A, lda,
@@ -177,7 +177,7 @@
                 return;
             }
 
-            matmul_gemm_par_alpaka_cpu<alpaka::AccCpuOmp4<alpaka::dim::Dim2>>(
+            matmul_gemm_par_alpaka_cpu<alpaka::AccCpuOmp4<alpaka::dim::DimInt<2u>, TIdx>>(
                 m, n, k,
                 alpha,
                 A, lda,
@@ -203,7 +203,7 @@
                 return;
             }
 
-            matmul_gemm_par_alpaka_cpu<alpaka::AccCpuThreads<alpaka::dim::Dim2>>(
+            matmul_gemm_par_alpaka_cpu<alpaka::AccCpuThreads<alpaka::dim::DimInt<2u>, TIdx>>(
                 m, n, k,
                 alpha,
                 A, lda,
@@ -229,7 +229,7 @@
                 return;
             }
 
-            matmul_gemm_par_alpaka_cpu<alpaka::AccCpuFibers<alpaka::dim::Dim2>>(
+            matmul_gemm_par_alpaka_cpu<alpaka::AccCpuFibers<alpaka::dim::DimInt<2u>, TIdx>>(
                 m, n, k,
                 alpha,
                 A, lda,

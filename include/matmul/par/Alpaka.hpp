@@ -20,6 +20,7 @@
 
     #include <stdio.h>              // printf
     #include <math.h>               // ceil
+    #include <type_traits>          // std::is_same
 
     //#############################################################################
     // This function only works for square blocks.
@@ -27,10 +28,11 @@
     class GemmAlpakaKernel
     {
     public:
+        ALPAKA_NO_HOST_ACC_WARNING
         template<
             typename TAcc,
             typename TElem>
-        ALPAKA_FCT_ACC auto operator()(
+        ALPAKA_FN_ACC auto operator()(
             TAcc const & acc,
             TIdx const & m, TIdx const & n, TIdx const & k,
             TElem const & alpha,
@@ -40,7 +42,7 @@
             TElem * const MATMUL_RESTRICT C, TIdx const & ldc) const
         -> void
         {
-            static_assert(alpaka::dim::DimT<TAcc>::value == 2u,
+            static_assert(alpaka::dim::Dim<TAcc>::value == 2u,
                 "The accelerator used for with MatMulKernel has to be 2 dimensional!");
 
             // Column and row of C to calculate.
@@ -138,8 +140,8 @@
                     //-----------------------------------------------------------------------------
                     template<
                         typename TElem>
-                    ALPAKA_FCT_HOST static auto getBlockSharedExternMemSizeBytes(
-                        alpaka::Vec<alpaka::dim::DimT<TAcc>> const & vuiBlockThreadsExtents,
+                    ALPAKA_FN_HOST static auto getBlockSharedExternMemSizeBytes(
+                        alpaka::Vec<alpaka::dim::Dim<TAcc>, size::Size<TAcc>> const & vuiBlockThreadsExtents,
                         TIdx const & m,
                         TIdx const & n,
                         TIdx const & k,
@@ -151,8 +153,12 @@
                         TElem const & beta,
                         TElem * const C,
                         TIdx const & ldc)
-                    -> alpaka::Uint
+                    -> size::Size<TAcc>
                     {
+                        static_assert(
+                            std::is_same<TIdx, size::Size<TAcc>>::value,
+                            "TIdx and size::Size<TAcc> have to be identical!");
+
                         boost::ignore_unused(m);
                         boost::ignore_unused(n);
                         boost::ignore_unused(k);

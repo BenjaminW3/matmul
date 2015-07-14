@@ -31,9 +31,9 @@ compiler:
 # BENCHMARK_MPI                                 : {ON, OFF}
 # BENCHMARK_ALPAKA_THREADS_ENABLE               : {ON, OFF}
 # BENCHMARK_ALPAKA_FIBERS_ENABLE                : {ON, OFF}
-# BENCHMARK_OMP2_ENABLE                      : {ON, OFF}
-# BENCHMARK_OMP3_ENABLE                      : {ON, OFF}
-# BENCHMARK_OMP4_ENABLE                      : {ON, OFF}
+# BENCHMARK_OMP2_ENABLE                         : {ON, OFF}
+# BENCHMARK_OMP3_ENABLE                         : {ON, OFF}
+# BENCHMARK_OMP4_ENABLE                         : {ON, OFF}
 #   [ON] OMP_NUM_THREADS                        : {1, 2, 3, 4}
 # BENCHMARK_CUDA                                : {ON, OFF}
 #   [ON] MATMUL_CUDA_VERSION                    : {7.0}

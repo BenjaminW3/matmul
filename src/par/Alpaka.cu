@@ -43,54 +43,56 @@
         auto devHost(alpaka::dev::cpu::getDev());
 
         // Select a device to execute on.
-        alpaka::dev::DevT<TAcc> devAcc(
-            alpaka::dev::DevManT<TAcc>::getDevByIdx(0));
+        alpaka::dev::Dev<TAcc> devAcc(
+            alpaka::dev::DevMan<TAcc>::getDevByIdx(0));
 
         // Get a stream on this device.
-        alpaka::stream::StreamT<alpaka::dev::DevT<TAcc>> stream(
+        alpaka::stream::Stream<alpaka::dev::Dev<TAcc>> stream(
             alpaka::stream::create(devAcc));
 
-        alpaka::Vec2<> const v2uiExtentsA(
-            static_cast<alpaka::Vec2<>::Val>(m),
-            static_cast<alpaka::Vec2<>::Val>(k));
+        alpaka::Vec2<TIdx> const v2uiExtentsA(
+            m,
+            k);
 
-        alpaka::Vec2<> const v2uiExtentsB(
-            static_cast<alpaka::Vec2<>::Val>(k),
-            static_cast<alpaka::Vec2<>::Val>(n));
+        alpaka::Vec2<TIdx> const v2uiExtentsB(
+            k,
+            n);
 
         // Result matrix is MxN. We create one worker per result matrix cell.
-        alpaka::Vec2<> const v2uiExtentsC(
-            static_cast<alpaka::Vec2<>::Val>(m),
-            static_cast<alpaka::Vec2<>::Val>(n));
+        alpaka::Vec2<TIdx> const v2uiExtentsC(
+            m,
+            n);
 
         // Wrap the Pointers into memory buffer objects.
         using MemBufWrapperC = alpaka::mem::buf::BufPlainPtrWrapper<
+            std::decay<decltype(devHost)>::type,
             TElem const,
-            alpaka::dim::Dim2,
-            std::decay<decltype(devHost)>::type>;
+            alpaka::dim::DimInt<2u>,
+            TIdx>;
         MemBufWrapperC bufAHost(A, devHost, v2uiExtentsA, lda);
         MemBufWrapperC bufBHost(B, devHost, v2uiExtentsB, ldb);
         using MemBufWrapper = alpaka::mem::buf::BufPlainPtrWrapper<
+            std::decay<decltype(devHost)>::type,
             TElem,
-            alpaka::dim::Dim2,
-            std::decay<decltype(devHost)>::type>;
+            alpaka::dim::DimInt<2u>,
+            TIdx>;
         MemBufWrapper bufCHost(C, devHost, v2uiExtentsC, ldc);
 
         // Allocate the buffers on the accelerator and copy Host -> Acc (Interleaved for better performance)
-        auto bufAAcc(alpaka::mem::buf::alloc<TElem>(devAcc, v2uiExtentsA));
+        auto bufAAcc(alpaka::mem::buf::alloc<TElem, TIdx>(devAcc, v2uiExtentsA));
         alpaka::mem::view::copy(bufAAcc, bufAHost, v2uiExtentsA, stream);
-        auto bufBAcc(alpaka::mem::buf::alloc<TElem>(devAcc, v2uiExtentsB));
+        auto bufBAcc(alpaka::mem::buf::alloc<TElem, TIdx>(devAcc, v2uiExtentsB));
         alpaka::mem::view::copy(bufBAcc, bufBHost, v2uiExtentsB, stream);
-        auto bufCAcc(alpaka::mem::buf::alloc<TElem>(devAcc, v2uiExtentsC));
+        auto bufCAcc(alpaka::mem::buf::alloc<TElem, TIdx>(devAcc, v2uiExtentsC));
         alpaka::mem::view::copy(bufCAcc, bufCHost, v2uiExtentsC, stream);
 
         // Let alpaka calculate good block and grid sizes given our full problem extents.
-        alpaka::workdiv::WorkDivMembers<alpaka::dim::Dim2> const workDiv(
+        alpaka::workdiv::WorkDivMembers<alpaka::dim::DimInt<2u>, TIdx> const workDiv(
             alpaka::workdiv::getValidWorkDiv<TAcc>(
                 devAcc,
                 v2uiExtentsC,
                 false,
-                alpaka::workdiv::BlockExtentsSubDivRestrictions::EqualExtents));
+                alpaka::workdiv::GridBlockExtentsSubDivRestrictions::EqualExtents));
 
         // Create the executor.
         auto exec(alpaka::exec::create<TAcc>(workDiv, stream));
@@ -102,12 +104,12 @@
             k,
             alpha,
             alpaka::mem::view::getPtrNative(bufAAcc),
-            alpaka::mem::view::getPitchBytes<1u, TIdx>(bufAAcc) / sizeof(TElem),
+            static_cast<TIdx>(alpaka::mem::view::getPitchBytes<1u>(bufAAcc) / sizeof(TElem)),
             alpaka::mem::view::getPtrNative(bufBAcc),
-            alpaka::mem::view::getPitchBytes<1u, TIdx>(bufBAcc) / sizeof(TElem),
+            static_cast<TIdx>(alpaka::mem::view::getPitchBytes<1u>(bufBAcc) / sizeof(TElem)),
             beta,
             alpaka::mem::view::getPtrNative(bufCAcc),
-            alpaka::mem::view::getPitchBytes<1u, TIdx>(bufCAcc) / sizeof(TElem));
+            static_cast<TIdx>(alpaka::mem::view::getPitchBytes<1u>(bufCAcc) / sizeof(TElem)));
 
         // Copy back the result.
         alpaka::mem::view::copy(bufCHost, bufCAcc, v2uiExtentsC, stream);
@@ -132,7 +134,7 @@
             return;
         }
 
-        matmul_gemm_par_alpaka_gpu<alpaka::AccGpuCuda<alpaka::dim::Dim2>>(
+        matmul_gemm_par_alpaka_gpu<alpaka::AccGpuCuda<alpaka::dim::DimInt<2u>, TIdx>>(
             m, n, k,
             alpha,
             A, lda,
