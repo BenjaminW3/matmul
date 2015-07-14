@@ -73,7 +73,7 @@
             bool const bInsideB = (uiGridThreadIdxX < n);
             bool const bInsideC = (bInsideA && bInsideB);
 
-            TElem fCSum(0);
+            TElem dotProduct(0);
 
             // Loop over all blocks of A and B that are required to compute the C block.
             auto const uiBlockMulCount(
@@ -104,7 +104,7 @@
                 // Dyadic product within shared memory.
                 for(TIdx k3(0); k3<uiBlockThreadsExtent; ++k3)
                 {
-                    fCSum += pBlockSharedA[uiBlockThreadIdxY*uiBlockThreadsExtentX + k3]
+                    dotProduct += pBlockSharedA[uiBlockThreadIdxY*uiBlockThreadsExtentX + k3]
                         * pBlockSharedB[k3*uiBlockThreadsExtentY + uiBlockThreadIdxX];
                 }
 
@@ -115,7 +115,7 @@
             if(bInsideC)
             {
                 auto const uiIdxC1d(uiGridThreadIdxY*ldc + uiGridThreadIdxX);
-                C[uiIdxC1d] = alpha * fCSum + beta * C[uiIdxC1d];
+                C[uiIdxC1d] = alpha * dotProduct + beta * C[uiIdxC1d];
             }
         }
     };

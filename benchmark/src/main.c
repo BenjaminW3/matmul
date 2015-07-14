@@ -384,9 +384,9 @@ void main_print_startup()
 #endif
     printf("; element type:");
 #ifdef MATMUL_ELEMENT_TYPE_DOUBLE
-    printf("; double precision");
+    printf(" double");
 #else
-    printf("; single precision");
+    printf(" float");
 #endif
     printf("; index type: %s", MATMUL_STRINGIFY(MATMUL_INDEX_TYPE));
     printf("; BENCHMARK_MIN_N=%"MATMUL_PRINTF_SIZE_T, (size_t)BENCHMARK_MIN_N);
@@ -516,16 +516,6 @@ int main(
         {matmul_gemm_par_strassen_omp2, "gemm_par_strassen_omp", 2.80735},   // 2.80735 = log(7.0) / log(2.0)
         #endif
     #endif
-    #ifdef BENCHMARK_PAR_OPENACC
-        {matmul_gemm_par_openacc_kernels, "gemm_par_openacc_kernels", 3.0},
-        {matmul_gemm_par_openacc_parallel, "gemm_par_openacc_parallel", 3.0},
-    #endif
-    #ifdef BENCHMARK_PAR_CUDA
-        {matmul_gemm_par_cuda, "gemm_par_cuda", 3.0},
-    #endif
-    #ifdef BENCHMARK_PAR_ALPAKA_ACC_CPU_B_SEQ_T_SEQ
-        {matmul_gemm_par_alpaka_cpu_b_seq_t_seq, "gemm_par_alpaka_cpu_b_seq_t_seq", 3.0},
-    #endif
     #ifdef BENCHMARK_PAR_ALPAKA_ACC_CPU_B_OMP2_T_SEQ
         {matmul_gemm_par_alpaka_cpu_b_omp2_t_seq, "gemm_par_alpaka_cpu_b_omp2_t_seq", 3.0},
     #endif
@@ -541,8 +531,23 @@ int main(
     #ifdef BENCHMARK_PAR_ALPAKA_ACC_CPU_B_SEQ_T_FIBERS
         {matmul_gemm_par_alpaka_cpu_b_seq_t_fibers, "gemm_par_alpaka_cpu_b_seq_t_fibers", 3.0},
     #endif
+    #ifdef BENCHMARK_PAR_ALPAKA_ACC_CPU_B_SEQ_T_SEQ
+        {matmul_gemm_par_alpaka_cpu_b_seq_t_seq, "gemm_par_alpaka_cpu_b_seq_t_seq", 3.0},
+    #endif
     #ifdef BENCHMARK_PAR_ALPAKA_ACC_GPU_CUDA
         {matmul_gemm_par_alpaka_gpu_cuda, "gemm_par_alpaka_gpu_cuda", 3.0},
+    #endif
+    #ifdef BENCHMARK_PAR_OPENACC
+        {matmul_gemm_par_openacc_kernels, "gemm_par_openacc_kernels", 3.0},
+        {matmul_gemm_par_openacc_parallel, "gemm_par_openacc_parallel", 3.0},
+    #endif
+    #ifdef BENCHMARK_PAR_CUDA_FIXED_BLOCK_SIZE
+        {matmul_gemm_par_cuda_fixed_block_size_2d_static_shared, "gemm_par_cuda_fixed_block_size_2d_static_shared", 3.0},
+        {matmul_gemm_par_cuda_fixed_block_size_1d_static_shared, "gemm_par_cuda_fixed_block_size_1d_static_shared", 3.0},
+        {matmul_gemm_par_cuda_fixed_block_size_1d_extern_shared, "gemm_par_cuda_fixed_block_size_1d_extern_shared", 3.0},
+    #endif
+    #ifdef BENCHMARK_PAR_CUDA_DYN_BLOCK_SIZE
+        {matmul_gemm_par_cuda_dyn_block_size_1d_extern_shared, "gemm_par_cuda_dyn_block_size_1d_extern_shared", 3.0},
     #endif
     #ifdef BENCHMARK_PAR_BLAS_MKL
         {matmul_gemm_par_blas_mkl, "gemm_par_blas_mkl", 3.0},
