@@ -88,13 +88,20 @@ double measureRandomMatMul(
 #endif
     )
 {
+    TElem const minVal = MATMUL_EPSILON;
+    TElem const maxVal = (TElem)10;
+
     // Generate random alpha and beta.
-    TElem const alpha = matmul_gen_rand_val(MATMUL_EPSILON, (TElem)1);
-    TElem const beta = matmul_gen_rand_val(MATMUL_EPSILON, (TElem)1);
+#ifdef MATMUL_MPI
+    TElem const alpha = (TElem)1;
+#else
+    TElem const alpha = matmul_gen_rand_val(minVal, maxVal);
+#endif
+    TElem const beta = matmul_gen_rand_val(minVal, maxVal);
 
     // Allocate and initialize the matrices of the given size.
-#ifdef MATMUL_MPI
     TIdx const uiNumElements = n * n;
+#ifdef MATMUL_MPI
     TElem const * /*const*/ A = 0;
     TElem const * /*const*/ B = 0;
     TElem * /*const*/ C = 0;
@@ -104,19 +111,18 @@ double measureRandomMatMul(
 
     int iRank1D;
     MPI_Comm_rank(MATMUL_MPI_COMM, &iRank1D);
-    if(iRank1D==MATMUL_MPI_ROOT)
+    if(iRank1D == MATMUL_MPI_ROOT)
     {
-        A = matmul_arr_alloc_rand_fill(uiNumElements);
-        B = matmul_arr_alloc_rand_fill(uiNumElements);
+        A = matmul_arr_alloc_fill_rand(uiNumElements, minVal, maxVal);
+        B = matmul_arr_alloc_fill_rand(uiNumElements, minVal, maxVal);
         C = matmul_arr_alloc(uiNumElements);
     #ifdef BENCHMARK_VERIFY_RESULT
         D = matmul_arr_alloc(uiNumElements);
     #endif
     }
 #else
-    TIdx const uiNumElements = n * n;
-    TElem const * const A = matmul_arr_alloc_rand_fill(uiNumElements);
-    TElem const * const B = matmul_arr_alloc_rand_fill(uiNumElements);
+    TElem const * const A = matmul_arr_alloc_fill_rand(uiNumElements, minVal, maxVal);
+    TElem const * const B = matmul_arr_alloc_fill_rand(uiNumElements, minVal, maxVal);
     TElem * const C = matmul_arr_alloc(uiNumElements);
     #ifdef BENCHMARK_VERIFY_RESULT
         TElem * const D = matmul_arr_alloc(uiNumElements);
@@ -134,16 +140,16 @@ double measureRandomMatMul(
     for(TIdx i = 0; i < uiRepeatCount; ++i)
     {
 #ifdef MATMUL_MPI
-        if(iRank1D==MATMUL_MPI_ROOT)
+        if(iRank1D == MATMUL_MPI_ROOT)
         {
 #endif
             // Because we calculate C += A*B we need to initialize C.
             // Even if we would not need this, we would have to initialize the C array with data before using it because else we would measure page table time on first write.
             // We have to fill C with new data in subsequent iterations because else the values in C would get bigger and bigger in each iteration.
-            matmul_arr_rand_fill(C, uiNumElements);
-#ifdef BENCHMARK_VERIFY_RESULT
+            matmul_arr_fill_rand(C, uiNumElements, minVal, maxVal);
+    #ifdef BENCHMARK_VERIFY_RESULT
             matmul_mat_copy(n, n, C, n, D, n);
-#endif
+    #endif
 
 #ifdef MATMUL_MPI
         }
@@ -152,7 +158,7 @@ double measureRandomMatMul(
 #ifdef MATMUL_MPI
         double fTimeStart = 0;
         // Only the root process does the printing.
-        if(iRank1D==MATMUL_MPI_ROOT)
+        if(iRank1D == MATMUL_MPI_ROOT)
         {
 #endif
 
@@ -168,6 +174,17 @@ double measureRandomMatMul(
             }
 #endif
 
+#ifdef BENCHMARK_PRINT_MATRICES
+            printf("\n");
+            printf("%f\n*\n", alpha);
+            matmul_mat_print_simple(n, n, A, n);
+            printf("\n*\n");
+            matmul_mat_print_simple(n, n, B, n);
+            printf("\n+\n");
+            printf("%f\n*\n", beta);
+            matmul_mat_print_simple(n, n, C, n);
+#endif
+
 #ifdef MATMUL_MPI
             fTimeStart = getTimeSec();
         }
@@ -179,27 +196,35 @@ double measureRandomMatMul(
 
 #ifdef MATMUL_MPI
         // Only the root process does the printing.
-        if(iRank1D==MATMUL_MPI_ROOT)
+        if(iRank1D == MATMUL_MPI_ROOT)
         {
 #endif
             double const fTimeEnd = getTimeSec();
             double const fTimeElapsed = fTimeEnd - fTimeStart;
 
 #ifdef BENCHMARK_PRINT_MATRICES
-            matmul_mat_print(n, n, A, n);
-            printf("*\n");
-            matmul_mat_print(n, n, B, n);
-            printf("=\n");
-            matmul_mat_print(n, n, C, n);
-            printf("\n");
+            printf("\n=\n");
+            matmul_mat_print_simple(n, n, C, n);
 #endif
 
 #ifdef BENCHMARK_VERIFY_RESULT
             matmul_gemm_seq_basic(n, n, n, alpha, A, n, B, n, beta, D, n);
+    #ifdef BENCHMARK_PRINT_MATRICES
+            printf("\n=\n");
+            matmul_mat_print_simple(n, n, D, n);
+    #endif
 
             // The threshold difference from where the value is considered to be a real error.
-            TElem const fErrorThreshold = (TElem)(MATMUL_EPSILON * ((TElem)m) * ((TElem)n) * ((TElem)k));
-            *pbResultsCorrect = matmul_mat_cmp(n, n, C, n, D, n, fErrorThreshold);
+            TElem const fErrorThreshold = (TElem)(MATMUL_EPSILON * ((TElem)m) * ((TElem)n) * ((TElem)k)) * maxVal;
+            bool const bResultCorrect = matmul_mat_cmp(n, n, C, n, D, n, fErrorThreshold);
+            if(!bResultCorrect)
+            {
+                printf("%s iteration %"MATMUL_PRINTF_SIZE_T" result incorrect!", algo->pszName, (size_t)i);
+            }
+            *pbResultsCorrect = (*pbResultsCorrect) && bResultCorrect;
+#endif
+#ifdef BENCHMARK_PRINT_MATRICES
+            printf("\n");
 #endif
 
 #ifdef BENCHMARK_REPEAT_TAKE_MINIMUM
@@ -215,7 +240,7 @@ double measureRandomMatMul(
 
 #ifdef MATMUL_MPI
     // Only the root process does the printing.
-    if(iRank1D==MATMUL_MPI_ROOT)
+    if(iRank1D == MATMUL_MPI_ROOT)
     {
 #endif
 
@@ -260,15 +285,15 @@ typedef struct SMatMulSizes
 //-----------------------------------------------------------------------------
 SMatMulSizes buildSizes(
     TIdx const uiNMin,
-    TIdx const uiStepWidth,
-    TIdx const uiNMax)
+    TIdx const uiNMax,
+    TIdx const uiNStep)
 {
     SMatMulSizes sizes;
     sizes.uiNumSizes = 0;
     sizes.puiSizes = 0;
 
     TIdx uiN;
-    for(uiN = uiNMin; uiN <= uiNMax; uiN += (uiStepWidth == 0) ? uiN : uiStepWidth)
+    for(uiN = uiNMin; uiN <= uiNMax; uiN += (uiNStep == 0) ? uiN : uiNStep)
     {
         ++sizes.uiNumSizes;
     }
@@ -276,7 +301,7 @@ SMatMulSizes buildSizes(
     sizes.puiSizes = (TIdx *)malloc(sizes.uiNumSizes * sizeof(TIdx));
 
     TIdx uiIdx = 0;
-    for(uiN = uiNMin; uiN <= uiNMax; uiN += (uiStepWidth == 0) ? uiN : uiStepWidth)
+    for(uiN = uiNMin; uiN <= uiNMax; uiN += (uiNStep == 0) ? uiN : uiNStep)
     {
         sizes.puiSizes[uiIdx] = uiN;
         ++uiIdx;
@@ -332,8 +357,15 @@ measureRandomMatMuls(
         for(TIdx uiSizeIdx = 0; uiSizeIdx < pSizes->uiNumSizes; ++uiSizeIdx)
         {
             TIdx const n = pSizes->puiSizes[uiSizeIdx];
-            // Print the operation
-            printf("\n%"MATMUL_PRINTF_SIZE_T, (size_t)n);
+#ifdef MATMUL_MPI
+            if(iRank1D==MATMUL_MPI_ROOT)
+            {
+#endif
+                // Print the operation
+                printf("\n%"MATMUL_PRINTF_SIZE_T, (size_t)n);
+#ifdef MATMUL_MPI
+            }
+#endif
 
             for(TIdx uiAlgoIdx = 0; uiAlgoIdx < uiNumAlgos; ++uiAlgoIdx)
             {
@@ -374,7 +406,10 @@ measureRandomMatMuls(
 //-----------------------------------------------------------------------------
 //! Prints some startup informations.
 //-----------------------------------------------------------------------------
-void main_print_startup()
+void main_print_startup(
+    TIdx uiNMin,
+    TIdx uiNMax,
+    TIdx uiNStep)
 {
     printf("# matmul benchmark copyright (c) 2014-2015, Benjamin Worpitz:");
 #ifdef NDEBUG
@@ -389,9 +424,9 @@ void main_print_startup()
     printf(" float");
 #endif
     printf("; index type: %s", MATMUL_STRINGIFY(MATMUL_INDEX_TYPE));
-    printf("; BENCHMARK_MIN_N=%"MATMUL_PRINTF_SIZE_T, (size_t)BENCHMARK_MIN_N);
-    printf("; BENCHMARK_STEP_N=%"MATMUL_PRINTF_SIZE_T, (size_t)BENCHMARK_STEP_N);
-    printf("; BENCHMARK_MAX_N=%"MATMUL_PRINTF_SIZE_T, (size_t)BENCHMARK_MAX_N);
+    printf("; MIN_N=%"MATMUL_PRINTF_SIZE_T, (size_t)uiNMin);
+    printf("; MAX_N=%"MATMUL_PRINTF_SIZE_T, (size_t)uiNMax);
+    printf("; STEP_N=%"MATMUL_PRINTF_SIZE_T, (size_t)uiNStep);
     printf("; BENCHMARK_REPEAT_COUNT=%"MATMUL_PRINTF_SIZE_T, (size_t)BENCHMARK_REPEAT_COUNT);
 #ifdef BENCHMARK_PRINT_GFLOPS
     printf("; BENCHMARK_PRINT_GFLOPS=ON");
@@ -421,17 +456,52 @@ void main_print_startup()
 //! Main method initiating the measurements of all algorithms selected in config.h.
 //-----------------------------------------------------------------------------
 int main(
-#ifdef MATMUL_MPI
     int argc,
     char ** argv
-#endif
     )
 {
-    // Disable buffering of fprintf. Always print it immediately.
+    // Disable buffering of printf. Always print it immediately.
     setvbuf(stdout, 0, _IONBF, 0);
 
+    // Set the initial seed to make the measurements repeatable.
+    srand(42u);
+
+    TIdx uiNMin = 1;
+    TIdx uiNMax = 1;
+    TIdx uiNStep = 1;
+
+    // Read all arguments.
+    if(argc == 1)
+    {
+        printf("\nAt least one argument is required!");
+        printf("\nAllowed options: min [max [step]] !");
+        return EXIT_FAILURE;
+    }
+    else if(argc > 4)
+    {
+        printf("\nToo many command line arguments!");
+        return EXIT_FAILURE;
+    }
+    else
+    {
+        if(argc >= 2)
+        {
+            uiNMin = atoi(argv[1]);
+            // Set the max to the current min for the case when no max is provided.
+            uiNMax = uiNMin;
+        }
+        if(argc >= 3)
+        {
+            uiNMax = atoi(argv[2]);
+        }
+        if(argc == 4)
+        {
+            uiNStep = atoi(argv[3]);
+        }
+    }
+
 #ifdef MATMUL_MPI
-    // Initialize MPI before calling any mpi methods.
+    // Initialize MPI before calling any MPI methods.
     int mpiStatus = MPI_Init(&argc, &argv);
     int iRank1D;
     if(mpiStatus != MPI_SUCCESS)
@@ -444,11 +514,11 @@ int main(
 
         if(iRank1D==MATMUL_MPI_ROOT)
         {
-            main_print_startup();
+            main_print_startup(uiNMin, uiNMax, uiNStep);
         }
     }
 #else
-    main_print_startup();
+    main_print_startup(uiNMin, uiNMax, uiNStep);
 #endif
 
     double const fTimeStart = getTimeSec();
@@ -576,9 +646,9 @@ int main(
     };
 
     SMatMulSizes const sizes = buildSizes(
-        (TIdx)BENCHMARK_MIN_N,
-        (TIdx)BENCHMARK_STEP_N,
-        (TIdx)BENCHMARK_MAX_N);
+        uiNMin,
+        uiNMax,
+        uiNStep);
 
 #ifdef BENCHMARK_VERIFY_RESULT
     bool const bAllResultsCorrect =

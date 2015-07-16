@@ -19,7 +19,7 @@
     #include <matmul/seq/MultipleOpts.h>
     #include <matmul/common/Alloc.h>
     #include <matmul/common/Mat.h>          // matmul_mat_row_major_to_mat_x_block_major, matmul_mat_gemm_early_out
-    #include <matmul/common/Array.h>        // matmul_arr_alloc_zero_fill
+    #include <matmul/common/Array.h>        // matmul_arr_alloc_fill_zero
 
     #include <stdbool.h>                    // bool
     #include <math.h>                       // cbrt
@@ -51,11 +51,9 @@
 
         int iLocalRank1D;               // Local rank in 1D communicator.
 
-        int iLocalRank3D;               // Local rank.
         int aiGridCoords[3];            // Local coordinates.
 
         TIdx n;                         // The size of the full matrices is n x n
-        TIdx q;                         // The number of processors in each dimension of the 3D-Mesh. Each processor will receive two blocks of (n/q)*(n/q) elements
         TIdx b;                         // b = (n/q)
     } STopologyInfo;
 
@@ -155,7 +153,7 @@
     //-----------------------------------------------------------------------------
     void matmul_gemm_par_mpi_dns_scatter_c_blocks_2d(
         STopologyInfo const * const MATMUL_RESTRICT info,
-        TElem * const MATMUL_RESTRICT pC,
+        TElem * const MATMUL_RESTRICT C,
         TIdx const ldc,
         TElem * const MATMUL_RESTRICT pCSub)
     {
@@ -163,7 +161,7 @@
         {
             matmul_gemm_par_mpi_dns_scatter_mat_blocks_2d(
                 info,
-                pC,
+                C,
                 ldc,
                 pCSub,
                 false,
@@ -177,7 +175,7 @@
     void matmul_gemm_par_mpi_dns_gather_c_blocks_2d(
         STopologyInfo const * const MATMUL_RESTRICT info,
         TElem * const MATMUL_RESTRICT pCSub,
-        TElem * const MATMUL_RESTRICT pC,
+        TElem * const MATMUL_RESTRICT C,
         TIdx const ldc)
     {
         if(info->aiGridCoords[K_DIM] == MATMUL_MPI_ROOT)
@@ -195,7 +193,7 @@
 
             if(info->iLocalRank1D == MATMUL_MPI_ROOT)
             {
-                matmul_mat_x_block_major_to_mat_row_major(pCBlocks, info->b, pC, info->n, info->n, ldc, false);
+                matmul_mat_x_block_major_to_mat_row_major(pCBlocks, info->b, C, info->n, info->n, ldc, false);
                 matmul_arr_free(pCBlocks);
             }
         }
@@ -207,41 +205,56 @@
     void matmul_gemm_par_mpi_dns_local(
         STopologyInfo const * const MATMUL_RESTRICT info,
         TElem const alpha,
-        TElem const * const MATMUL_RESTRICT pA, TIdx const lda,
-        TElem const * const MATMUL_RESTRICT pB, TIdx const ldb,
+        TElem const * const MATMUL_RESTRICT A, TIdx const lda,
+        TElem const * const MATMUL_RESTRICT B, TIdx const ldb,
         TElem const beta,
-        TElem * const MATMUL_RESTRICT pC, TIdx const ldc,
+        TElem * const MATMUL_RESTRICT C, TIdx const ldc,
         void(*pMatMul)(TIdx const, TIdx const, TIdx const, TElem const, TElem const * const, TIdx const, TElem const * const, TIdx const, TElem const, TElem * const, TIdx const))
     {
         assert(info->commMesh3D);
         assert(info->n>0);
         assert(info->b>0);
-        assert(info->q>0);
-        assert(info->n==info->q*info->b);
 
         // Allocate the local matrices
         TIdx const uiNumElementsBlock = info->b * info->b;
         TElem * const ASub = matmul_arr_alloc(uiNumElementsBlock);
         TElem * const BSub = matmul_arr_alloc(uiNumElementsBlock);
-        // The elements in the root IJ plane get submatrices of the input C, all others zeros.
-        TElem * const CSub = (info->aiGridCoords[K_DIM] == MATMUL_MPI_ROOT)
+        // The elements in the root IJ plane get sub-matrices of the input C, all others zeros.
+        bool const bIJPlane = (info->aiGridCoords[K_DIM] == MATMUL_MPI_ROOT);
+        TElem * const CSub = bIJPlane
                                 ? matmul_arr_alloc(uiNumElementsBlock)
-                                : matmul_arr_alloc_zero_fill(uiNumElementsBlock);
-        // Scather C on the i-j plane.
-        matmul_gemm_par_mpi_dns_scatter_c_blocks_2d(info, pC, ldc, CSub);
+                                : matmul_arr_alloc_fill_zero(uiNumElementsBlock);
+
+        // Scatter C on the i-j plane.
+        matmul_gemm_par_mpi_dns_scatter_c_blocks_2d(info, C, ldc, CSub);
         // Distribute A along the i-k plane and then in the j direction.
-        matmul_gemm_par_mpi_dns_distribute_mat(info, pA, lda, ASub, J_DIM, false);
+        matmul_gemm_par_mpi_dns_distribute_mat(info, A, lda, ASub, J_DIM, false);
         // Distribute B along the k-j plane and then in the i direction.
-        matmul_gemm_par_mpi_dns_distribute_mat(info, pB, ldb, BSub, I_DIM, true);
+        matmul_gemm_par_mpi_dns_distribute_mat(info, B, ldb, BSub, I_DIM, true);
+
+        // Apply beta multiplication to local C.
+        if(bIJPlane)
+        {
+            if(alpha != (TElem)1)
+            {
+                for(TIdx i = 0; i < info->b; ++i)
+                {
+                    for(TIdx j = 0; j < info->b; ++j)
+                    {
+                        CSub[i*info->b + j] *= beta;
+                    }
+                }
+            }
+        }
 
         // Do the local matrix multiplication.
-        pMatMul(info->b, info->b, info->b, alpha, ASub, info->b, BSub, info->b, beta, CSub, info->b);
+        pMatMul(info->b, info->b, info->b, alpha, ASub, info->b, BSub, info->b, (TElem)1, CSub, info->b);
 
         // Reduce along k dimension to the i-j plane
         matmul_gemm_par_mpi_dns_reduce_c(info, CSub);
 
         // Gather C on the i-j plane to the root node.
-        matmul_gemm_par_mpi_dns_gather_c_blocks_2d(info, CSub, pC, ldc);
+        matmul_gemm_par_mpi_dns_gather_c_blocks_2d(info, CSub, C, ldc);
 
         matmul_arr_free(CSub);
         matmul_arr_free(BSub);
@@ -267,61 +280,59 @@
         MPI_Comm_rank(MATMUL_MPI_COMM, &info->iLocalRank1D);
 
 #ifdef MATMUL_MPI_ADDITIONAL_DEBUG_OUTPUT
-        if(info->iLocalRank1D==MATMUL_MPI_ROOT)
+        if(info->iLocalRank1D == MATMUL_MPI_ROOT)
         {
             printf(" p=%d", iNumProcesses);
         }
 #endif
 
         // Set up the sizes for a cartesian 3d mesh topology.
-        info->q = (TIdx)cbrt((double)iNumProcesses);
+        // The number of processors in each dimension of the 3D-Mesh. Each processor will receive a block of (n/q)*(n/q) elements of A and B.
+        TIdx const q = (TIdx)cbrt((double)iNumProcesses);
 
         // Test if it is a cube.
-        if(info->q * info->q * info->q != iNumProcesses)
+        if(q * q * q != iNumProcesses)
         {
-            //MPI_Finalize();
             if(info->iLocalRank1D==MATMUL_MPI_ROOT)
             {
-                printf("\nInvalid environment! The number of processors (%d given) should be perfect cube.\n", iNumProcesses);
+                printf("\n[GEMM MPI DNS] Invalid environment! The number of processors (%d given) should be perfect cube.\n", iNumProcesses);
             }
             return false;
         }
 #ifdef MATMUL_MPI_ADDITIONAL_DEBUG_OUTPUT
-        if(info->iLocalRank1D==MATMUL_MPI_ROOT)
+        if(info->iLocalRank1D == MATMUL_MPI_ROOT)
         {
             printf(" -> %"MATMUL_PRINTF_SIZE_T" x %"MATMUL_PRINTF_SIZE_T" x %"MATMUL_PRINTF_SIZE_T" mesh", (size_t)info->q, (size_t)info->q, (size_t)info->q);
         }
 #endif
 
-        // Determine block size of the local block.
-        info->b = n/info->q;
-
-        // Test if the matrix can be divided equally. This can fail if e.g. the matrix is 3x3 and the preocesses are 2x2.
-        if(n % info->q != 0)
+        // Test if the matrix can be divided equally. This can fail if e.g. the matrix is 3x3 and the processes are 2x2.
+        if(n % q != 0)
         {
-            //MPI_Finalize();
-            if(info->iLocalRank1D==MATMUL_MPI_ROOT)
+            if(info->iLocalRank1D == MATMUL_MPI_ROOT)
             {
-                printf("\nThe matrices can't be divided among processors equally!\n");
+                printf("\n[GEMM MPI DNS] The matrices can't be divided among processors equally!\n");
             }
             return false;
         }
 
+        // Determine block size of the local block.
+        info->b = n/q;
+
         // Set that the structure is periodical around the given dimension for wraparound connections.
-        int aiPeriods[3];
-        aiPeriods[0] = aiPeriods[1] = aiPeriods[2] = 1;
-        int aiProcesses[3];
-        aiProcesses[0] = aiProcesses[1] = aiProcesses[2] = (int)info->q;
+        int aiPeriods[3] = {1, 1, 1};
+        int aiProcesses[3] = {(int)q, (int)q, (int)q};
 
         // Create the cartesian 2d grid topology. Ranks can be reordered.
         MPI_Cart_create(MATMUL_MPI_COMM, 3, aiProcesses, aiPeriods, 1, &info->commMesh3D);
 
         // Get the rank and coordinates with respect to the new 3D grid topology.
-        MPI_Comm_rank(info->commMesh3D, &info->iLocalRank3D);
-        MPI_Cart_coords(info->commMesh3D, info->iLocalRank3D, 3, info->aiGridCoords);
+        int iLocalRank3D = 0;
+        MPI_Comm_rank(info->commMesh3D, &iLocalRank3D);
+        MPI_Cart_coords(info->commMesh3D, iLocalRank3D, 3, info->aiGridCoords);
 
 #ifdef MATMUL_MPI_ADDITIONAL_DEBUG_OUTPUT
-        printf(" iLocalRank3D=%d, i=%d j=%d k2=%d\n", info->iLocalRank3D, info->aiGridCoords[2], info->aiGridCoords[1], info->aiGridCoords[0]);
+        printf(" iLocalRank3D=%d, i=%d j=%d k2=%d\n", iLocalRank3D, info->aiGridCoords[2], info->aiGridCoords[1], info->aiGridCoords[0]);
 #endif
 
         int dims[3];
@@ -363,18 +374,18 @@
     //-----------------------------------------------------------------------------
     void matmul_gemm_par_mpi_dns_destroy_topology_info(STopologyInfo * const info)
     {
-        MPI_Comm_free(&info->commMesh3D);
         MPI_Comm_free(&info->commMeshIK);
         MPI_Comm_free(&info->commMeshJK);
         MPI_Comm_free(&info->commMeshIJ);
         MPI_Comm_free(&info->commRingI);
         MPI_Comm_free(&info->commRingJ);
         MPI_Comm_free(&info->commRingK);
+        MPI_Comm_free(&info->commMesh3D);
     }
     //-----------------------------------------------------------------------------
     //
     //-----------------------------------------------------------------------------
-    void matmul_gemm_par_mpi_dns_algo(
+    void matmul_gemm_par_mpi_dns_local_algo(
         TIdx const m, TIdx const n, TIdx const k,
         TElem const alpha,
         TElem const * const MATMUL_RESTRICT A, TIdx const lda,
@@ -389,28 +400,23 @@
         }
 
         // \TODO: Implement for non square matrices?
-        if(m!=n || m!=k)
+        if((m!=n) || (m!=k))
         {
-            printf("Invalid matrix size! The matrices have to be square for the MPI DNS GEMM.\n");
+            printf("[GEMM MPI DNS] Invalid matrix size! The matrices have to be square for the MPI DNS GEMM.\n");
+            return;
+        }
+
+        // \FIXME: Fix alpha != 1!
+        if(alpha!=(TElem)1)
+        {
+            printf("[GEMM MPI DNS] alpha != 1 currently not implemented.\n");
             return;
         }
 
         struct STopologyInfo info;
         if(matmul_gemm_par_mpi_dns_create_topology_info(&info, n))
         {
-            // Apply beta multiplication to C.
-            if(beta != (TElem)1)
-            {
-                for(TIdx i = 0; i < m; ++i)
-                {
-                    for(TIdx j = 0; j < n; ++j)
-                    {
-                        C[i*ldc + j] *= beta;
-                    }
-                }
-            }
-
-            matmul_gemm_par_mpi_dns_local(&info, alpha, A, lda, B, ldb, (TElem)1, C, ldc, pMatMul);
+            matmul_gemm_par_mpi_dns_local(&info, alpha, A, lda, B, ldb, beta, C, ldc, pMatMul);
 
             matmul_gemm_par_mpi_dns_destroy_topology_info(&info);
         }
@@ -432,7 +438,7 @@
             return;
         }
 
-        matmul_gemm_par_mpi_dns_algo(
+        matmul_gemm_par_mpi_dns_local_algo(
             m, n, k,
             alpha,
             A, lda,

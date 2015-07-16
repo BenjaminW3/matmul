@@ -19,7 +19,7 @@
     #include <matmul/par/Omp.h>         // matmul_gemm_par_omp2_guided_schedule
 
     #include <matmul/common/Alloc.h>    // matmul_arr_alloc
-    #include <matmul/common/Array.h>    // matmul_arr_alloc_zero_fill
+    #include <matmul/common/Array.h>    // matmul_arr_alloc_fill_zero
     #include <matmul/common/Mat.h>      // matmul_mat_gemm_early_out
 
     #include <assert.h>                 // assert
@@ -150,7 +150,7 @@
                 // \TODO: Implement for non square matrices?
                 if(m!=n || m!=k)
                 {
-                    printf("Invalid matrix size! The matrices have to be square for the MPI Cannon GEMM.\n");
+                    printf("[GEMM Strassen OpenMP] Invalid matrix size! The matrices have to be square for the MPI Cannon GEMM.\n");
                     return;
                 }
 
@@ -171,7 +171,7 @@
                 TElem * P[7];
                 for(TIdx i = 0; i < 7; ++i)
                 {
-                    P[i] = matmul_arr_alloc_zero_fill(uiNumElements);
+                    P[i] = matmul_arr_alloc_fill_zero(uiNumElements);
                 }
                 TElem * const T = matmul_arr_alloc(uiNumElements);
                 TElem * const U = matmul_arr_alloc(uiNumElements);

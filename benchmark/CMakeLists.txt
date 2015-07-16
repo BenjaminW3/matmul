@@ -231,23 +231,6 @@ IF(BENCHMARK_PAR_MPI_CANNON_STD
 ENDIF()
 
 #-------------------------------------------------------------------------------
-# Set the test matrix sizes.
-#-------------------------------------------------------------------------------
-
-SET(BENCHMARK_MIN_N 4 CACHE INTEGER "The minimal matrix size. This has to be greater or equal to 1.")
-IF(BENCHMARK_MIN_N)
-    LIST(APPEND _BENCHMARK_COMPILE_DEFINITIONS "BENCHMARK_MIN_N=${BENCHMARK_MIN_N}")
-ENDIF()
-SET(BENCHMARK_STEP_N 16 CACHE INTEGER "If BENCHMARK_STEP_N == 0 the size is doubled continuously.")
-IF(BENCHMARK_STEP_N)
-    LIST(APPEND _BENCHMARK_COMPILE_DEFINITIONS "BENCHMARK_STEP_N=${BENCHMARK_STEP_N}")
-ENDIF()
-SET(BENCHMARK_MAX_N 512 CACHE INTEGER "The maximal size.")
-IF(BENCHMARK_MAX_N)
-    LIST(APPEND _BENCHMARK_COMPILE_DEFINITIONS "BENCHMARK_MAX_N=${BENCHMARK_MAX_N}")
-ENDIF()
-
-#-------------------------------------------------------------------------------
 # Measurement settings.
 #-------------------------------------------------------------------------------
 SET(BENCHMARK_VERIFY_RESULT OFF CACHE BOOL "The result of a computation will be compared with the result of the standard sequential algorithm.")

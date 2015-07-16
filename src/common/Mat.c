@@ -48,11 +48,7 @@ bool matmul_mat_cmp(
             {
                 if(uiNumErrors < uiMaxErrorsPrint)
                 {
-                    if(uiNumErrors == 0)
-                    {
-                        printf("\n");
-                    }
-                    printf("Error in Cell [%"MATMUL_PRINTF_SIZE_T"][%"MATMUL_PRINTF_SIZE_T"] of %16.16lf A: %f B: %f\n", (size_t)i, (size_t)j, fError, A[uiIdxA], B[uiIdxB]);
+                    printf("\nError in Cell [%"MATMUL_PRINTF_SIZE_T"][%"MATMUL_PRINTF_SIZE_T"] of %16.16lf A: %f B: %f", (size_t)i, (size_t)j, fError, A[uiIdxA], B[uiIdxB]);
                 }
                 ++uiNumErrors;
             }
@@ -60,15 +56,20 @@ bool matmul_mat_cmp(
             fMaxError = (fMaxError<fError) ? fError : fMaxError;
         }
     }
+    // Print the number of errors not printed.
     if(uiNumErrors > uiMaxErrorsPrint)
     {
-        printf("\n... %"MATMUL_PRINTF_SIZE_T" more errors in the matrix.\n", (size_t)uiNumErrors-uiMaxErrorsPrint);
+        printf("\n... %"MATMUL_PRINTF_SIZE_T" more errors in the matrix.", (size_t)uiNumErrors-uiMaxErrorsPrint);
     }
-
     // Print the maximum error.
     if(fMaxError > fErrorThreshold)
     {
-        printf(" fMaxDiff=%32.28lf", fMaxError);
+        printf("\nfMaxDiff=%32.28lf", fMaxError);
+    }
+    // If something has been printed, add a newline.
+    if(uiNumErrors > 0)
+    {
+        printf("\n");
     }
 
     return (uiNumErrors==0);
@@ -79,27 +80,55 @@ bool matmul_mat_cmp(
 //-----------------------------------------------------------------------------
 void matmul_mat_print(
     TIdx const m, TIdx const n,
-    TElem const * const MATMUL_RESTRICT A, TIdx const lda)
+    TElem const * const MATMUL_RESTRICT A, TIdx const lda,
+    char * const pElemSeperator, char * const pRowSeperator,
+    char * const pDimBegin, char * const pDimEnd)
 {
-    printf("{");
+    printf("%s", pDimBegin);
     for(TIdx i = 0; i < m; ++i)
     {
         if(i>0)
         {
-            printf(",\n");
+            printf("%s", pRowSeperator);
         }
-        printf("{");
+        printf("%s", pDimBegin);
         for(TIdx j = 0; j < n; ++j)
         {
             if(j>0)
             {
-                printf(",");
+                printf("%s", pElemSeperator);
             }
             printf("%f", A[i*lda+j]);
         }
-        printf("}");
+        printf("%s", pDimEnd);
     }
-    printf("}");
+    printf("%s", pDimEnd);
+}
+//-----------------------------------------------------------------------------
+//
+//-----------------------------------------------------------------------------
+void matmul_mat_print_simple(
+    TIdx const m, TIdx const n,
+    TElem const * const MATMUL_RESTRICT A, TIdx const lda)
+{
+    matmul_mat_print(
+        m, n,
+        A, lda,
+        ",", "\n",
+        "", "");
+}
+//-----------------------------------------------------------------------------
+//
+//-----------------------------------------------------------------------------
+void matmul_mat_print_mathematica(
+    TIdx const m, TIdx const n,
+    TElem const * const MATMUL_RESTRICT A, TIdx const lda)
+{
+    matmul_mat_print(
+        m, n,
+        A, lda,
+        ",", ",\n",
+        "{", "}");
 }
 
 //-----------------------------------------------------------------------------

@@ -24,7 +24,7 @@
     #include <stdio.h>                  // printf
 
     #define MATMUL_CUDA_RT_CHECK(cmd) {cudaError_t error = cmd; if(error!=cudaSuccess){printf("<%s>:%i ",__FILE__,__LINE__); printf("[CUDA] Error: %s\n", cudaGetErrorString(error));}}
-    #define MATMUL_CUBLAS_CHECK(cmd) {cublasStatus_t ret = cmd; if(ret!=CUBLAS_STATUS_SUCCESS){printf("<%s>:%i cublasCreate returned error code %d\n", __FILE__, __LINE__, ret);}}
+    #define MATMUL_CUBLAS_CHECK(cmd) {cublasStatus_t ret = cmd; if(ret!=CUBLAS_STATUS_SUCCESS){printf("<%s>:%i [CUBLAS] Error code %d\n", __FILE__, __LINE__, ret);}}
 
     //-----------------------------------------------------------------------------
     //

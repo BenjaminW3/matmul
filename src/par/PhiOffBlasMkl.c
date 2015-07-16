@@ -92,7 +92,7 @@
         }
         else
         {
-            printf("mkl_mic_enable() returned error value %d", iError);
+            printf("[GEMM Phi Off MKL] mkl_mic_enable() returned error value %d", iError);
         }
     }
 #endif

@@ -33,6 +33,12 @@ Available Implementations
     * target + teams + distribute + parallel for host and device
   * OpenACC
   * CUDA Native Implementation
+    * fixed block size
+      * 2D static shared memory
+      * 1D static shared memory
+      * 1D extern shared memory
+    * dynamic block size
+      * 1D extern shared memory
   * [alpaka](https://github.com/ComputationalRadiationPhysics/alpaka)
     * CUDA
     * OpenMP 2.0 (Host only)

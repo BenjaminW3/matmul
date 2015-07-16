@@ -23,65 +23,120 @@
 //
 //-----------------------------------------------------------------------------
 TElem matmul_gen_rand_val(
-    TElem const fMin,
-    TElem const fMax)
+    TElem const min,
+    TElem const max)
 {
-    assert(fMin < fMax); // bad input
+    assert(min <= max); // bad input
 
-    return ((TElem)rand()/(TElem)(RAND_MAX)) * (fMax-fMin) - fMin;
+    return ((TElem)rand()/(TElem)(RAND_MAX)) * (max-min) + min;
 }
 
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
-void matmul_arr_zero_fill(
-    TElem * pArray,
+void matmul_arr_fill_val(
+    TElem * const pArray,
+    TIdx const uiNumElements,
+    TElem const val)
+{
+    assert(pArray);
+
+    for(TIdx i = 0; i<uiNumElements; ++i)
+    {
+        pArray[i] = val;
+    }
+}
+//-----------------------------------------------------------------------------
+//
+//-----------------------------------------------------------------------------
+void matmul_arr_fill_zero(
+    TElem * const pArray,
+    TIdx const uiNumElements)
+{
+    matmul_arr_fill_val(
+        pArray,
+        uiNumElements,
+        (TElem)0);
+}
+//-----------------------------------------------------------------------------
+//
+//-----------------------------------------------------------------------------
+void matmul_arr_fill_idx(
+    TElem * const pArray,
     TIdx const uiNumElements)
 {
     assert(pArray);
 
     for(TIdx i = 0; i<uiNumElements; ++i)
     {
-        pArray[i] = (TElem)0;
+        pArray[i] = (TElem)i;
     }
 }
-
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
-void matmul_arr_rand_fill(
-    TElem * pArray,
-    TIdx const uiNumElements)
+void matmul_arr_fill_rand(
+    TElem * const pArray,
+    TIdx const uiNumElements,
+    TElem const min,
+    TElem const max)
 {
     assert(pArray);
 
     for(TIdx i = 0; i<uiNumElements; ++i)
     {
-        pArray[i] = matmul_gen_rand_val((TElem)0, (TElem)1);
+        pArray[i] = matmul_gen_rand_val(min, max);
     }
 }
 
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
-TElem * matmul_arr_alloc_zero_fill(
-    TIdx const uiNumElements)
+TElem * matmul_arr_alloc_fill_val(
+    TIdx const uiNumElements,
+    TElem const val)
 {
     TElem * arr = matmul_arr_alloc(uiNumElements);
 
-    matmul_arr_zero_fill(arr, uiNumElements);
+    matmul_arr_fill_val(arr, uiNumElements, val);
 
     return arr;
 }
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
-TElem * matmul_arr_alloc_rand_fill(
+TElem * matmul_arr_alloc_fill_zero(
     TIdx const uiNumElements)
 {
     TElem * arr = matmul_arr_alloc(uiNumElements);
 
-    matmul_arr_rand_fill(arr, uiNumElements);
+    matmul_arr_fill_zero(arr, uiNumElements);
+
+    return arr;
+}
+//-----------------------------------------------------------------------------
+//
+//-----------------------------------------------------------------------------
+TElem * matmul_arr_alloc_fill_idx(
+    TIdx const uiNumElements)
+{
+    TElem * arr = matmul_arr_alloc(uiNumElements);
+
+    matmul_arr_fill_idx(arr, uiNumElements);
+
+    return arr;
+}
+//-----------------------------------------------------------------------------
+//
+//-----------------------------------------------------------------------------
+TElem * matmul_arr_alloc_fill_rand(
+    TIdx const uiNumElements,
+    TElem const min,
+    TElem const max)
+{
+    TElem * arr = matmul_arr_alloc(uiNumElements);
+
+    matmul_arr_fill_rand(arr, uiNumElements, min, max);
 
     return arr;
 }

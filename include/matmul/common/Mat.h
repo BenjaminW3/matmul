@@ -49,6 +49,30 @@
     //-----------------------------------------------------------------------------
     void matmul_mat_print(
         TIdx const m, TIdx const n,
+        TElem const * const MATMUL_RESTRICT A, TIdx const lda,
+        char * const pElemSeperator, char * const pRowSeperator,
+        char * const pDimBegin, char * const pDimEnd);
+    //-----------------------------------------------------------------------------
+    //! Prints the matrix to the console.
+    //!
+    //! \param m The number of rows.
+    //! \param n The number of columns.
+    //! \param A The matrix to print.
+    //! \param lda Specifies the leading dimension of A.
+    //-----------------------------------------------------------------------------
+    void matmul_mat_print_simple(
+        TIdx const m, TIdx const n,
+        TElem const * const MATMUL_RESTRICT A, TIdx const lda);
+    //-----------------------------------------------------------------------------
+    //! Prints the matrix to the console.
+    //!
+    //! \param m The number of rows.
+    //! \param n The number of columns.
+    //! \param A The matrix to print.
+    //! \param lda Specifies the leading dimension of A.
+    //-----------------------------------------------------------------------------
+    void matmul_mat_print_mathematica(
+        TIdx const m, TIdx const n,
         TElem const * const MATMUL_RESTRICT A, TIdx const lda);
 
     //-----------------------------------------------------------------------------

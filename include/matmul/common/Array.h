@@ -24,40 +24,72 @@
 //! \return A random value in the range [fMin, fMax].
 //-----------------------------------------------------------------------------
 TElem matmul_gen_rand_val(
-    TElem const fMin,
-    TElem const fMax);
+    TElem const min,
+    TElem const max);
 
+//-----------------------------------------------------------------------------
+//! Fills the array with the given value.
+//! \param pArray The array.
+//! \param uiNumElements The number of elements in the array.
+//-----------------------------------------------------------------------------
+void matmul_arr_fill_val(
+    TElem * const pArray,
+    TIdx const uiNumElements,
+    TElem const val);
 //-----------------------------------------------------------------------------
 //! Fills the array with zeros.
 //! \param pArray The array.
-//! \param uiNumElements The number of elements in the matrix.
+//! \param uiNumElements The number of elements in the array.
 //-----------------------------------------------------------------------------
-void matmul_arr_zero_fill(
-    TElem * pArray,
+void matmul_arr_fill_zero(
+    TElem * const pArray,
     TIdx const uiNumElements);
-
+//-----------------------------------------------------------------------------
+//! Fills the array with the indices as values.
+//! \param pArray The array.
+//! \param uiNumElements The number of elements in the array.
+//-----------------------------------------------------------------------------
+void matmul_arr_fill_idx(
+    TElem * const pArray,
+    TIdx const uiNumElements);
 //-----------------------------------------------------------------------------
 //! Fills the array with random numbers.
 //! \param pArray The array.
-//! \param uiNumElements The number of elements in the matrix.
+//! \param uiNumElements The number of elements in the array.
 //-----------------------------------------------------------------------------
-void matmul_arr_rand_fill(
-    TElem * pArray,
-    TIdx const uiNumElements);
+void matmul_arr_fill_rand(
+    TElem * const pArray,
+    TIdx const uiNumElements,
+    TElem const min,
+    TElem const max);
 
+//-----------------------------------------------------------------------------
+//! \return A array of the given type initialized with the given value.
+//! \param uiNumElements The number of elements in the array.
+//-----------------------------------------------------------------------------
+TElem * matmul_arr_alloc_fill_val(
+    TIdx const uiNumElements,
+    TElem const val);
 //-----------------------------------------------------------------------------
 //! \return A array of the given type initialized with zero.
 //! \param uiNumElements The number of elements in the array.
 //-----------------------------------------------------------------------------
-TElem * matmul_arr_alloc_zero_fill(
+TElem * matmul_arr_alloc_fill_zero(
     TIdx const uiNumElements);
-
+//-----------------------------------------------------------------------------
+//! \return A array of the given type initialized with the indices as values.
+//! \param uiNumElements The number of elements in the array.
+//-----------------------------------------------------------------------------
+TElem * matmul_arr_alloc_fill_idx(
+    TIdx const uiNumElements);
 //-----------------------------------------------------------------------------
 //! \return A array of random values of the given type.
 //! \param uiNumElements The number of elements in the array.
 //-----------------------------------------------------------------------------
-TElem * matmul_arr_alloc_rand_fill(
-    TIdx const uiNumElements);
+TElem * matmul_arr_alloc_fill_rand(
+    TIdx const uiNumElements,
+    TElem const min,
+    TElem const max);
 #ifdef __cplusplus
     }
 #endif
