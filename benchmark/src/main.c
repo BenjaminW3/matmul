@@ -215,7 +215,7 @@ double measureRandomMatMul(
     #endif
 
             // The threshold difference from where the value is considered to be a real error.
-            TElem const fErrorThreshold = (TElem)(MATMUL_EPSILON * ((TElem)m) * ((TElem)n) * ((TElem)k)) * maxVal;
+            TElem const fErrorThreshold = (TElem)(MATMUL_EPSILON * ((TElem)m) * maxVal * ((TElem)n) * maxVal * ((TElem)k) * maxVal);
             bool const bResultCorrect = matmul_mat_cmp(n, n, C, n, D, n, fErrorThreshold);
             if(!bResultCorrect)
             {
