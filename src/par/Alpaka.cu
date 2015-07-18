@@ -64,19 +64,19 @@
             n);
 
         // Wrap the Pointers into memory buffer objects.
-        using MemBufWrapperC = alpaka::mem::buf::BufPlainPtrWrapper<
+        using BufWrapperIn = alpaka::mem::buf::BufPlainPtrWrapper<
             std::decay<decltype(devHost)>::type,
             TElem const,
             alpaka::dim::DimInt<2u>,
             TIdx>;
-        MemBufWrapperC bufAHost(A, devHost, v2uiExtentsA, lda);
-        MemBufWrapperC bufBHost(B, devHost, v2uiExtentsB, ldb);
-        using MemBufWrapper = alpaka::mem::buf::BufPlainPtrWrapper<
+        BufWrapperIn bufAHost(A, devHost, v2uiExtentsA, lda);
+        BufWrapperIn bufBHost(B, devHost, v2uiExtentsB, ldb);
+        using BufWrapperOut = alpaka::mem::buf::BufPlainPtrWrapper<
             std::decay<decltype(devHost)>::type,
             TElem,
             alpaka::dim::DimInt<2u>,
             TIdx>;
-        MemBufWrapper bufCHost(C, devHost, v2uiExtentsC, ldc);
+        BufWrapperOut bufCHost(C, devHost, v2uiExtentsC, ldc);
 
         // Allocate the buffers on the accelerator and copy Host -> Acc (Interleaved for better performance)
         auto bufAAcc(alpaka::mem::buf::alloc<TElem, TIdx>(devAcc, v2uiExtentsA));

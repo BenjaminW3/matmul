@@ -454,9 +454,9 @@
 
             // Shared memory used to store the current blocks of A and B.
             extern __shared__ TElem pBlockSharedA[];
-            auto * const pBlockSharedB(pBlockSharedA + uiBlockThreadsExtentX*uiBlockThreadsExtentY);
+            TElem * const pBlockSharedB(pBlockSharedA + uiBlockThreadsExtentX*uiBlockThreadsExtentY);
 
-            auto const uiSharedBlockIdx1d(uiBlockThreadIdxY*uiBlockThreadsExtentX + uiBlockThreadIdxX);
+            TIdx const uiSharedBlockIdx1d(uiBlockThreadIdxY*uiBlockThreadsExtentX + uiBlockThreadIdxX);
 
             // If the element is outside of the matrix, write zero into the shared block.
             bool const bInsideA = (uiGridThreadIdxY < m);
@@ -466,11 +466,11 @@
             TElem dotProduct(0);
 
             // Loop over all blocks of A and B that are required to compute the C block.
-            auto const uiBlockMulCount(
+            TIdx const uiBlockMulCount(
                 static_cast<TIdx>(
                     ceil(
                         static_cast<float>(k)/static_cast<float>(uiBlockThreadsExtent))));
-            for(TIdx k2=0; k2<uiBlockMulCount; ++k2)
+            for(TIdx k2(0); k2<uiBlockMulCount; ++k2)
             {
                 // Copy data to shared memory.
                 TIdx const uiAIdxX(k2*uiBlockThreadsExtentX + uiBlockThreadIdxX);
@@ -491,7 +491,7 @@
                 __syncthreads();
 
                 // Dyadic product within shared memory.
-                for(TIdx k3 = 0; k3<uiBlockThreadsExtent; ++k3)
+                for(TIdx k3(0); k3<uiBlockThreadsExtent; ++k3)
                 {
                     dotProduct += pBlockSharedA[uiBlockThreadIdxY*uiBlockThreadsExtentX + k3]
                         * pBlockSharedB[k3*uiBlockThreadsExtentY + uiBlockThreadIdxX];
@@ -503,7 +503,7 @@
 
             if(bInsideC)
             {
-                auto const uiIdxC1d(uiGridThreadIdxY*ldc + uiGridThreadIdxX);
+                TIdx const uiIdxC1d(uiGridThreadIdxY*ldc + uiGridThreadIdxX);
                 C[uiIdxC1d] = alpha * dotProduct + beta * C[uiIdxC1d];
             }
         }
@@ -523,30 +523,35 @@
                 return;
             }
 
+            MATMUL_CUDA_RT_CHECK(cudaSetDevice(0));
+
             cudaStream_t stream;
             MATMUL_CUDA_RT_CHECK(cudaStreamCreate(&stream));
 
-            TIdx const uiBytesA = lda*m*sizeof(TElem);
-            TIdx const uiBytesB = ldb*k*sizeof(TElem);
-            TIdx const uiBytesC = ldc*m*sizeof(TElem);
+            std::size_t uiPitchBytesADev = 0;
+            std::size_t uiPitchBytesBDev = 0;
+            std::size_t uiPitchBytesCDev = 0;
+            std::size_t const uHeightBytesA = m;
+            std::size_t const uiWidthBytesA = k*sizeof(TElem);
+            std::size_t const uHeightBytesB = k;
+            std::size_t const uiWidthBytesB = n*sizeof(TElem);
+            std::size_t const uHeightBytesC = m;
+            std::size_t const uiWidthBytesC = n*sizeof(TElem);
+            TElem * pADev = 0;
+            TElem * pBDev = 0;
+            TElem * pCDev = 0;
+            MATMUL_CUDA_RT_CHECK(cudaMallocPitch((void **)&pADev, &uiPitchBytesADev, uiWidthBytesA, uHeightBytesA));
+            MATMUL_CUDA_RT_CHECK(cudaMemcpy2DAsync(pADev, uiPitchBytesADev, A, lda * sizeof(TElem), uiWidthBytesA, uHeightBytesA, cudaMemcpyHostToDevice, stream));
+            MATMUL_CUDA_RT_CHECK(cudaMallocPitch((void **)&pBDev, &uiPitchBytesBDev, uiWidthBytesB, uHeightBytesB));
+            MATMUL_CUDA_RT_CHECK(cudaMemcpy2DAsync(pBDev, uiPitchBytesBDev, B, ldb * sizeof(TElem), uiWidthBytesB, uHeightBytesB, cudaMemcpyHostToDevice, stream));
+            MATMUL_CUDA_RT_CHECK(cudaMallocPitch((void **)&pCDev, &uiPitchBytesCDev, uiWidthBytesC, uHeightBytesC));
+            MATMUL_CUDA_RT_CHECK(cudaMemcpy2DAsync(pCDev, uiPitchBytesCDev, C, ldc * sizeof(TElem), uiWidthBytesC, uHeightBytesC, cudaMemcpyHostToDevice, stream));
 
-            TElem *pADev, *pBDev, *pCDev;
-            MATMUL_CUDA_RT_CHECK(cudaMalloc((void **)&pADev, uiBytesA));
-            MATMUL_CUDA_RT_CHECK(cudaMemcpyAsync(pADev, A, uiBytesA, cudaMemcpyHostToDevice, stream));
-            MATMUL_CUDA_RT_CHECK(cudaMalloc((void **)&pBDev, uiBytesB));
-            MATMUL_CUDA_RT_CHECK(cudaMemcpyAsync(pBDev, B, uiBytesB, cudaMemcpyHostToDevice, stream));
-            MATMUL_CUDA_RT_CHECK(cudaMalloc((void **)&pCDev, uiBytesC));
-            MATMUL_CUDA_RT_CHECK(cudaMemcpyAsync(pCDev, C, uiBytesC, cudaMemcpyHostToDevice, stream));
-
-            // Get the current device.
-            int iDevice(0);
-            MATMUL_CUDA_RT_CHECK(cudaGetDevice(
-                &iDevice));
             // Get its properties.
             cudaDeviceProp cudaDevProp;
             MATMUL_CUDA_RT_CHECK(cudaGetDeviceProperties(
                 &cudaDevProp,
-                iDevice));
+                0));
 
             TIdx vuiGridThreadExtents[] = {m, n};
             TIdx vuiBlockThreadExtents[] = {cudaDevProp.maxThreadsDim[0], cudaDevProp.maxThreadsDim[1]};
@@ -603,12 +608,12 @@
             matmul_gemm_par_cuda_dyn_block_size_1d_extern_shared_kernel<<<dimGrid, dimBlock, 2u*sizeof(TElem)*vuiBlockThreadExtents[0]*vuiBlockThreadExtents[1], stream>>>(
                 m, n, k,
                 alpha,
-                pADev, lda,
-                pBDev, ldb,
+                pADev, static_cast<TIdx>(uiPitchBytesADev / sizeof(TElem)),
+                pBDev, static_cast<TIdx>(uiPitchBytesBDev / sizeof(TElem)),
                 beta,
-                pCDev, ldc);
+                pCDev, static_cast<TIdx>(uiPitchBytesCDev / sizeof(TElem)));
 
-            MATMUL_CUDA_RT_CHECK(cudaMemcpyAsync(C, pCDev, uiBytesC, cudaMemcpyDeviceToHost, stream));
+            MATMUL_CUDA_RT_CHECK(cudaMemcpy2DAsync(C, ldc * sizeof(TElem), pCDev, uiPitchBytesCDev, uiWidthBytesC, uHeightBytesC, cudaMemcpyDeviceToHost, stream));
 
             MATMUL_CUDA_RT_CHECK(cudaStreamSynchronize(stream));
 

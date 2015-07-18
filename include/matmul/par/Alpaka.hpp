@@ -63,10 +63,10 @@
             TIdx const & uiBlockThreadsExtent(uiBlockThreadsExtentX);
 
             // Shared memory used to store the current blocks of A and B.
-            auto * const pBlockSharedA(acc.template getBlockSharedExternMem<TElem>());
-            auto * const pBlockSharedB(pBlockSharedA + uiBlockThreadsExtentX*uiBlockThreadsExtentY);
+            TElem * const pBlockSharedA(acc.template getBlockSharedExternMem<TElem>());
+            TElem * const pBlockSharedB(pBlockSharedA + uiBlockThreadsExtentX*uiBlockThreadsExtentY);
 
-            auto const uiSharedBlockIdx1d(uiBlockThreadIdxY*uiBlockThreadsExtentX + uiBlockThreadIdxX);
+            TIdx const uiSharedBlockIdx1d(uiBlockThreadIdxY*uiBlockThreadsExtentX + uiBlockThreadIdxX);
 
             // If the element is outside of the matrix, write zero into the shared block.
             bool const bInsideA = (uiGridThreadIdxY < m);
@@ -76,7 +76,7 @@
             TElem dotProduct(0);
 
             // Loop over all blocks of A and B that are required to compute the C block.
-            auto const uiBlockMulCount(
+            TIdx const uiBlockMulCount(
                 static_cast<TIdx>(
                     alpaka::math::ceil(
                         acc,
@@ -86,17 +86,17 @@
                 // Copy data to shared memory.
                 TIdx const uiAIdxX(k2*uiBlockThreadsExtentX + uiBlockThreadIdxX);
                 TIdx const uiAIdx1d(uiGridThreadIdxY*lda + uiAIdxX);
-                pBlockSharedA[uiSharedBlockIdx1d] = (
+                pBlockSharedA[uiSharedBlockIdx1d] =
                     ((!bInsideA) || (uiAIdxX>=k))
                     ? static_cast<TElem>(0)
-                    : A[uiAIdx1d]);
+                    : A[uiAIdx1d];
 
                 TIdx const uiBIdxY(k2*uiBlockThreadsExtentY + uiBlockThreadIdxY);
                 TIdx const uiBIdx1d(uiBIdxY*ldb + uiGridThreadIdxX);
-                pBlockSharedB[uiSharedBlockIdx1d] = (
+                pBlockSharedB[uiSharedBlockIdx1d] =
                     ((!bInsideB) || (uiBIdxY>=k))
                     ? static_cast<TElem>(0)
-                    : B[uiBIdx1d]);
+                    : B[uiBIdx1d];
 
                 // Synchronize to make sure the sub-matrices are loaded before starting the computation.
                 acc.syncBlockThreads();
@@ -114,7 +114,7 @@
 
             if(bInsideC)
             {
-                auto const uiIdxC1d(uiGridThreadIdxY*ldc + uiGridThreadIdxX);
+                TIdx const uiIdxC1d(uiGridThreadIdxY*ldc + uiGridThreadIdxX);
                 C[uiIdxC1d] = alpha * dotProduct + beta * C[uiIdxC1d];
             }
         }
