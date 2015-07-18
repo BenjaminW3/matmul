@@ -99,7 +99,7 @@
                 return;
             }
 
-            matmul_gemm_par_alpaka_cpu<alpaka::AccCpuSerial<alpaka::dim::DimInt<2u>, TIdx>>(
+            matmul_gemm_par_alpaka_cpu<alpaka::acc::AccCpuSerial<alpaka::dim::DimInt<2u>, TIdx>>(
                 m, n, k,
                 alpha,
                 A, lda,
@@ -125,7 +125,7 @@
                 return;
             }
 
-            matmul_gemm_par_alpaka_cpu<alpaka::AccCpuOmp2Blocks<alpaka::dim::DimInt<2u>, TIdx>>(
+            matmul_gemm_par_alpaka_cpu<alpaka::acc::AccCpuOmp2Blocks<alpaka::dim::DimInt<2u>, TIdx>>(
                 m, n, k,
                 alpha,
                 A, lda,
@@ -151,7 +151,7 @@
                 return;
             }
 
-            matmul_gemm_par_alpaka_cpu<alpaka::AccCpuOmp2Threads<alpaka::dim::DimInt<2u>, TIdx>>(
+            matmul_gemm_par_alpaka_cpu<alpaka::acc::AccCpuOmp2Threads<alpaka::dim::DimInt<2u>, TIdx>>(
                 m, n, k,
                 alpha,
                 A, lda,
@@ -177,7 +177,7 @@
                 return;
             }
 
-            matmul_gemm_par_alpaka_cpu<alpaka::AccCpuOmp4<alpaka::dim::DimInt<2u>, TIdx>>(
+            matmul_gemm_par_alpaka_cpu<alpaka::acc::AccCpuOmp4<alpaka::dim::DimInt<2u>, TIdx>>(
                 m, n, k,
                 alpha,
                 A, lda,
@@ -203,7 +203,7 @@
                 return;
             }
 
-            matmul_gemm_par_alpaka_cpu<alpaka::AccCpuThreads<alpaka::dim::DimInt<2u>, TIdx>>(
+            matmul_gemm_par_alpaka_cpu<alpaka::acc::AccCpuThreads<alpaka::dim::DimInt<2u>, TIdx>>(
                 m, n, k,
                 alpha,
                 A, lda,
@@ -229,7 +229,7 @@
                 return;
             }
 
-            matmul_gemm_par_alpaka_cpu<alpaka::AccCpuFibers<alpaka::dim::DimInt<2u>, TIdx>>(
+            matmul_gemm_par_alpaka_cpu<alpaka::acc::AccCpuFibers<alpaka::dim::DimInt<2u>, TIdx>>(
                 m, n, k,
                 alpha,
                 A, lda,

@@ -134,7 +134,7 @@
             return;
         }
 
-        matmul_gemm_par_alpaka_gpu<alpaka::AccGpuCuda<alpaka::dim::DimInt<2u>, TIdx>>(
+        matmul_gemm_par_alpaka_gpu<alpaka::acc::AccGpuCudaRt<alpaka::dim::DimInt<2u>, TIdx>>(
             m, n, k,
             alpha,
             A, lda,
