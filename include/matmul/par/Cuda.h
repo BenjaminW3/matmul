@@ -23,7 +23,7 @@
     #endif
     #ifdef MATMUL_BUILD_PAR_CUDA_FIXED_BLOCK_SIZE
         //-----------------------------------------------------------------------------
-        //! (S/D)GEMM matrix-matrix product C := A * B + C using CUDA with a fixed block size and 2-dimensional static shared memory.
+        //! (S/D)GEMM matrix-matrix product C = alpha * A * B + beta * C using CUDA with a fixed block size and 2-dimensional static shared memory.
         //!
         //! \param m Specifies the number of rows of the matrix A and of the matrix C.
         //! \param n Specifies the number of columns of the matrix B and the number of columns of the matrix C.
@@ -45,7 +45,7 @@
             TElem const beta,
             TElem * const MATMUL_RESTRICT C, TIdx const ldc);
         //-----------------------------------------------------------------------------
-        //! (S/D)GEMM matrix-matrix product C := A * B + C using CUDA with a fixed block size and 1-dimensional static shared memory.
+        //! (S/D)GEMM matrix-matrix product C = alpha * A * B + beta * C using CUDA with a fixed block size and 1-dimensional static shared memory.
         //!
         //! \param m Specifies the number of rows of the matrix A and of the matrix C.
         //! \param n Specifies the number of columns of the matrix B and the number of columns of the matrix C.
@@ -67,7 +67,7 @@
             TElem const beta,
             TElem * const MATMUL_RESTRICT C, TIdx const ldc);
         //-----------------------------------------------------------------------------
-        //! (S/D)GEMM matrix-matrix product C := A * B + C using CUDA with a fixed block size and extern shared memory.
+        //! (S/D)GEMM matrix-matrix product C = alpha * A * B + beta * C using CUDA with a fixed block size and extern shared memory.
         //!
         //! \param m Specifies the number of rows of the matrix A and of the matrix C.
         //! \param n Specifies the number of columns of the matrix B and the number of columns of the matrix C.
@@ -91,7 +91,7 @@
     #endif
     #ifdef MATMUL_BUILD_PAR_CUDA_DYN_BLOCK_SIZE
         //-----------------------------------------------------------------------------
-        //! (S/D)GEMM matrix-matrix product C := A * B + C using CUDA with a dynamic block size and extern shared memory.
+        //! (S/D)GEMM matrix-matrix product C = alpha * A * B + beta * C using CUDA with a dynamic block size and extern shared memory.
         //!
         //! \param m Specifies the number of rows of the matrix A and of the matrix C.
         //! \param n Specifies the number of columns of the matrix B and the number of columns of the matrix C.

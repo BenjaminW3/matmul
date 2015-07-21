@@ -23,7 +23,7 @@
         {
     #endif
     //-----------------------------------------------------------------------------
-    //! (S/D)GEMM matrix-matrix product C := A * B + C using Intel MKL offloading to Xeon Phi.
+    //! (S/D)GEMM matrix-matrix product C = alpha * A * B + beta * C using Intel MKL offloading to Xeon Phi.
     //!
     //! \param m Specifies the number of rows of the matrix A and of the matrix C.
     //! \param n Specifies the number of columns of the matrix B and the number of columns of the matrix C.

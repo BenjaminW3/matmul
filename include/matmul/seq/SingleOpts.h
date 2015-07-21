@@ -23,7 +23,7 @@
         {
     #endif
     //-----------------------------------------------------------------------------
-    //! (S/D)GEMM matrix-matrix product C := A * B + C using the basic sequential algorithm with pointer instead of index arythmethic.
+    //! (S/D)GEMM matrix-matrix product C = alpha * A * B + beta * C using the basic sequential algorithm with pointer instead of index arythmethic.
     //!
     //! \param m Specifies the number of rows of the matrix A and of the matrix C.
     //! \param n Specifies the number of columns of the matrix B and the number of columns of the matrix C.
@@ -46,7 +46,7 @@
         TElem * const C, TIdx const ldc);
 
     //-----------------------------------------------------------------------------
-    //! (S/D)GEMM matrix-matrix product C := A * B + C using the basic sequential algorithm with MATMUL_RESTRICT-ed matrix pointers.
+    //! (S/D)GEMM matrix-matrix product C = alpha * A * B + beta * C using the basic sequential algorithm with MATMUL_RESTRICT-ed matrix pointers.
     //!
     //! \param m Specifies the number of rows of the matrix A and of the matrix C.
     //! \param n Specifies the number of columns of the matrix B and the number of columns of the matrix C.
@@ -69,7 +69,7 @@
         TElem * const MATMUL_RESTRICT C, TIdx const ldc);
 
     //-----------------------------------------------------------------------------
-    //! (S/D)GEMM matrix-matrix product C := A * B + C using the basic sequential algorithm with ikj loop order.
+    //! (S/D)GEMM matrix-matrix product C = alpha * A * B + beta * C using the basic sequential algorithm with ikj loop order.
     //!
     //! \param m Specifies the number of rows of the matrix A and of the matrix C.
     //! \param n Specifies the number of columns of the matrix B and the number of columns of the matrix C.
@@ -92,7 +92,7 @@
         TElem * const C, TIdx const ldc);
 
     //-----------------------------------------------------------------------------
-    //! (S/D)GEMM matrix-matrix product C := A * B + C using the basic sequential algorithm with index calculations moved out of the inner loop.
+    //! (S/D)GEMM matrix-matrix product C = alpha * A * B + beta * C using the basic sequential algorithm with index calculations moved out of the inner loop.
     //!
     //! \param m Specifies the number of rows of the matrix A and of the matrix C.
     //! \param n Specifies the number of columns of the matrix B and the number of columns of the matrix C.
@@ -115,7 +115,7 @@
         TElem * const C, TIdx const ldc);
 
     //-----------------------------------------------------------------------------
-    //! (S/D)GEMM matrix-matrix product C := A * B + C using the basic sequential algorithm with the inner loop being unrolled 4 times.
+    //! (S/D)GEMM matrix-matrix product C = alpha * A * B + beta * C using the basic sequential algorithm with the inner loop being unrolled 4 times.
     //!
     //! \param m Specifies the number of rows of the matrix A and of the matrix C.
     //! \param n Specifies the number of columns of the matrix B and the number of columns of the matrix C.
@@ -138,7 +138,7 @@
         TElem * const C, TIdx const ldc);
 
     //-----------------------------------------------------------------------------
-    //! (S/D)GEMM matrix-matrix product C := A * B + C using the basic sequential algorithm with the inner loop being unrolled 8 times.
+    //! (S/D)GEMM matrix-matrix product C = alpha * A * B + beta * C using the basic sequential algorithm with the inner loop being unrolled 8 times.
     //!
     //! \param m Specifies the number of rows of the matrix A and of the matrix C.
     //! \param n Specifies the number of columns of the matrix B and the number of columns of the matrix C.
@@ -161,7 +161,7 @@
         TElem * const C, TIdx const ldc);
 
     //-----------------------------------------------------------------------------
-    //! (S/D)GEMM matrix-matrix product C := A * B + C using the basic sequential algorithm with the inner loop being unrolled 16 times.
+    //! (S/D)GEMM matrix-matrix product C = alpha * A * B + beta * C using the basic sequential algorithm with the inner loop being unrolled 16 times.
     //!
     //! \param m Specifies the number of rows of the matrix A and of the matrix C.
     //! \param n Specifies the number of columns of the matrix B and the number of columns of the matrix C.
@@ -184,7 +184,7 @@
         TElem * const C, TIdx const ldc);
 
     //-----------------------------------------------------------------------------
-    //! (S/D)GEMM matrix-matrix product C := A * B + C using the basic sequential algorithm blocked by in all dimensions by block-factor MATMUL_SEQ_BLOCK_FACTOR.
+    //! (S/D)GEMM matrix-matrix product C = alpha * A * B + beta * C using the basic sequential algorithm blocked by in all dimensions by block-factor MATMUL_SEQ_BLOCK_FACTOR.
     //!
     //! \param m Specifies the number of rows of the matrix A and of the matrix C.
     //! \param n Specifies the number of columns of the matrix B and the number of columns of the matrix C.

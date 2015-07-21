@@ -25,7 +25,7 @@
     #ifdef MATMUL_BUILD_PAR_OMP2
         #if _OPENMP >= 200203   // OpenMP 2.0
             //-----------------------------------------------------------------------------
-            //! (S/D)GEMM matrix-matrix product C := A * B + C using OpenMP 2.0 parallel for guided schedule.
+            //! (S/D)GEMM matrix-matrix product C = alpha * A * B + beta * C using OpenMP 2.0 parallel for guided schedule.
             //!
             //! \param m Specifies the number of rows of the matrix A and of the matrix C.
             //! \param n Specifies the number of columns of the matrix B and the number of columns of the matrix C.
@@ -47,7 +47,7 @@
                 TElem const beta,
                 TElem * const MATMUL_RESTRICT C, TIdx const ldc);
             //-----------------------------------------------------------------------------
-            //! (S/D)GEMM matrix-matrix product C := A * B + C using OpenMP 2.0 parallel for static schedule.
+            //! (S/D)GEMM matrix-matrix product C = alpha * A * B + beta * C using OpenMP 2.0 parallel for static schedule.
             //!
             //! \param m Specifies the number of rows of the matrix A and of the matrix C.
             //! \param n Specifies the number of columns of the matrix B and the number of columns of the matrix C.
@@ -73,7 +73,7 @@
     #ifdef MATMUL_BUILD_PAR_OMP3
         #if _OPENMP >= 200805   // OpenMP 3.0
             //-----------------------------------------------------------------------------
-            //! (S/D)GEMM matrix-matrix product C := A * B + C using OpenMP 3.0 parallel for collapse static schedule.
+            //! (S/D)GEMM matrix-matrix product C = alpha * A * B + beta * C using OpenMP 3.0 parallel for collapse static schedule.
             //!
             //! \param m Specifies the number of rows of the matrix A and of the matrix C.
             //! \param n Specifies the number of columns of the matrix B and the number of columns of the matrix C.
@@ -99,7 +99,7 @@
     #ifdef MATMUL_BUILD_PAR_OMP4
         #if _OPENMP >= 201307   // OpenMP 4.0
             //-----------------------------------------------------------------------------
-            //! (S/D)GEMM matrix-matrix product C := A * B + C using OpenMP 4.0 teams distribute parallel for static schedule.
+            //! (S/D)GEMM matrix-matrix product C = alpha * A * B + beta * C using OpenMP 4.0 teams distribute parallel for static schedule.
             //!
             //! \param m Specifies the number of rows of the matrix A and of the matrix C.
             //! \param n Specifies the number of columns of the matrix B and the number of columns of the matrix C.

@@ -143,7 +143,7 @@ bool matmul_mat_gemm_early_out(
     if((m == 0) || (n == 0)
         || (((alpha == (TElem)0) || (k == 0)) && (beta == (TElem)1)))
     {
-	    return true;
+        return true;
     }
     else
     {

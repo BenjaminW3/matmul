@@ -23,7 +23,7 @@
         {
     #endif
     //-----------------------------------------------------------------------------
-    //! (S/D)GEMM matrix-matrix product C := A * B + C using OpenACC kernels.
+    //! (S/D)GEMM matrix-matrix product C = alpha * A * B + beta * C using OpenACC kernels.
     //!
     //! \param m Specifies the number of rows of the matrix A and of the matrix C.
     //! \param n Specifies the number of columns of the matrix B and the number of columns of the matrix C.
@@ -45,7 +45,7 @@
         TElem const beta,
         TElem * const MATMUL_RESTRICT C, TIdx const ldc);
     //-----------------------------------------------------------------------------
-    //! (S/D)GEMM matrix-matrix product C := A * B + C using OpenACC parallel.
+    //! (S/D)GEMM matrix-matrix product C = alpha * A * B + beta * C using OpenACC parallel.
     //!
     //! \param m Specifies the number of rows of the matrix A and of the matrix C.
     //! \param n Specifies the number of columns of the matrix B and the number of columns of the matrix C.

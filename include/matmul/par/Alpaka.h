@@ -24,7 +24,7 @@
     #endif
     #ifdef MATMUL_BUILD_PAR_ALPAKA_ACC_CPU_B_SEQ_T_SEQ
         //-----------------------------------------------------------------------------
-        //! (S/D)GEMM matrix-matrix product C := A * B + C using alpaka`s serial accelerator back-end.
+        //! (S/D)GEMM matrix-matrix product C = alpha * A * B + beta * C using alpaka`s serial accelerator back-end.
         //!
         //! \param m Specifies the number of rows of the matrix A and of the matrix C.
         //! \param n Specifies the number of columns of the matrix B and the number of columns of the matrix C.
@@ -48,7 +48,7 @@
     #endif
     #ifdef MATMUL_BUILD_PAR_ALPAKA_ACC_CPU_B_OMP2_T_SEQ
         //-----------------------------------------------------------------------------
-        //! (S/D)GEMM matrix-matrix product C := A * B + C using alpaka`s OpenMP 2.0 block accelerator back-end.
+        //! (S/D)GEMM matrix-matrix product C = alpha * A * B + beta * C using alpaka`s OpenMP 2.0 block accelerator back-end.
         //!
         //! \param m Specifies the number of rows of the matrix A and of the matrix C.
         //! \param n Specifies the number of columns of the matrix B and the number of columns of the matrix C.
@@ -72,7 +72,7 @@
     #endif
     #ifdef MATMUL_BUILD_PAR_ALPAKA_ACC_CPU_B_SEQ_T_OMP2
         //-----------------------------------------------------------------------------
-        //! (S/D)GEMM matrix-matrix product C := A * B + C using alpaka`s OpenMP 2.0 thread accelerator back-end.
+        //! (S/D)GEMM matrix-matrix product C = alpha * A * B + beta * C using alpaka`s OpenMP 2.0 thread accelerator back-end.
         //!
         //! \param m Specifies the number of rows of the matrix A and of the matrix C.
         //! \param n Specifies the number of columns of the matrix B and the number of columns of the matrix C.
@@ -96,7 +96,7 @@
     #endif
     #ifdef MATMUL_BUILD_PAR_ALPAKA_ACC_CPU_BT_OMP4
         //-----------------------------------------------------------------------------
-        //! (S/D)GEMM matrix-matrix product C := A * B + C using alpaka`s OpenMP 4.0 accelerator back-end.
+        //! (S/D)GEMM matrix-matrix product C = alpha * A * B + beta * C using alpaka`s OpenMP 4.0 accelerator back-end.
         //!
         //! \param m Specifies the number of rows of the matrix A and of the matrix C.
         //! \param n Specifies the number of columns of the matrix B and the number of columns of the matrix C.
@@ -120,7 +120,7 @@
     #endif
     #ifdef MATMUL_BUILD_PAR_ALPAKA_ACC_CPU_B_SEQ_T_THREADS
         //-----------------------------------------------------------------------------
-        //! (S/D)GEMM matrix-matrix product C := A * B + C using alpaka`s std::thread accelerator back-end.
+        //! (S/D)GEMM matrix-matrix product C = alpha * A * B + beta * C using alpaka`s std::thread accelerator back-end.
         //!
         //! \param m Specifies the number of rows of the matrix A and of the matrix C.
         //! \param n Specifies the number of columns of the matrix B and the number of columns of the matrix C.
@@ -144,7 +144,7 @@
     #endif
     #ifdef MATMUL_BUILD_PAR_ALPAKA_ACC_CPU_B_SEQ_T_FIBERS
         //-----------------------------------------------------------------------------
-        //! (S/D)GEMM matrix-matrix product C := A * B + C using alpaka`s boost::fiber accelerator back-end.
+        //! (S/D)GEMM matrix-matrix product C = alpha * A * B + beta * C using alpaka`s boost::fiber accelerator back-end.
         //!
         //! \param m Specifies the number of rows of the matrix A and of the matrix C.
         //! \param n Specifies the number of columns of the matrix B and the number of columns of the matrix C.
@@ -168,7 +168,7 @@
     #endif
     #ifdef MATMUL_BUILD_PAR_ALPAKA_ACC_GPU_CUDA
         //-----------------------------------------------------------------------------
-        //! (S/D)GEMM matrix-matrix product C := A * B + C using alpaka`s CUDA accelerator back-end.
+        //! (S/D)GEMM matrix-matrix product C = alpha * A * B + beta * C using alpaka`s CUDA accelerator back-end.
         //!
         //! \param m Specifies the number of rows of the matrix A and of the matrix C.
         //! \param n Specifies the number of columns of the matrix B and the number of columns of the matrix C.

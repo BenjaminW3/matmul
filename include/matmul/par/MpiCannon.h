@@ -24,7 +24,7 @@
     #endif
     #ifdef MATMUL_BUILD_PAR_MPI_CANNON_STD
         //-----------------------------------------------------------------------------
-        //! (S/D)GEMM matrix-matrix product C := A * B + C using the Cannon algorithm with blocking MPI communication and the basic optimized sequential GEMM for local computation.
+        //! (S/D)GEMM matrix-matrix product C = alpha * A * B + beta * C using the Cannon algorithm with blocking MPI communication and the basic optimized sequential GEMM for local computation.
         //!
         //! \param m Specifies the number of rows of the matrix A and of the matrix C.
         //! \param n Specifies the number of columns of the matrix B and the number of columns of the matrix C.
@@ -47,7 +47,7 @@
             TElem * const MATMUL_RESTRICT C, TIdx const ldc);
 
         //-----------------------------------------------------------------------------
-        //! (S/D)GEMM matrix-matrix product C := A * B + C using the Cannon algorithm with non-blocking MPI communication and the basic optimized sequential GEMM for local computation.
+        //! (S/D)GEMM matrix-matrix product C = alpha * A * B + beta * C using the Cannon algorithm with non-blocking MPI communication and the basic optimized sequential GEMM for local computation.
         //!
         //! \param m Specifies the number of rows of the matrix A and of the matrix C.
         //! \param n Specifies the number of columns of the matrix B and the number of columns of the matrix C.
@@ -71,7 +71,7 @@
     #endif
     #ifdef MATMUL_BUILD_PAR_MPI_CANNON_MKL
         //-----------------------------------------------------------------------------
-        //! (S/D)GEMM matrix-matrix product C := A * B + C using the Cannon algorithm with non-blocking MPI communication and Intel MKL GEMM for local computation.
+        //! (S/D)GEMM matrix-matrix product C = alpha * A * B + beta * C using the Cannon algorithm with non-blocking MPI communication and Intel MKL GEMM for local computation.
         //!
         //! \param m Specifies the number of rows of the matrix A and of the matrix C.
         //! \param n Specifies the number of columns of the matrix B and the number of columns of the matrix C.
@@ -95,7 +95,7 @@
     #endif
     #ifdef MATMUL_BUILD_PAR_MPI_CANNON_CUBLAS
         //-----------------------------------------------------------------------------
-        //! (S/D)GEMM matrix-matrix product C := A * B + C using the Cannon algorithm with non-blocking MPI communication and cuBLAS GEMM for local computation.
+        //! (S/D)GEMM matrix-matrix product C = alpha * A * B + beta * C using the Cannon algorithm with non-blocking MPI communication and cuBLAS GEMM for local computation.
         //!
         //! \param m Specifies the number of rows of the matrix A and of the matrix C.
         //! \param n Specifies the number of columns of the matrix B and the number of columns of the matrix C.
