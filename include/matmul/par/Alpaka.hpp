@@ -12,7 +12,7 @@
 //! HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
 
-#if defined(MATMUL_BUILD_PAR_ALPAKA_ACC_CPU_B_SEQ_T_SEQ) || defined(MATMUL_BUILD_PAR_ALPAKA_ACC_GPU_CUDA) || defined(MATMUL_BUILD_PAR_ALPAKA_ACC_CPU_B_OMP2_T_SEQ) || defined(MATMUL_BUILD_PAR_ALPAKA_ACC_CPU_B_SEQ_T_OMP2) || defined(MATMUL_BUILD_PAR_ALPAKA_ACC_CPU_BT_OMP4) || defined(MATMUL_BUILD_PAR_ALPAKA_ACC_CPU_B_SEQ_T_THREADS) || defined(MATMUL_BUILD_PAR_ALPAKA_ACC_CPU_B_SEQ_T_FIBERS)
+#if defined(MATMUL_BUILD_PAR_ALPAKA_ACC_CPU_B_SEQ_T_SEQ) || defined(MATMUL_BUILD_PAR_ALPAKA_ACC_GPU_CUDA) || defined(MATMUL_BUILD_PAR_ALPAKA_ACC_GPU_CUDA_MEMCPY) || defined(MATMUL_BUILD_PAR_ALPAKA_ACC_CPU_B_OMP2_T_SEQ) || defined(MATMUL_BUILD_PAR_ALPAKA_ACC_CPU_B_SEQ_T_OMP2) || defined(MATMUL_BUILD_PAR_ALPAKA_ACC_CPU_BT_OMP4) || defined(MATMUL_BUILD_PAR_ALPAKA_ACC_CPU_B_SEQ_T_THREADS) || defined(MATMUL_BUILD_PAR_ALPAKA_ACC_CPU_B_SEQ_T_FIBERS)
 
     #include <matmul/common/Mat.h>  // matmul_mat_gemm_early_out
 
@@ -177,5 +177,172 @@
                 };
             }
         }
+    }
+
+    //-----------------------------------------------------------------------------
+    //
+    //-----------------------------------------------------------------------------
+    template<
+        typename TAcc>
+    void matmul_gemm_par_alpaka(
+        TIdx const m, TIdx const n, TIdx const k,
+        TElem const alpha,
+        TElem const * const MATMUL_RESTRICT A, TIdx const lda,
+        TElem const * const MATMUL_RESTRICT B, TIdx const ldb,
+        TElem const beta,
+        TElem * const MATMUL_RESTRICT C, TIdx const ldc)
+    {
+        if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
+        {
+            return;
+        }
+
+        // Select a device to execute on.
+        alpaka::dev::Dev<TAcc> devAcc(
+            alpaka::dev::DevMan<TAcc>::getDevByIdx(0));
+
+        // Get a stream on this device.
+        alpaka::stream::Stream<alpaka::dev::Dev<TAcc>> stream(
+            alpaka::stream::create(devAcc));
+
+        // Result matrix is MxN. We create one worker per result matrix cell.
+        alpaka::Vec2<TIdx> const v2uiExtentsC(
+            m,
+            n);
+
+        // Let alpaka calculate good block and grid sizes given our full problem extents.
+        alpaka::workdiv::WorkDivMembers<alpaka::dim::DimInt<2u>, TIdx> const workDiv(
+            alpaka::workdiv::getValidWorkDiv<TAcc>(
+                devAcc,
+                v2uiExtentsC,
+                false,
+                alpaka::workdiv::GridBlockExtentsSubDivRestrictions::EqualExtents));
+
+        // Create the executor.
+        auto exec(alpaka::exec::create<TAcc>(workDiv, stream));
+
+        // Create an instance of the kernel functor.
+        GemmAlpakaKernel kernel;
+
+        // Execute the kernel.
+        // NOTE: We remove the __restrict__ because alpaka calls std::ref on the arguments and std::ref errors.
+        // This is most probably undefined. MSVC compiles it without any warning.
+        exec(
+            kernel,
+            m,
+            n,
+            k,
+            alpha,
+            reinterpret_cast<TElem const *>(A),
+            lda,
+            reinterpret_cast<TElem const *>(B),
+            ldb,
+            beta,
+            reinterpret_cast<TElem *>(C),
+            ldc);
+
+        // Wait for the stream to finish the memory operation.
+        alpaka::wait::wait(stream);
+    }
+
+    //-----------------------------------------------------------------------------
+    //
+    //-----------------------------------------------------------------------------
+    template<
+        typename TAcc>
+    void matmul_gemm_par_alpaka_memcpy(
+        TIdx const m, TIdx const n, TIdx const k,
+        TElem const alpha,
+        TElem const * const MATMUL_RESTRICT A, TIdx const lda,
+        TElem const * const MATMUL_RESTRICT B, TIdx const ldb,
+        TElem const beta,
+        TElem * const MATMUL_RESTRICT C, TIdx const ldc)
+    {
+        if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
+        {
+            return;
+        }
+
+        // Get the host device.
+        auto devHost(alpaka::dev::cpu::getDev());
+
+        // Select a device to execute on.
+        alpaka::dev::Dev<TAcc> devAcc(
+            alpaka::dev::DevMan<TAcc>::getDevByIdx(0));
+
+        // Get a stream on this device.
+        alpaka::stream::Stream<alpaka::dev::Dev<TAcc>> stream(
+            alpaka::stream::create(devAcc));
+
+        alpaka::Vec2<TIdx> const v2uiExtentsA(
+            m,
+            k);
+
+        alpaka::Vec2<TIdx> const v2uiExtentsB(
+            k,
+            n);
+
+        // Result matrix is MxN. We create one worker per result matrix cell.
+        alpaka::Vec2<TIdx> const v2uiExtentsC(
+            m,
+            n);
+
+        // Wrap the Pointers into memory buffer objects.
+        using BufWrapperIn = alpaka::mem::buf::BufPlainPtrWrapper<
+            std::decay<decltype(devHost)>::type,
+            TElem const,
+            alpaka::dim::DimInt<2u>,
+            TIdx>;
+        BufWrapperIn bufAHost(A, devHost, v2uiExtentsA, lda);
+        BufWrapperIn bufBHost(B, devHost, v2uiExtentsB, ldb);
+        using BufWrapperOut = alpaka::mem::buf::BufPlainPtrWrapper<
+            std::decay<decltype(devHost)>::type,
+            TElem,
+            alpaka::dim::DimInt<2u>,
+            TIdx>;
+        BufWrapperOut bufCHost(C, devHost, v2uiExtentsC, ldc);
+
+        // Allocate the buffers on the accelerator and copy Host -> Acc (Interleaved for better performance)
+        auto bufAAcc(alpaka::mem::buf::alloc<TElem, TIdx>(devAcc, v2uiExtentsA));
+        alpaka::mem::view::copy(bufAAcc, bufAHost, v2uiExtentsA, stream);
+        auto bufBAcc(alpaka::mem::buf::alloc<TElem, TIdx>(devAcc, v2uiExtentsB));
+        alpaka::mem::view::copy(bufBAcc, bufBHost, v2uiExtentsB, stream);
+        auto bufCAcc(alpaka::mem::buf::alloc<TElem, TIdx>(devAcc, v2uiExtentsC));
+        alpaka::mem::view::copy(bufCAcc, bufCHost, v2uiExtentsC, stream);
+
+        // Let alpaka calculate good block and grid sizes given our full problem extents.
+        alpaka::workdiv::WorkDivMembers<alpaka::dim::DimInt<2u>, TIdx> const workDiv(
+            alpaka::workdiv::getValidWorkDiv<TAcc>(
+                devAcc,
+                v2uiExtentsC,
+                false,
+                alpaka::workdiv::GridBlockExtentsSubDivRestrictions::EqualExtents));
+
+        // Create the executor.
+        auto exec(alpaka::exec::create<TAcc>(workDiv, stream));
+
+        // Create an instance of the kernel functor.
+        GemmAlpakaKernel kernel;
+
+        // Execute the kernel.
+        exec(
+            kernel,
+            m,
+            n,
+            k,
+            alpha,
+            alpaka::mem::view::getPtrNative(bufAAcc),
+            static_cast<TIdx>(alpaka::mem::view::getPitchBytes<1u>(bufAAcc) / sizeof(TElem)),
+            alpaka::mem::view::getPtrNative(bufBAcc),
+            static_cast<TIdx>(alpaka::mem::view::getPitchBytes<1u>(bufBAcc) / sizeof(TElem)),
+            beta,
+            alpaka::mem::view::getPtrNative(bufCAcc),
+            static_cast<TIdx>(alpaka::mem::view::getPitchBytes<1u>(bufCAcc) / sizeof(TElem)));
+
+        // Copy back the result.
+        alpaka::mem::view::copy(bufCHost, bufCAcc, v2uiExtentsC, stream);
+
+        // Wait for the stream to finish the memory operation.
+        alpaka::wait::wait(stream);
     }
 #endif

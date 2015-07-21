@@ -492,7 +492,7 @@
             return;
         }
 
-        matmul_gemm_par_mpi_cannon_local_algo(m, n, k, alpha, A, lda, B, ldb, beta, C, ldc, false, matmul_gemm_par_blas_cublas2);
+        matmul_gemm_par_mpi_cannon_local_algo(m, n, k, alpha, A, lda, B, ldb, beta, C, ldc, false, matmul_gemm_par_blas_cublas2_memcpy);
     }
 #endif
 #endif

@@ -18,70 +18,6 @@
 
     #include <matmul/par/Alpaka.hpp>
 
-    //-----------------------------------------------------------------------------
-    //
-    //-----------------------------------------------------------------------------
-    template<
-        typename TAcc>
-    void matmul_gemm_par_alpaka_cpu(
-        TIdx const m, TIdx const n, TIdx const k,
-        TElem const alpha,
-        TElem const * const MATMUL_RESTRICT A, TIdx const lda,
-        TElem const * const MATMUL_RESTRICT B, TIdx const ldb,
-        TElem const beta,
-        TElem * const MATMUL_RESTRICT C, TIdx const ldc)
-    {
-        if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
-        {
-            return;
-        }
-
-        // Create the kernel functor.
-        GemmAlpakaKernel kernel;
-
-        // Get the host device.
-        auto devHost(alpaka::dev::cpu::getDev());
-
-        // Get a stream on this device.
-        alpaka::stream::Stream<alpaka::dev::Dev<TAcc>> stream(
-            alpaka::stream::create(devHost));
-
-        // Result matrix is MxN. We create one worker per result matrix cell.
-        alpaka::Vec2<TIdx> const v2uiExtentsC(
-            m,
-            n);
-
-        // Let alpaka calculate good block and grid sizes given our full problem extents.
-        alpaka::workdiv::WorkDivMembers<alpaka::dim::DimInt<2u>, TIdx> const workDiv(
-            alpaka::workdiv::getValidWorkDiv<TAcc>(
-                devHost,
-                v2uiExtentsC,
-                false,
-                alpaka::workdiv::GridBlockExtentsSubDivRestrictions::EqualExtents));
-
-        // Create the executor.
-        auto exec(alpaka::exec::create<TAcc>(workDiv, stream));
-        // Execute the kernel.
-        // NOTE: We remove the __restrict__ because alpaka calls std::ref on the arguments and std::ref errors.
-        // This is most probably undefined. MSVC compiles it without any warning.
-        exec(
-            kernel,
-            m,
-            n,
-            k,
-            alpha,
-            reinterpret_cast<TElem const * const>(A),
-            lda,
-            reinterpret_cast<TElem const * const>(B),
-            ldb,
-            beta,
-            reinterpret_cast<TElem * const>(C),
-            ldc);
-
-        // Wait for the stream to finish the memory operation.
-        alpaka::wait::wait(stream);
-    }
-
     #ifdef MATMUL_BUILD_PAR_ALPAKA_ACC_CPU_B_SEQ_T_SEQ
         //-----------------------------------------------------------------------------
         //
@@ -99,7 +35,7 @@
                 return;
             }
 
-            matmul_gemm_par_alpaka_cpu<alpaka::acc::AccCpuSerial<alpaka::dim::DimInt<2u>, TIdx>>(
+            matmul_gemm_par_alpaka<alpaka::acc::AccCpuSerial<alpaka::dim::DimInt<2u>, TIdx>>(
                 m, n, k,
                 alpha,
                 A, lda,
@@ -125,7 +61,7 @@
                 return;
             }
 
-            matmul_gemm_par_alpaka_cpu<alpaka::acc::AccCpuOmp2Blocks<alpaka::dim::DimInt<2u>, TIdx>>(
+            matmul_gemm_par_alpaka<alpaka::acc::AccCpuOmp2Blocks<alpaka::dim::DimInt<2u>, TIdx>>(
                 m, n, k,
                 alpha,
                 A, lda,
@@ -151,7 +87,7 @@
                 return;
             }
 
-            matmul_gemm_par_alpaka_cpu<alpaka::acc::AccCpuOmp2Threads<alpaka::dim::DimInt<2u>, TIdx>>(
+            matmul_gemm_par_alpaka<alpaka::acc::AccCpuOmp2Threads<alpaka::dim::DimInt<2u>, TIdx>>(
                 m, n, k,
                 alpha,
                 A, lda,
@@ -177,7 +113,7 @@
                 return;
             }
 
-            matmul_gemm_par_alpaka_cpu<alpaka::acc::AccCpuOmp4<alpaka::dim::DimInt<2u>, TIdx>>(
+            matmul_gemm_par_alpaka<alpaka::acc::AccCpuOmp4<alpaka::dim::DimInt<2u>, TIdx>>(
                 m, n, k,
                 alpha,
                 A, lda,
@@ -203,7 +139,7 @@
                 return;
             }
 
-            matmul_gemm_par_alpaka_cpu<alpaka::acc::AccCpuThreads<alpaka::dim::DimInt<2u>, TIdx>>(
+            matmul_gemm_par_alpaka<alpaka::acc::AccCpuThreads<alpaka::dim::DimInt<2u>, TIdx>>(
                 m, n, k,
                 alpha,
                 A, lda,
@@ -229,7 +165,7 @@
                 return;
             }
 
-            matmul_gemm_par_alpaka_cpu<alpaka::acc::AccCpuFibers<alpaka::dim::DimInt<2u>, TIdx>>(
+            matmul_gemm_par_alpaka<alpaka::acc::AccCpuFibers<alpaka::dim::DimInt<2u>, TIdx>>(
                 m, n, k,
                 alpha,
                 A, lda,

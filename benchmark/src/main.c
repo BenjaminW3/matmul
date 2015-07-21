@@ -75,6 +75,12 @@ typedef struct SMatMulAlgo
     double const fExponentOmega;
 } SMatMulAlgo;
 
+#ifdef BENCHMARK_CUDA_NO_COPY
+    #include <cuda_runtime.h>
+
+    #define MATMUL_CUDA_RT_CHECK(cmd) {cudaError_t error = cmd; if(error!=cudaSuccess){printf("<%s>:%i ",__FILE__,__LINE__); printf("[CUDA] Error: %s\n", cudaGetErrorString(error));}}
+#endif
+
 //-----------------------------------------------------------------------------
 //! \return The time in milliseconds required to multiply 2 random matrices of the given type and size
 //! \param n The matrix dimension.
@@ -129,6 +135,35 @@ double measureRandomMatMul(
     #endif
 #endif
 
+#ifdef BENCHMARK_CUDA_NO_COPY
+    MATMUL_CUDA_RT_CHECK(cudaSetDevice(0));
+
+    size_t uiPitchBytesADev = 0;
+    size_t uiPitchBytesBDev = 0;
+    size_t uiPitchBytesCDev = 0;
+    size_t const uHeightBytesA = m;
+    size_t const uiWidthBytesA = k*sizeof(TElem);
+    size_t const uHeightBytesB = k;
+    size_t const uiWidthBytesB = n*sizeof(TElem);
+    size_t const uHeightBytesC = m;
+    size_t const uiWidthBytesC = n*sizeof(TElem);
+    TElem * pADev = 0;
+    TElem * pBDev = 0;
+    TElem * pCDev = 0;
+    MATMUL_CUDA_RT_CHECK(cudaMallocPitch((void **)&pADev, &uiPitchBytesADev, uiWidthBytesA, uHeightBytesA));
+    MATMUL_CUDA_RT_CHECK(cudaMemcpy2D(pADev, uiPitchBytesADev, A, n * sizeof(TElem), uiWidthBytesA, uHeightBytesA, cudaMemcpyHostToDevice));
+    MATMUL_CUDA_RT_CHECK(cudaMallocPitch((void **)&pBDev, &uiPitchBytesBDev, uiWidthBytesB, uHeightBytesB));
+    MATMUL_CUDA_RT_CHECK(cudaMemcpy2D(pBDev, uiPitchBytesBDev, B, n * sizeof(TElem), uiWidthBytesB, uHeightBytesB, cudaMemcpyHostToDevice));
+    MATMUL_CUDA_RT_CHECK(cudaMallocPitch((void **)&pCDev, &uiPitchBytesCDev, uiWidthBytesC, uHeightBytesC));
+    size_t const lda = (TIdx)(uiPitchBytesADev / sizeof(TElem));
+    size_t const ldb = (TIdx)(uiPitchBytesBDev / sizeof(TElem));
+    size_t const ldc = (TIdx)(uiPitchBytesCDev / sizeof(TElem));
+#else
+    size_t const lda = n;
+    size_t const ldb = n;
+    size_t const ldc = n;
+#endif
+
     // Initialize the measurement result.
 #ifdef BENCHMARK_REPEAT_TAKE_MINIMUM
     double fTimeMeasuredSec = DBL_MAX;
@@ -153,6 +188,10 @@ double measureRandomMatMul(
 
 #ifdef MATMUL_MPI
         }
+#endif
+
+#ifdef BENCHMARK_CUDA_NO_COPY
+        MATMUL_CUDA_RT_CHECK(cudaMemcpy2D(pCDev, uiPitchBytesCDev, C, n * sizeof(TElem), uiWidthBytesC, uHeightBytesC, cudaMemcpyHostToDevice));
 #endif
 
 #ifdef MATMUL_MPI
@@ -191,8 +230,13 @@ double measureRandomMatMul(
 #else
         double const fTimeStart = getTimeSec();
 #endif
+
         // Matrix multiplication.
-        (algo->pMatMul)(n, n, n, alpha, A, n, B, n, beta, C, n);
+#ifdef BENCHMARK_CUDA_NO_COPY
+        (algo->pMatMul)(n, n, n, alpha, pADev, lda, pBDev, ldb, beta, pCDev, ldc);
+#else
+        (algo->pMatMul)(n, n, n, alpha, A, lda, B, ldb, beta, C, ldc);
+#endif
 
 #ifdef MATMUL_MPI
         // Only the root process does the printing.
@@ -237,6 +281,12 @@ double measureRandomMatMul(
         }
 #endif
     }
+
+#ifdef BENCHMARK_CUDA_NO_COPY
+    cudaFree(pADev);
+    cudaFree(pBDev);
+    cudaFree(pCDev);
+#endif
 
 #ifdef MATMUL_MPI
     // Only the root process does the printing.
@@ -526,7 +576,6 @@ int main(
     srand((unsigned int)time(0));
 
     static SMatMulAlgo const algos[] = {
-#ifndef MATMUL_MPI
     #ifdef BENCHMARK_SEQ_BASIC
         {matmul_gemm_seq_basic, "gemm_seq_basic", 3.0},
     #endif
@@ -605,7 +654,10 @@ int main(
         {matmul_gemm_par_alpaka_cpu_b_seq_t_seq, "gemm_par_alpaka_cpu_b_seq_t_seq", 3.0},
     #endif
     #ifdef BENCHMARK_PAR_ALPAKA_ACC_GPU_CUDA
-        {matmul_gemm_par_alpaka_gpu_cuda, "gemm_par_alpaka_gpu_cuda", 3.0},
+        { matmul_gemm_par_alpaka_gpu_cuda, "gemm_par_alpaka_gpu_cuda", 3.0 },
+    #endif
+    #ifdef BENCHMARK_PAR_ALPAKA_ACC_GPU_CUDA_MEMCPY
+        {matmul_gemm_par_alpaka_gpu_cuda_memcpy, "gemm_par_alpaka_gpu_cuda_memcpy", 3.0},
     #endif
     #ifdef BENCHMARK_PAR_OPENACC
         {matmul_gemm_par_openacc_kernels, "gemm_par_openacc_kernels", 3.0},
@@ -616,8 +668,16 @@ int main(
         {matmul_gemm_par_cuda_fixed_block_size_1d_static_shared, "gemm_par_cuda_fixed_block_size_1d_static_shared", 3.0},
         {matmul_gemm_par_cuda_fixed_block_size_1d_extern_shared, "gemm_par_cuda_fixed_block_size_1d_extern_shared", 3.0},
     #endif
+    #ifdef BENCHMARK_PAR_CUDA_MEMCPY_FIXED_BLOCK_SIZE
+        { matmul_gemm_par_cuda_memcpy_fixed_block_size_2d_static_shared, "gemm_par_cuda_memcpy_fixed_block_size_2d_static_shared", 3.0 },
+        { matmul_gemm_par_cuda_memcpy_fixed_block_size_1d_static_shared, "gemm_par_cuda_memcpy_fixed_block_size_1d_static_shared", 3.0 },
+        { matmul_gemm_par_cuda_memcpy_fixed_block_size_1d_extern_shared, "gemm_par_cuda_memcpy_fixed_block_size_1d_extern_shared", 3.0 },
+    #endif
     #ifdef BENCHMARK_PAR_CUDA_DYN_BLOCK_SIZE
-        {matmul_gemm_par_cuda_dyn_block_size_1d_extern_shared, "gemm_par_cuda_dyn_block_size_1d_extern_shared", 3.0},
+        { matmul_gemm_par_cuda_dyn_block_size_1d_extern_shared, "gemm_par_cuda_dyn_block_size_1d_extern_shared", 3.0 },
+    #endif
+    #ifdef BENCHMARK_PAR_CUDA_MEMCPY_DYN_BLOCK_SIZE
+        {matmul_gemm_par_cuda_memcpy_dyn_block_size_1d_extern_shared, "gemm_par_cuda_memcpy_dyn_block_size_1d_extern_shared", 3.0},
     #endif
     #ifdef BENCHMARK_PAR_BLAS_MKL
         {matmul_gemm_par_blas_mkl, "gemm_par_blas_mkl", 3.0},
@@ -626,9 +686,11 @@ int main(
         {matmul_gemm_par_phi_off_blas_mkl, "gemm_par_phi_off_blas_mkl", 3.0},
     #endif
     #ifdef BENCHMARK_PAR_BLAS_CUBLAS
-        {matmul_gemm_par_blas_cublas2, "gemm_par_blas_cublas2", 3.0},
+            { matmul_gemm_par_blas_cublas2, "gemm_par_blas_cublas2", 3.0 },
     #endif
-#else
+    #ifdef BENCHMARK_PAR_BLAS_CUBLAS_MEMCPY
+        {matmul_gemm_par_blas_cublas2_memcpy, "gemm_par_blas_cublas2_memcpy", 3.0},
+    #endif
     #ifdef BENCHMARK_PAR_MPI_CANNON_STD
         {matmul_gemm_par_mpi_cannon_block, "gemm_par_mpi_cannon_block", 3.0},
         {matmul_gemm_par_mpi_cannon_nonblock, "gemm_par_mpi_cannon_nonblock", 3.0},
@@ -642,7 +704,6 @@ int main(
     #ifdef BENCHMARK_PAR_MPI_DNS
         {matmul_gemm_par_mpi_dns, "gemm_par_mpi_dns", 3.0},
     #endif
-#endif
     };
 
     SMatMulSizes const sizes = buildSizes(

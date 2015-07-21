@@ -39,8 +39,12 @@ Available Implementations
       * 1D extern shared memory
     * dynamic block size
       * 1D extern shared memory
+        * with memory copy
+        * without memory copy
   * [alpaka](https://github.com/ComputationalRadiationPhysics/alpaka)
     * CUDA
+      * with memory copy
+      * without memory copy
     * OpenMP 2.0 (Host only)
     * OpenMP 4.0 (Host only)
     * std::thread
@@ -49,6 +53,8 @@ Available Implementations
     * MKL
     * MKL Offload to Intel XeonPhi
     * cuBLAS2
+      * with memory copy
+      * without memory copy
   * MPI:
     * Cannon Algorithm:
       * Optimized Sequential per Node
