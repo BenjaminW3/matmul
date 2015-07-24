@@ -1,15 +1,22 @@
 //-----------------------------------------------------------------------------
-//! Copyright (c) 2014-2015, Benjamin Worpitz
-//! All rights reserved.
+//! \file
+//! Copyright 2013-2015 Benjamin Worpitz
 //!
-//! Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met :
-//! * Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-//! * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
-//! * Neither the name of the TU Dresden nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
+//! This file is part of matmul.
 //!
-//! THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
-//! IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-//! HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+//! matmul is free software: you can redistribute it and/or modify
+//! it under the terms of the GNU Lesser General Public License as published by
+//! the Free Software Foundation, either version 3 of the License, or
+//! (at your option) any later version.
+//!
+//! matmul is distributed in the hope that it will be useful,
+//! but WITHOUT ANY WARRANTY; without even the implied warranty of
+//! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+//! GNU Lesser General Public License for more details.
+//!
+//! You should have received a copy of the GNU Lesser General Public License
+//! along with matmul.
+//! If not, see <http://www.gnu.org/licenses/>.
 //-----------------------------------------------------------------------------
 
 #include <matmul/matmul.h>
@@ -471,7 +478,7 @@ void main_print_startup(
     TIdx uiNStep,
     TIdx uiRepeatCount)
 {
-    printf("# matmul benchmark copyright (c) 2014-2015, Benjamin Worpitz:");
+    printf("# matmul benchmark copyright (c) 2014-2015, Benjamin Worpitz |");
 #ifdef NDEBUG
     printf(" Release");
 #else
@@ -479,15 +486,15 @@ void main_print_startup(
 #endif
     printf("; element type:");
 #ifdef MATMUL_ELEMENT_TYPE_DOUBLE
-    printf(" double");
+    printf("double");
 #else
-    printf(" float");
+    printf("float");
 #endif
-    printf("; index type: %s", MATMUL_STRINGIFY(MATMUL_INDEX_TYPE));
-    printf("; MIN_N=%"MATMUL_PRINTF_SIZE_T, (size_t)uiNMin);
-    printf("; MAX_N=%"MATMUL_PRINTF_SIZE_T, (size_t)uiNMax);
-    printf("; STEP_N=%"MATMUL_PRINTF_SIZE_T, (size_t)uiNStep);
-    printf("; REPEAT_COUNT=%"MATMUL_PRINTF_SIZE_T, (size_t)uiRepeatCount);
+    printf("; index type:%s", MATMUL_STRINGIFY(MATMUL_INDEX_TYPE));
+    printf("; Min N:%"MATMUL_PRINTF_SIZE_T, (size_t)uiNMin);
+    printf("; Max N:%"MATMUL_PRINTF_SIZE_T, (size_t)uiNMax);
+    printf("; Step N:%"MATMUL_PRINTF_SIZE_T, (size_t)uiNStep);
+    printf("; Repeat count:%"MATMUL_PRINTF_SIZE_T, (size_t)uiRepeatCount);
 #ifdef BENCHMARK_PRINT_GFLOPS
     printf("; BENCHMARK_PRINT_GFLOPS=ON");
 #else
@@ -535,7 +542,7 @@ int main(
     if(argc != (4+1))
     {
         printf("\nExactly four arguments are required!");
-        printf("\nRequired options: min max step repeat!");
+        printf("\nOptions: min max step repeat!\n");
         return EXIT_FAILURE;
     }
     else
@@ -552,7 +559,7 @@ int main(
     int iRank1D;
     if(mpiStatus != MPI_SUCCESS)
     {
-        printf("\nUnable to initialize MPI. MPI_Init failed.");
+        printf("\nUnable to initialize MPI. MPI_Init failed.\n");
     }
     else
     {
@@ -727,14 +734,14 @@ int main(
         {
             double const fTimeEnd = getTimeSec();
             double const fTimeElapsed = fTimeEnd - fTimeStart;
-            printf("\nTotal runtime: %12.6lf s ", fTimeElapsed);
+            printf("\nTotal runtime: %12.6lf s\n", fTimeElapsed);
         }
         MPI_Finalize();
     }
 #else
     double const fTimeEnd = getTimeSec();
     double const fTimeElapsed = fTimeEnd - fTimeStart;
-    printf("\nTotal runtime: %12.6lf s ", fTimeElapsed);
+    printf("\nTotal runtime: %12.6lf s\n", fTimeElapsed);
 #endif
 
 #ifdef BENCHMARK_VERIFY_RESULT
