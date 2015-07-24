@@ -88,7 +88,8 @@ typedef struct SMatMulAlgo
 double measureRandomMatMul(
     SMatMulAlgo const * const algo,
     TIdx const m, TIdx const n, TIdx const k,
-    TIdx const uiRepeatCount
+    TIdx const uiRepeatCount,
+    bool const bRepeatTakeMinimum
  #ifdef BENCHMARK_VERIFY_RESULT
     ,bool * pbResultsCorrect
 #endif
@@ -155,21 +156,21 @@ double measureRandomMatMul(
     MATMUL_CUDA_RT_CHECK(cudaMallocPitch((void **)&pBDev, &uiPitchBytesBDev, uiWidthBytesB, uHeightBytesB));
     MATMUL_CUDA_RT_CHECK(cudaMemcpy2D(pBDev, uiPitchBytesBDev, B, n * sizeof(TElem), uiWidthBytesB, uHeightBytesB, cudaMemcpyHostToDevice));
     MATMUL_CUDA_RT_CHECK(cudaMallocPitch((void **)&pCDev, &uiPitchBytesCDev, uiWidthBytesC, uHeightBytesC));
-    size_t const lda = (TIdx)(uiPitchBytesADev / sizeof(TElem));
-    size_t const ldb = (TIdx)(uiPitchBytesBDev / sizeof(TElem));
-    size_t const ldc = (TIdx)(uiPitchBytesCDev / sizeof(TElem));
+    TIdx const lda = (TIdx)(uiPitchBytesADev / sizeof(TElem));
+    TIdx const ldb = (TIdx)(uiPitchBytesBDev / sizeof(TElem));
+    TIdx const ldc = (TIdx)(uiPitchBytesCDev / sizeof(TElem));
 #else
-    size_t const lda = n;
-    size_t const ldb = n;
-    size_t const ldc = n;
+    TIdx const lda = n;
+    TIdx const ldb = n;
+    TIdx const ldc = n;
 #endif
 
     // Initialize the measurement result.
-#ifdef BENCHMARK_REPEAT_TAKE_MINIMUM
-    double fTimeMeasuredSec = DBL_MAX;
-#else
     double fTimeMeasuredSec = 0.0;
-#endif
+    if(bRepeatTakeMinimum)
+    {
+        fTimeMeasuredSec = DBL_MAX;
+    }
 
     // Iterate.
     for(TIdx i = 0; i < uiRepeatCount; ++i)
@@ -271,11 +272,14 @@ double measureRandomMatMul(
             printf("\n");
 #endif
 
-#ifdef BENCHMARK_REPEAT_TAKE_MINIMUM
-            fTimeMeasuredSec = (fTimeElapsed<fTimeMeasuredSec) ? fTimeElapsed : fTimeMeasuredSec;
-#else
-            fTimeMeasuredSec += fTimeElapsed * (1.0/double(BENCHMARK_REPEAT_COUNT));
-#endif
+            if(bRepeatTakeMinimum)
+            {
+                fTimeMeasuredSec = (fTimeElapsed<fTimeMeasuredSec) ? fTimeElapsed : fTimeMeasuredSec;
+            }
+            else
+            {
+                fTimeMeasuredSec += fTimeElapsed * (1.0/(double)uiRepeatCount);
+            }
 
 #ifdef MATMUL_MPI
         }
@@ -428,7 +432,12 @@ measureRandomMatMuls(
                     n,
                     n,
                     n,
-                    uiRepeatCount
+                    uiRepeatCount,
+#ifdef BENCHMARK_REPEAT_TAKE_MINIMUM
+                    true
+#else
+                    false
+#endif
 #ifdef BENCHMARK_VERIFY_RESULT
                     , &bResultsCorrectAlgo
 #endif
@@ -459,7 +468,8 @@ measureRandomMatMuls(
 void main_print_startup(
     TIdx uiNMin,
     TIdx uiNMax,
-    TIdx uiNStep)
+    TIdx uiNStep,
+    TIdx uiRepeatCount)
 {
     printf("# matmul benchmark copyright (c) 2014-2015, Benjamin Worpitz:");
 #ifdef NDEBUG
@@ -477,7 +487,7 @@ void main_print_startup(
     printf("; MIN_N=%"MATMUL_PRINTF_SIZE_T, (size_t)uiNMin);
     printf("; MAX_N=%"MATMUL_PRINTF_SIZE_T, (size_t)uiNMax);
     printf("; STEP_N=%"MATMUL_PRINTF_SIZE_T, (size_t)uiNStep);
-    printf("; BENCHMARK_REPEAT_COUNT=%"MATMUL_PRINTF_SIZE_T, (size_t)BENCHMARK_REPEAT_COUNT);
+    printf("; REPEAT_COUNT=%"MATMUL_PRINTF_SIZE_T, (size_t)uiRepeatCount);
 #ifdef BENCHMARK_PRINT_GFLOPS
     printf("; BENCHMARK_PRINT_GFLOPS=ON");
 #else
@@ -519,35 +529,21 @@ int main(
     TIdx uiNMin = 1;
     TIdx uiNMax = 1;
     TIdx uiNStep = 1;
+    TIdx uiRepeatCount = 1;
 
     // Read all arguments.
-    if(argc == 1)
+    if(argc != (4+1))
     {
-        printf("\nAt least one argument is required!");
-        printf("\nAllowed options: min [max [step]] !");
-        return EXIT_FAILURE;
-    }
-    else if(argc > 4)
-    {
-        printf("\nToo many command line arguments!");
+        printf("\nExactly four arguments are required!");
+        printf("\nRequired options: min max step repeat!");
         return EXIT_FAILURE;
     }
     else
     {
-        if(argc >= 2)
-        {
-            uiNMin = atoi(argv[1]);
-            // Set the max to the current min for the case when no max is provided.
-            uiNMax = uiNMin;
-        }
-        if(argc >= 3)
-        {
-            uiNMax = atoi(argv[2]);
-        }
-        if(argc == 4)
-        {
-            uiNStep = atoi(argv[3]);
-        }
+        uiNMin = atoi(argv[1]);
+        uiNMax = atoi(argv[2]);
+        uiNStep = atoi(argv[3]);
+        uiRepeatCount = atoi(argv[4]);
     }
 
 #ifdef MATMUL_MPI
@@ -564,11 +560,11 @@ int main(
 
         if(iRank1D==MATMUL_MPI_ROOT)
         {
-            main_print_startup(uiNMin, uiNMax, uiNStep);
+            main_print_startup(uiNMin, uiNMax, uiNStep, uiRepeatCount);
         }
     }
 #else
-    main_print_startup(uiNMin, uiNMax, uiNStep);
+    main_print_startup(uiNMin, uiNMax, uiNStep, uiRepeatCount);
 #endif
 
     double const fTimeStart = getTimeSec();
@@ -635,6 +631,10 @@ int main(
         {matmul_gemm_par_strassen_omp2, "gemm_par_strassen_omp", 2.80735},   // 2.80735 = log(7.0) / log(2.0)
         #endif
     #endif
+    #ifdef BENCHMARK_PAR_OPENACC
+        {matmul_gemm_par_openacc_kernels, "gemm_par_openacc_kernels", 3.0},
+        {matmul_gemm_par_openacc_parallel, "gemm_par_openacc_parallel", 3.0},
+    #endif
     #ifdef BENCHMARK_PAR_ALPAKA_ACC_CPU_B_OMP2_T_SEQ
         {matmul_gemm_par_alpaka_cpu_b_omp2_t_seq, "gemm_par_alpaka_cpu_b_omp2_t_seq", 3.0},
     #endif
@@ -653,31 +653,19 @@ int main(
     #ifdef BENCHMARK_PAR_ALPAKA_ACC_CPU_B_SEQ_T_SEQ
         {matmul_gemm_par_alpaka_cpu_b_seq_t_seq, "gemm_par_alpaka_cpu_b_seq_t_seq", 3.0},
     #endif
-    #ifdef BENCHMARK_PAR_ALPAKA_ACC_GPU_CUDA
-        { matmul_gemm_par_alpaka_gpu_cuda, "gemm_par_alpaka_gpu_cuda", 3.0 },
-    #endif
     #ifdef BENCHMARK_PAR_ALPAKA_ACC_GPU_CUDA_MEMCPY
         {matmul_gemm_par_alpaka_gpu_cuda_memcpy, "gemm_par_alpaka_gpu_cuda_memcpy", 3.0},
     #endif
-    #ifdef BENCHMARK_PAR_OPENACC
-        {matmul_gemm_par_openacc_kernels, "gemm_par_openacc_kernels", 3.0},
-        {matmul_gemm_par_openacc_parallel, "gemm_par_openacc_parallel", 3.0},
-    #endif
-    #ifdef BENCHMARK_PAR_CUDA_FIXED_BLOCK_SIZE
-        {matmul_gemm_par_cuda_fixed_block_size_2d_static_shared, "gemm_par_cuda_fixed_block_size_2d_static_shared", 3.0},
-        {matmul_gemm_par_cuda_fixed_block_size_1d_static_shared, "gemm_par_cuda_fixed_block_size_1d_static_shared", 3.0},
-        {matmul_gemm_par_cuda_fixed_block_size_1d_extern_shared, "gemm_par_cuda_fixed_block_size_1d_extern_shared", 3.0},
-    #endif
     #ifdef BENCHMARK_PAR_CUDA_MEMCPY_FIXED_BLOCK_SIZE
-        { matmul_gemm_par_cuda_memcpy_fixed_block_size_2d_static_shared, "gemm_par_cuda_memcpy_fixed_block_size_2d_static_shared", 3.0 },
-        { matmul_gemm_par_cuda_memcpy_fixed_block_size_1d_static_shared, "gemm_par_cuda_memcpy_fixed_block_size_1d_static_shared", 3.0 },
-        { matmul_gemm_par_cuda_memcpy_fixed_block_size_1d_extern_shared, "gemm_par_cuda_memcpy_fixed_block_size_1d_extern_shared", 3.0 },
-    #endif
-    #ifdef BENCHMARK_PAR_CUDA_DYN_BLOCK_SIZE
-        { matmul_gemm_par_cuda_dyn_block_size_1d_extern_shared, "gemm_par_cuda_dyn_block_size_1d_extern_shared", 3.0 },
+        {matmul_gemm_par_cuda_memcpy_fixed_block_size_2d_static_shared, "gemm_par_cuda_memcpy_fixed_block_size_2d_static_shared", 3.0},
+        {matmul_gemm_par_cuda_memcpy_fixed_block_size_1d_static_shared, "gemm_par_cuda_memcpy_fixed_block_size_1d_static_shared", 3.0},
+        {matmul_gemm_par_cuda_memcpy_fixed_block_size_1d_extern_shared, "gemm_par_cuda_memcpy_fixed_block_size_1d_extern_shared", 3.0},
     #endif
     #ifdef BENCHMARK_PAR_CUDA_MEMCPY_DYN_BLOCK_SIZE
         {matmul_gemm_par_cuda_memcpy_dyn_block_size_1d_extern_shared, "gemm_par_cuda_memcpy_dyn_block_size_1d_extern_shared", 3.0},
+    #endif
+    #ifdef BENCHMARK_PAR_BLAS_CUBLAS_MEMCPY
+        {matmul_gemm_par_blas_cublas2_memcpy, "gemm_par_blas_cublas2_memcpy", 3.0},
     #endif
     #ifdef BENCHMARK_PAR_BLAS_MKL
         {matmul_gemm_par_blas_mkl, "gemm_par_blas_mkl", 3.0},
@@ -685,12 +673,22 @@ int main(
     #ifdef BENCHMARK_PAR_PHI_OFF_BLAS_MKL
         {matmul_gemm_par_phi_off_blas_mkl, "gemm_par_phi_off_blas_mkl", 3.0},
     #endif
+
+    #ifdef BENCHMARK_PAR_ALPAKA_ACC_GPU_CUDA
+        {matmul_gemm_par_alpaka_gpu_cuda, "gemm_par_alpaka_gpu_cuda", 3.0},
+    #endif
+    #ifdef BENCHMARK_PAR_CUDA_FIXED_BLOCK_SIZE
+        {matmul_gemm_par_cuda_fixed_block_size_2d_static_shared, "gemm_par_cuda_fixed_block_size_2d_static_shared", 3.0},
+        {matmul_gemm_par_cuda_fixed_block_size_1d_static_shared, "gemm_par_cuda_fixed_block_size_1d_static_shared", 3.0},
+        {matmul_gemm_par_cuda_fixed_block_size_1d_extern_shared, "gemm_par_cuda_fixed_block_size_1d_extern_shared", 3.0},
+    #endif
+    #ifdef BENCHMARK_PAR_CUDA_DYN_BLOCK_SIZE
+        {matmul_gemm_par_cuda_dyn_block_size_1d_extern_shared, "gemm_par_cuda_dyn_block_size_1d_extern_shared", 3.0 },
+    #endif
     #ifdef BENCHMARK_PAR_BLAS_CUBLAS
-            { matmul_gemm_par_blas_cublas2, "gemm_par_blas_cublas2", 3.0 },
+        {matmul_gemm_par_blas_cublas2, "gemm_par_blas_cublas2", 3.0},
     #endif
-    #ifdef BENCHMARK_PAR_BLAS_CUBLAS_MEMCPY
-        {matmul_gemm_par_blas_cublas2_memcpy, "gemm_par_blas_cublas2_memcpy", 3.0},
-    #endif
+
     #ifdef BENCHMARK_PAR_MPI_CANNON_STD
         {matmul_gemm_par_mpi_cannon_block, "gemm_par_mpi_cannon_block", 3.0},
         {matmul_gemm_par_mpi_cannon_nonblock, "gemm_par_mpi_cannon_nonblock", 3.0},
@@ -718,7 +716,7 @@ int main(
         algos,
         sizeof(algos)/sizeof(algos[0]),
         &sizes,
-        BENCHMARK_REPEAT_COUNT);
+        uiRepeatCount);
 
     free(sizes.puiSizes);
 

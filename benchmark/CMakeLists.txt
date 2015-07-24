@@ -19,7 +19,6 @@
 #
 # Set the following CMake variables to change the behaviour:
 # - ``BENCHMARK_VERIFY_RESULT`` {ON, OFF}
-# - ``BENCHMARK_REPEAT_COUNT`` {0<MATMUL_REPEAT_COUNT}
 # - ``BENCHMARK_REPEAT_TAKE_MINIMUM`` {ON, OFF}
 #
 # Set the following CMake variables to select the versions being compiled:
@@ -315,10 +314,6 @@ ENDIF()
 SET(BENCHMARK_PRINT_GFLOPS OFF CACHE BOOL "If the GFLOPS should be printed instead if the time.")
 IF(BENCHMARK_PRINT_GFLOPS)
     LIST(APPEND _BENCHMARK_COMPILE_DEFINITIONS "BENCHMARK_PRINT_GFLOPS")
-ENDIF()
-SET(BENCHMARK_REPEAT_COUNT 1 CACHE INTEGER "The repeat count.")
-IF(BENCHMARK_REPEAT_COUNT)
-    LIST(APPEND _BENCHMARK_COMPILE_DEFINITIONS "BENCHMARK_REPEAT_COUNT=${BENCHMARK_REPEAT_COUNT}")
 ENDIF()
 SET(BENCHMARK_REPEAT_TAKE_MINIMUM ON CACHE BOOL "If this is defined the minimum of all repetitions is returned instead of the average.")
 IF(BENCHMARK_REPEAT_TAKE_MINIMUM)
