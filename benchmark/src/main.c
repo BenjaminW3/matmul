@@ -491,10 +491,10 @@ void main_print_startup(
     printf("float");
 #endif
     printf("; index type:%s", MATMUL_STRINGIFY(MATMUL_INDEX_TYPE));
-    printf("; Min N:%"MATMUL_PRINTF_SIZE_T, (size_t)uiNMin);
-    printf("; Max N:%"MATMUL_PRINTF_SIZE_T, (size_t)uiNMax);
-    printf("; Step N:%"MATMUL_PRINTF_SIZE_T, (size_t)uiNStep);
-    printf("; Repeat count:%"MATMUL_PRINTF_SIZE_T, (size_t)uiRepeatCount);
+    printf("; min N:%"MATMUL_PRINTF_SIZE_T, (size_t)uiNMin);
+    printf("; max N:%"MATMUL_PRINTF_SIZE_T, (size_t)uiNMax);
+    printf("; step N:%"MATMUL_PRINTF_SIZE_T, (size_t)uiNStep);
+    printf("; repeat count:%"MATMUL_PRINTF_SIZE_T, (size_t)uiRepeatCount);
 #ifdef BENCHMARK_PRINT_GFLOPS
     printf("; BENCHMARK_PRINT_GFLOPS=ON");
 #else

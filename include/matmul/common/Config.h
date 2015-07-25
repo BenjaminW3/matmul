@@ -61,7 +61,11 @@ typedef MATMUL_INDEX_TYPE TIdx;
 //-----------------------------------------------------------------------------
 #if defined __INTEL_COMPILER                    // ICC additionally defines _MSC_VER if used in VS so this has to come first
     #define MATMUL_ICC
-    #define MATMUL_RESTRICT restrict
+    #ifdef __cplusplus
+        #define MATMUL_RESTRICT __restrict
+    #else
+        #define MATMUL_RESTRICT restrict
+    #endif
     #if defined(_MSC_VER) && _MSC_VER<=1800
         #define MATMUL_PRINTF_SIZE_T "Iu"
     #else
