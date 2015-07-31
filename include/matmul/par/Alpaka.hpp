@@ -188,6 +188,46 @@
         }
     }
 
+    namespace detail
+    {
+        //#############################################################################
+        //! The stream type trait for the stream that should be used for the given accelerator.
+        //#############################################################################
+        template<
+            typename TDev,
+            typename TSfinae = void>
+        struct StreamType
+        {
+#if (MATMUL_DEBUG >= MATMUL_DEBUG_FULL)
+            using type = alpaka::stream::StreamCpuSync;
+#else
+            using type = alpaka::stream::StreamCpuAsync;
+#endif
+        };
+
+#if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) && defined(__CUDACC__)
+        //#############################################################################
+        //! The stream type trait specialization for the CUDA accelerator.
+        //#############################################################################
+        template<>
+        struct StreamType<
+            alpaka::dev::DevCudaRt>
+        {
+#if (MATMUL_DEBUG >= MATMUL_DEBUG_FULL)
+            using type = alpaka::stream::StreamCudaRtSync;
+#else
+            using type = alpaka::stream::StreamCudaRtAsync;
+#endif
+        };
+#endif
+    }
+    //#############################################################################
+    //! The stream type that should be used for the given accelerator.
+    //#############################################################################
+    template<
+        typename TAcc>
+    using Stream = typename detail::StreamType<TAcc>::type;
+
     //-----------------------------------------------------------------------------
     //
     //-----------------------------------------------------------------------------
@@ -211,8 +251,7 @@
             alpaka::dev::DevMan<TAcc>::getDevByIdx(0));
 
         // Get a stream on this device.
-        alpaka::stream::Stream<alpaka::dev::Dev<TAcc>> stream(
-            alpaka::stream::create(devAcc));
+        Stream<alpaka::dev::Dev<TAcc>> stream(devAcc);
 
         // Result matrix is MxN. We create one worker per result matrix cell.
         alpaka::Vec2<TIdx> const v2uiExtentsC(
@@ -227,16 +266,14 @@
                 false,
                 alpaka::workdiv::GridBlockExtentsSubDivRestrictions::EqualExtents));
 
-        // Create the executor.
-        auto exec(alpaka::exec::create<TAcc>(workDiv, stream));
-
         // Create an instance of the kernel functor.
         GemmAlpakaKernel kernel;
 
-        // Execute the kernel.
+        // Create the executor.
         // NOTE: We remove the __restrict__ because alpaka calls std::ref on the arguments and std::ref errors.
         // This is most probably undefined. MSVC compiles it without any warning.
-        exec(
+        auto /*const*/ exec(alpaka::exec::create<TAcc>(
+            workDiv,
             kernel,
             m,
             n,
@@ -248,9 +285,12 @@
             ldb,
             beta,
             reinterpret_cast<TElem *>(C),
-            ldc);
+            ldc));
 
-        // Wait for the stream to finish the memory operation.
+        // Execute the kernel.
+        alpaka::stream::enqueue(stream, exec);
+
+        // Wait for the stream to finish the operations.
         alpaka::wait::wait(stream);
     }
 
@@ -280,8 +320,7 @@
             alpaka::dev::DevMan<TAcc>::getDevByIdx(0));
 
         // Get a stream on this device.
-        alpaka::stream::Stream<alpaka::dev::Dev<TAcc>> stream(
-            alpaka::stream::create(devAcc));
+        Stream<alpaka::dev::Dev<TAcc>> stream(devAcc);
 
         alpaka::Vec2<TIdx> const v2uiExtentsA(
             m,
@@ -313,11 +352,11 @@
 
         // Allocate the buffers on the accelerator and copy Host -> Acc (Interleaved for better performance)
         auto bufAAcc(alpaka::mem::buf::alloc<TElem, TIdx>(devAcc, v2uiExtentsA));
-        alpaka::mem::view::copy(bufAAcc, bufAHost, v2uiExtentsA, stream);
+        alpaka::mem::view::copy(stream, bufAAcc, bufAHost, v2uiExtentsA);
         auto bufBAcc(alpaka::mem::buf::alloc<TElem, TIdx>(devAcc, v2uiExtentsB));
-        alpaka::mem::view::copy(bufBAcc, bufBHost, v2uiExtentsB, stream);
+        alpaka::mem::view::copy(stream, bufBAcc, bufBHost, v2uiExtentsB);
         auto bufCAcc(alpaka::mem::buf::alloc<TElem, TIdx>(devAcc, v2uiExtentsC));
-        alpaka::mem::view::copy(bufCAcc, bufCHost, v2uiExtentsC, stream);
+        alpaka::mem::view::copy(stream, bufCAcc, bufCHost, v2uiExtentsC);
 
         // Let alpaka calculate good block and grid sizes given our full problem extents.
         alpaka::workdiv::WorkDivMembers<alpaka::dim::DimInt<2u>, TIdx> const workDiv(
@@ -327,31 +366,34 @@
                 false,
                 alpaka::workdiv::GridBlockExtentsSubDivRestrictions::EqualExtents));
 
-        // Create the executor.
-        auto exec(alpaka::exec::create<TAcc>(workDiv, stream));
-
         // Create an instance of the kernel functor.
         GemmAlpakaKernel kernel;
 
-        // Execute the kernel.
-        exec(
+        // Create the executor.
+        // NOTE: We remove the __restrict__ because alpaka calls std::ref on the arguments and std::ref errors.
+        // This is most probably undefined. MSVC compiles it without any warning.
+        auto /*const*/ exec(alpaka::exec::create<TAcc>(
+            workDiv,
             kernel,
             m,
             n,
             k,
             alpha,
-            alpaka::mem::view::getPtrNative(bufAAcc),
-            static_cast<TIdx>(alpaka::mem::view::getPitchBytes<1u>(bufAAcc) / sizeof(TElem)),
-            alpaka::mem::view::getPtrNative(bufBAcc),
-            static_cast<TIdx>(alpaka::mem::view::getPitchBytes<1u>(bufBAcc) / sizeof(TElem)),
+            reinterpret_cast<TElem const *>(A),
+            lda,
+            reinterpret_cast<TElem const *>(B),
+            ldb,
             beta,
-            alpaka::mem::view::getPtrNative(bufCAcc),
-            static_cast<TIdx>(alpaka::mem::view::getPitchBytes<1u>(bufCAcc) / sizeof(TElem)));
+            reinterpret_cast<TElem *>(C),
+            ldc));
+
+        // Execute the kernel.
+        alpaka::stream::enqueue(stream, exec);
 
         // Copy back the result.
-        alpaka::mem::view::copy(bufCHost, bufCAcc, v2uiExtentsC, stream);
+        alpaka::mem::view::copy(stream, bufCHost, bufCAcc, v2uiExtentsC);
 
-        // Wait for the stream to finish the memory operation.
+        // Wait for the stream to finish the operations.
         alpaka::wait::wait(stream);
     }
 #endif
