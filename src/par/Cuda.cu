@@ -46,23 +46,25 @@
             TElem const beta,
             TElem * const MATMUL_RESTRICT C, TIdx const ldc)
         {
-            // blockIdx.x and blockIdx.y are the indices of the block to calculate inside C.
-            TIdx const uiGridThreadIdxX = blockIdx.x*blockDim.x + threadIdx.x;    // Column inside C to calculate.
-            TIdx const uiGridThreadIdxY = blockIdx.y*blockDim.y + threadIdx.y;    // Row inside C to calculate.
+            // Column and row of C to calculate.
+            TIdx const uiGridThreadIdxX = blockIdx.x*blockDim.x + threadIdx.x;
+            TIdx const uiGridThreadIdxY = blockIdx.y*blockDim.y + threadIdx.y;
 
-            TIdx const uiBlockThreadIdxX = threadIdx.x;    // Column inside the block of C to calculate.
-            TIdx const uiBlockThreadIdxY = threadIdx.y;    // Row inside the block of C to calculate.
+            // Column and row inside the block of C to calculate.
+            TIdx const uiBlockThreadIdxX = threadIdx.x;
+            TIdx const uiBlockThreadIdxY = threadIdx.y;
 
+            // The block threads extents.
             TIdx const uiBlockThreadsExtentX = blockDim.x;
             TIdx const uiBlockThreadsExtentY = blockDim.y;
             //assert(uiBlockThreadsExtentX == uiBlockThreadsExtentY);
-            TIdx const uiBlockThreadsExtent = uiBlockThreadsExtentX;
+            TIdx const & uiBlockThreadsExtent = uiBlockThreadsExtentX;
 
             // Shared memory used to store the current blocks of A and B.
             __shared__ TElem pBlockSharedA[MATMUL_CUDA_FIXED_BLOCK_SIZE][MATMUL_CUDA_FIXED_BLOCK_SIZE];
             __shared__ TElem pBlockSharedB[MATMUL_CUDA_FIXED_BLOCK_SIZE][MATMUL_CUDA_FIXED_BLOCK_SIZE];
 
-            // If the element is outside of the matrix, write zero into the shared block.
+            // If the element corresponding to the current thread is outside of the respective matrix.
             bool const bInsideA = (uiGridThreadIdxY < m);
             bool const bInsideB = (uiGridThreadIdxX < n);
             bool const bInsideC = (bInsideA && bInsideB);
@@ -76,7 +78,9 @@
                         static_cast<float>(k)/static_cast<float>(uiBlockThreadsExtent))));
             for(TIdx k2=0; k2<uiBlockMulCount; ++k2)
             {
-                // Copy data to shared memory.
+                // Copy the current blocks of A and B into shared memory in parallel.
+                // If the element of the current thread is outside of the matrix, zero is written into the shared memory.
+                // This is possible because zero is a result neutral extension of the matrices regarding the dot product.
                 TIdx const uiAIdxX(k2*uiBlockThreadsExtentX + uiBlockThreadIdxX);
                 TIdx const uiAIdx1d(uiGridThreadIdxY*lda + uiAIdxX);
                 pBlockSharedA[uiBlockThreadIdxY][uiBlockThreadIdxX] =
@@ -91,17 +95,17 @@
                     ? static_cast<TElem>(0)
                     : B[uiBIdx1d];
 
-                // Synchronize to make sure the sub-matrices are loaded before starting the computation.
+                // Synchronize to make sure the complete blocks are loaded before starting the computation.
                 __syncthreads();
 
-                // Dyadic product within shared memory.
+                // Compute the dot products within shared memory.
                 for(TIdx k3 = 0; k3<uiBlockThreadsExtent; ++k3)
                 {
                     dotProduct += pBlockSharedA[uiBlockThreadIdxY][k3]
                         * pBlockSharedB[k3][uiBlockThreadIdxX];
                 }
 
-                // Synchronize to make sure that the preceding computation is done before loading two new sub-matrices of A and B in the next iteration.
+                // Synchronize to make sure that the preceding computation is done before loading the next blocks of A and B.
                 __syncthreads();
             }
 
@@ -182,17 +186,19 @@
             TElem const beta,
             TElem * const MATMUL_RESTRICT C, TIdx const ldc)
         {
-            // blockIdx.x and blockIdx.y are the indices of the block to calculate inside C.
-            TIdx const uiGridThreadIdxX = blockIdx.x*blockDim.x + threadIdx.x;    // Column inside C to calculate.
-            TIdx const uiGridThreadIdxY = blockIdx.y*blockDim.y + threadIdx.y;    // Row inside C to calculate.
+            // Column and row of C to calculate.
+            TIdx const uiGridThreadIdxX = blockIdx.x*blockDim.x + threadIdx.x;
+            TIdx const uiGridThreadIdxY = blockIdx.y*blockDim.y + threadIdx.y;
 
-            TIdx const uiBlockThreadIdxX = threadIdx.x;    // Column inside the block of C to calculate.
-            TIdx const uiBlockThreadIdxY = threadIdx.y;    // Row inside the block of C to calculate.
+            // Column and row inside the block of C to calculate.
+            TIdx const uiBlockThreadIdxX = threadIdx.x;
+            TIdx const uiBlockThreadIdxY = threadIdx.y;
 
+            // The block threads extents.
             TIdx const uiBlockThreadsExtentX = blockDim.x;
             TIdx const uiBlockThreadsExtentY = blockDim.y;
             //assert(uiBlockThreadsExtentX == uiBlockThreadsExtentY);
-            TIdx const uiBlockThreadsExtent = uiBlockThreadsExtentX;
+            TIdx const & uiBlockThreadsExtent = uiBlockThreadsExtentX;
 
             // Shared memory used to store the current blocks of A and B.
             __shared__ TElem pBlockSharedA[MATMUL_CUDA_FIXED_BLOCK_SIZE*MATMUL_CUDA_FIXED_BLOCK_SIZE];
@@ -200,7 +206,7 @@
 
             auto const uiSharedBlockIdx1d(uiBlockThreadIdxY*uiBlockThreadsExtentX + uiBlockThreadIdxX);
 
-            // If the element is outside of the matrix, write zero into the shared block.
+            // If the element corresponding to the current thread is outside of the respective matrix.
             bool const bInsideA = (uiGridThreadIdxY < m);
             bool const bInsideB = (uiGridThreadIdxX < n);
             bool const bInsideC = (bInsideA && bInsideB);
@@ -214,7 +220,9 @@
                         static_cast<float>(k)/static_cast<float>(uiBlockThreadsExtent))));
             for(TIdx k2=0; k2<uiBlockMulCount; ++k2)
             {
-                // Copy data to shared memory.
+                // Copy the current blocks of A and B into shared memory in parallel.
+                // If the element of the current thread is outside of the matrix, zero is written into the shared memory.
+                // This is possible because zero is a result neutral extension of the matrices regarding the dot product.
                 TIdx const uiAIdxX(k2*uiBlockThreadsExtentX + uiBlockThreadIdxX);
                 TIdx const uiAIdx1d(uiGridThreadIdxY*lda + uiAIdxX);
                 pBlockSharedA[uiSharedBlockIdx1d] =
@@ -229,17 +237,17 @@
                     ? static_cast<TElem>(0)
                     : B[uiBIdx1d];
 
-                // Synchronize to make sure the sub-matrices are loaded before starting the computation.
+                // Synchronize to make sure the complete blocks are loaded before starting the computation.
                 __syncthreads();
 
-                // Dyadic product within shared memory.
+                // Compute the dot products within shared memory.
                 for(TIdx k3 = 0; k3<uiBlockThreadsExtent; ++k3)
                 {
                     dotProduct += pBlockSharedA[uiBlockThreadIdxY*uiBlockThreadsExtentX + k3]
                         * pBlockSharedB[k3*uiBlockThreadsExtentY + uiBlockThreadIdxX];
                 }
 
-                // Synchronize to make sure that the preceding computation is done before loading two new sub-matrices of A and B in the next iteration.
+                // Synchronize to make sure that the preceding computation is done before loading the next blocks of A and B.
                 __syncthreads();
             }
 
@@ -320,17 +328,19 @@
             TElem const beta,
             TElem * const MATMUL_RESTRICT C, TIdx const ldc)
         {
-            // blockIdx.x and blockIdx.y are the indices of the block to calculate inside C.
-            TIdx const uiGridThreadIdxX = blockIdx.x*blockDim.x + threadIdx.x;    // Column inside C to calculate.
-            TIdx const uiGridThreadIdxY = blockIdx.y*blockDim.y + threadIdx.y;    // Row inside C to calculate.
+            // Column and row of C to calculate.
+            TIdx const uiGridThreadIdxX = blockIdx.x*blockDim.x + threadIdx.x;
+            TIdx const uiGridThreadIdxY = blockIdx.y*blockDim.y + threadIdx.y;
 
-            TIdx const uiBlockThreadIdxX = threadIdx.x;    // Column inside the block of C to calculate.
-            TIdx const uiBlockThreadIdxY = threadIdx.y;    // Row inside the block of C to calculate.
+            // Column and row inside the block of C to calculate.
+            TIdx const uiBlockThreadIdxX = threadIdx.x;
+            TIdx const uiBlockThreadIdxY = threadIdx.y;
 
+            // The block threads extents.
             TIdx const uiBlockThreadsExtentX = blockDim.x;
             TIdx const uiBlockThreadsExtentY = blockDim.y;
             //assert(uiBlockThreadsExtentX == uiBlockThreadsExtentY);
-            TIdx const uiBlockThreadsExtent = uiBlockThreadsExtentX;
+            TIdx const & uiBlockThreadsExtent = uiBlockThreadsExtentX;
 
             // Shared memory used to store the current blocks of A and B.
             extern __shared__ TElem pBlockSharedA[];
@@ -338,7 +348,7 @@
 
             auto const uiSharedBlockIdx1d(uiBlockThreadIdxY*uiBlockThreadsExtentX + uiBlockThreadIdxX);
 
-            // If the element is outside of the matrix, write zero into the shared block.
+            // If the element corresponding to the current thread is outside of the respective matrix.
             bool const bInsideA = (uiGridThreadIdxY < m);
             bool const bInsideB = (uiGridThreadIdxX < n);
             bool const bInsideC = (bInsideA && bInsideB);
@@ -352,7 +362,9 @@
                         static_cast<float>(k)/static_cast<float>(uiBlockThreadsExtent))));
             for(TIdx k2=0; k2<uiBlockMulCount; ++k2)
             {
-                // Copy data to shared memory.
+                // Copy the current blocks of A and B into shared memory in parallel.
+                // If the element of the current thread is outside of the matrix, zero is written into the shared memory.
+                // This is possible because zero is a result neutral extension of the matrices regarding the dot product.
                 TIdx const uiAIdxX(k2*uiBlockThreadsExtentX + uiBlockThreadIdxX);
                 TIdx const uiAIdx1d(uiGridThreadIdxY*lda + uiAIdxX);
                 pBlockSharedA[uiSharedBlockIdx1d] =
@@ -367,17 +379,17 @@
                     ? static_cast<TElem>(0)
                     : B[uiBIdx1d];
 
-                // Synchronize to make sure the sub-matrices are loaded before starting the computation.
+                // Synchronize to make sure the complete blocks are loaded before starting the computation.
                 __syncthreads();
 
-                // Dyadic product within shared memory.
+                // Compute the dot products within shared memory.
                 for(TIdx k3 = 0; k3<uiBlockThreadsExtent; ++k3)
                 {
                     dotProduct += pBlockSharedA[uiBlockThreadIdxY*uiBlockThreadsExtentX + k3]
                         * pBlockSharedB[k3*uiBlockThreadsExtentY + uiBlockThreadIdxX];
                 }
 
-                // Synchronize to make sure that the preceding computation is done before loading two new sub-matrices of A and B in the next iteration.
+                // Synchronize to make sure that the preceding computation is done before loading the next blocks of A and B.
                 __syncthreads();
             }
 
@@ -458,17 +470,19 @@
             TElem const beta,
             TElem * const MATMUL_RESTRICT C, TIdx const ldc)
         {
-            // blockIdx.x and blockIdx.y are the indices of the block to calculate inside C.
-            TIdx const uiGridThreadIdxX = blockIdx.x*blockDim.x + threadIdx.x;    // Column inside C to calculate.
-            TIdx const uiGridThreadIdxY = blockIdx.y*blockDim.y + threadIdx.y;    // Row inside C to calculate.
+            // Column and row of C to calculate.
+            TIdx const uiGridThreadIdxX = blockIdx.x*blockDim.x + threadIdx.x;
+            TIdx const uiGridThreadIdxY = blockIdx.y*blockDim.y + threadIdx.y;
 
-            TIdx const uiBlockThreadIdxX = threadIdx.x;    // Column inside the block of C to calculate.
-            TIdx const uiBlockThreadIdxY = threadIdx.y;    // Row inside the block of C to calculate.
+            // Column and row inside the block of C to calculate.
+            TIdx const uiBlockThreadIdxX = threadIdx.x;
+            TIdx const uiBlockThreadIdxY = threadIdx.y;
 
+            // The block threads extents.
             TIdx const uiBlockThreadsExtentX = blockDim.x;
             TIdx const uiBlockThreadsExtentY = blockDim.y;
             //assert(uiBlockThreadsExtentX == uiBlockThreadsExtentY);
-            TIdx const uiBlockThreadsExtent = uiBlockThreadsExtentX;
+            TIdx const & uiBlockThreadsExtent = uiBlockThreadsExtentX;
 
             // Shared memory used to store the current blocks of A and B.
             extern __shared__ TElem pBlockSharedA[];
@@ -476,7 +490,7 @@
 
             TIdx const uiSharedBlockIdx1d(uiBlockThreadIdxY*uiBlockThreadsExtentX + uiBlockThreadIdxX);
 
-            // If the element is outside of the matrix, write zero into the shared block.
+            // If the element corresponding to the current thread is outside of the respective matrix.
             bool const bInsideA = (uiGridThreadIdxY < m);
             bool const bInsideB = (uiGridThreadIdxX < n);
             bool const bInsideC = (bInsideA && bInsideB);
@@ -490,7 +504,9 @@
                         static_cast<float>(k) / static_cast<float>(uiBlockThreadsExtent))));
             for (TIdx k2(0); k2<uiBlockMulCount; ++k2)
             {
-                // Copy data to shared memory.
+                // Copy the current blocks of A and B into shared memory in parallel.
+                // If the element of the current thread is outside of the matrix, zero is written into the shared memory.
+                // This is possible because zero is a result neutral extension of the matrices regarding the dot product.
                 TIdx const uiAIdxX(k2*uiBlockThreadsExtentX + uiBlockThreadIdxX);
                 TIdx const uiAIdx1d(uiGridThreadIdxY*lda + uiAIdxX);
                 pBlockSharedA[uiSharedBlockIdx1d] =
@@ -505,17 +521,17 @@
                     ? static_cast<TElem>(0)
                     : B[uiBIdx1d];
 
-                // Synchronize to make sure the sub-matrices are loaded before starting the computation.
+                // Synchronize to make sure the complete blocks are loaded before starting the computation.
                 __syncthreads();
 
-                // Dyadic product within shared memory.
+                // Compute the dot products within shared memory.
                 for (TIdx k3(0); k3<uiBlockThreadsExtent; ++k3)
                 {
                     dotProduct += pBlockSharedA[uiBlockThreadIdxY*uiBlockThreadsExtentX + k3]
                         * pBlockSharedB[k3*uiBlockThreadsExtentY + uiBlockThreadIdxX];
                 }
 
-                // Synchronize to make sure that the preceding computation is done before loading two new sub-matrices of A and B in the next iteration.
+                // Synchronize to make sure that the preceding computation is done before loading the next blocks of A and B.
                 __syncthreads();
             }
 
@@ -541,9 +557,9 @@
                 return;
             }
 
-                            MATMUL_CUDA_RT_CHECK(cudaSetDevice(0));
-                            cudaStream_t stream;
-                            MATMUL_CUDA_RT_CHECK(cudaStreamCreate(&stream));
+            // MATMUL_CUDA_RT_CHECK(cudaSetDevice(0));
+            cudaStream_t stream;
+            MATMUL_CUDA_RT_CHECK(cudaStreamCreate(&stream));
 
             // Get its properties.
             cudaDeviceProp cudaDevProp;
@@ -603,7 +619,7 @@
             dim3 const dimBlock(vuiBlockThreadExtents[0], vuiBlockThreadExtents[1]);
             dim3 const dimGrid(vuiGridBlockExtents[0], vuiGridBlockExtents[1]);
 
-                            MATMUL_CUDA_RT_CHECK(cudaSetDevice(0));
+            MATMUL_CUDA_RT_CHECK(cudaSetDevice(0));
             matmul_gemm_par_cuda_dyn_block_size_1d_extern_shared_kernel<<<
                 dimGrid,
                 dimBlock,
@@ -616,10 +632,10 @@
                     beta,
                     C, ldc);
 
-                            MATMUL_CUDA_RT_CHECK(cudaSetDevice(0));
-                            MATMUL_CUDA_RT_CHECK(cudaStreamSynchronize(stream));
-                            MATMUL_CUDA_RT_CHECK(cudaSetDevice(0));
-                            MATMUL_CUDA_RT_CHECK(cudaStreamDestroy(stream));
+            // MATMUL_CUDA_RT_CHECK(cudaSetDevice(0));
+            MATMUL_CUDA_RT_CHECK(cudaStreamSynchronize(stream));
+            // MATMUL_CUDA_RT_CHECK(cudaSetDevice(0));
+            MATMUL_CUDA_RT_CHECK(cudaStreamDestroy(stream));
 
             //MATMUL_CUDA_RT_CHECK(cudaDeviceSynchronize());
         }
