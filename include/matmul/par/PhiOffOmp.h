@@ -21,7 +21,7 @@
 
 #pragma once
 
-#if defined(MATMUL_BUILD_PAR_PHI_OFF_OMP2) ||  defined(MATMUL_BUILD_PAR_PHI_OFF_OMP3) ||  defined(MATMUL_BUILD_PAR_PHI_OFF_OMP4)
+#if defined(MATMUL_BUILD_PAR_PHI_OFF_OMP2_GUIDED) ||  defined(MATMUL_BUILD_PAR_PHI_OFF_OMP2_STATIC) ||  defined(MATMUL_BUILD_PAR_PHI_OFF_OMP3) ||  defined(MATMUL_BUILD_PAR_PHI_OFF_OMP4)
 
     #include <matmul/common/Config.h>   // TElem, TIdx
 
@@ -29,8 +29,8 @@
         extern "C"
         {
     #endif
-    #ifdef MATMUL_BUILD_PAR_PHI_OFF_OMP2
-        #if _OPENMP >= 200203   // OpenMP 2.0
+    #if _OPENMP >= 200203   // OpenMP 2.0
+        #ifdef MATMUL_BUILD_PAR_PHI_OFF_OMP2_GUIDED
             //-----------------------------------------------------------------------------
             //! (S/D)GEMM matrix-matrix product C = alpha * A * B + beta * C using OpenMP 2.0 parallel for guided schedule offloading to Xeon Phi.
             //!
@@ -53,7 +53,8 @@
                 TElem const * const MATMUL_RESTRICT B, TIdx const ldb,
                 TElem const beta,
                 TElem * const MATMUL_RESTRICT C, TIdx const ldc);
-
+        #endif
+        #ifdef MATMUL_BUILD_PAR_PHI_OFF_OMP2_STATIC
             //-----------------------------------------------------------------------------
             //! (S/D)GEMM matrix-matrix product C = alpha * A * B + beta * C using OpenMP 2.0 parallel for static schedule offloading to Xeon Phi.
             //!
@@ -78,8 +79,8 @@
                 TElem * const MATMUL_RESTRICT C, TIdx const ldc);
         #endif
     #endif
-    #ifdef MATMUL_BUILD_PAR_PHI_OFF_OMP3
-        #if _OPENMP >= 200805   // OpenMP 3.0
+    #if _OPENMP >= 200805   // OpenMP 3.0
+        #ifdef MATMUL_BUILD_PAR_PHI_OFF_OMP3
             //-----------------------------------------------------------------------------
             //! (S/D)GEMM matrix-matrix product C = alpha * A * B + beta * C using OpenMP 3.0 parallel for collapse static schedule offloading to Xeon Phi.
             //!
@@ -104,8 +105,8 @@
                 TElem * const MATMUL_RESTRICT C, TIdx const ldc);
         #endif
     #endif
-    #ifdef MATMUL_BUILD_PAR_PHI_OFF_OMP4
-        #if _OPENMP >= 201307   // OpenMP 4.0
+    #if _OPENMP >= 201307   // OpenMP 4.0
+        #ifdef MATMUL_BUILD_PAR_PHI_OFF_OMP4
             //-----------------------------------------------------------------------------
             //! (S/D)GEMM matrix-matrix product C = alpha * A * B + beta * C using OpenMP 4.0 teams distribute parallel for static schedule offloading to Xeon Phi.
             //!

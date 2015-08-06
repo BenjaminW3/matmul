@@ -19,7 +19,7 @@
 //! If not, see <http://www.gnu.org/licenses/>.
 //-----------------------------------------------------------------------------
 
-#if defined(MATMUL_BUILD_PAR_PHI_OFF_OMP2) ||  defined(MATMUL_BUILD_PAR_PHI_OFF_OMP3) ||  defined(MATMUL_BUILD_PAR_PHI_OFF_OMP4)
+#if defined(MATMUL_BUILD_PAR_PHI_OFF_OMP2_GUIDED) ||  defined(MATMUL_BUILD_PAR_PHI_OFF_OMP2_STATIC) ||  defined(MATMUL_BUILD_PAR_PHI_OFF_OMP3) ||  defined(MATMUL_BUILD_PAR_PHI_OFF_OMP4)
 
     #include <matmul/par/PhiOffOmp.h>
 
@@ -29,8 +29,8 @@
 
     #include <stdio.h>                  // printf
 
-    #ifdef MATMUL_BUILD_PAR_PHI_OFF_OMP2
-        #if _OPENMP >= 200203   // OpenMP 2.0
+    #if _OPENMP >= 200203   // OpenMP 2.0
+        #ifdef MATMUL_BUILD_PAR_PHI_OFF_OMP2_GUIDED
             //-----------------------------------------------------------------------------
             // http://software.intel.com/sites/products/documentation/doclib/mkl_sa/11/mkl_userguide_lnx/GUID-8B7FF103-0319-4D33-B36F-503917E847B4.htm
             // http://www.cism.ucl.ac.be/Services/Formations/Accelerators.pdf !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -84,7 +84,8 @@
                     }
                 }
             }
-
+        #endif
+        #ifdef MATMUL_BUILD_PAR_PHI_OFF_OMP2_STATIC
             //-----------------------------------------------------------------------------
             //
             //-----------------------------------------------------------------------------
@@ -139,8 +140,8 @@
             }
         #endif
     #endif
-    #ifdef MATMUL_BUILD_PAR_PHI_OFF_OMP3
-        #if _OPENMP >= 200805   // OpenMP 3.0
+    #if _OPENMP >= 200805   // OpenMP 3.0
+        #ifdef MATMUL_BUILD_PAR_PHI_OFF_OMP3
             //-----------------------------------------------------------------------------
             // http://software.intel.com/en-us/articles/openmp-loop-collapse-directive
             //-----------------------------------------------------------------------------
@@ -195,8 +196,8 @@
             }
         #endif
     #endif
-    #ifdef MATMUL_BUILD_PAR_PHI_OFF_OMP2
-        #if _OPENMP >= 201307   // OpenMP 4.0
+    #if _OPENMP >= 201307   // OpenMP 4.0
+        #ifdef MATMUL_BUILD_PAR_PHI_OFF_OMP4
             //-----------------------------------------------------------------------------
             //
             //-----------------------------------------------------------------------------

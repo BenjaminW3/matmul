@@ -19,7 +19,7 @@
 //! If not, see <http://www.gnu.org/licenses/>.
 //-----------------------------------------------------------------------------
 
-#if defined(MATMUL_BUILD_PAR_OMP2) || defined(MATMUL_BUILD_PAR_OMP3) || defined(MATMUL_BUILD_PAR_OMP4)
+#if defined(MATMUL_BUILD_PAR_OMP2_GUIDED) || defined(MATMUL_BUILD_PAR_OMP2_STATIC) || defined(MATMUL_BUILD_PAR_OMP3) || defined(MATMUL_BUILD_PAR_OMP4)
 
     #include <matmul/par/Omp.h>
 
@@ -29,8 +29,8 @@
 
     #include <stdio.h>              // printf
 
-    #ifdef MATMUL_BUILD_PAR_OMP2
-        #if _OPENMP >= 200203   // OpenMP 2.0
+    #if _OPENMP >= 200203   // OpenMP 2.0
+        #ifdef MATMUL_BUILD_PAR_OMP2_GUIDED
             //-----------------------------------------------------------------------------
             //
             //-----------------------------------------------------------------------------
@@ -82,6 +82,8 @@
                     }
                 }
             }
+        #endif
+        #ifdef MATMUL_BUILD_PAR_OMP2_STATIC
             //-----------------------------------------------------------------------------
             //
             //-----------------------------------------------------------------------------
@@ -135,8 +137,8 @@
             }
         #endif
     #endif
-    #ifdef MATMUL_BUILD_PAR_OMP3
-        #if _OPENMP >= 200805   // OpenMP 3.0
+    #if _OPENMP >= 200805   // OpenMP 3.0
+        #ifdef MATMUL_BUILD_PAR_OMP3
             //-----------------------------------------------------------------------------
             //
             //-----------------------------------------------------------------------------
@@ -190,8 +192,8 @@
             }
         #endif
     #endif
-    #ifdef MATMUL_BUILD_PAR_OMP2
-        #if _OPENMP >= 201307   // OpenMP 4.0
+    #if _OPENMP >= 201307   // OpenMP 4.0
+        #ifdef MATMUL_BUILD_PAR_OMP4
             //-----------------------------------------------------------------------------
             //
             //-----------------------------------------------------------------------------
