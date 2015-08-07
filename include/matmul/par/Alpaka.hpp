@@ -110,7 +110,7 @@
                     : B[uiBIdx1d];
 
                 // Synchronize to make sure the complete blocks are loaded before starting the computation.
-                block::sync::syncBlockThreads(acc);
+                alpaka::block::sync::syncBlockThreads(acc);
 
                 // Compute the dot products within shared memory.
                 for(TIdx k3(0); k3<uiBlockThreadsExtent; ++k3)
@@ -120,7 +120,7 @@
                 }
 
                 // Synchronize to make sure that the preceding computation is done before loading the next blocks of A and B.
-                block::sync::syncBlockThreads(acc);
+                alpaka::block::sync::syncBlockThreads(acc);
             }
 
             // If the element is outside of the matrix it was only a helper thread that did not calculate any meaningful results.
@@ -358,7 +358,7 @@
         // Create the executor.
         // NOTE: We remove the __restrict__ because alpaka calls std::ref on the arguments and std::ref errors.
         // This is most probably undefined. MSVC compiles it without any warning.
-        auto /*const*/ exec(alpaka::exec::create<TAcc>(
+        auto const exec(alpaka::exec::create<TAcc>(
             workDiv,
             kernel,
             m,
@@ -459,7 +459,7 @@
         // Create the executor.
         // NOTE: We remove the __restrict__ because alpaka calls std::ref on the arguments and std::ref errors.
         // This is most probably undefined. MSVC compiles it without any warning.
-        auto /*const*/ exec(alpaka::exec::create<TAcc>(
+        auto const exec(alpaka::exec::create<TAcc>(
             workDiv,
             kernel,
             m,
