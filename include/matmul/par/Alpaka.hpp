@@ -34,7 +34,7 @@
     //#############################################################################
     // This function only works for square blocks.
     //#############################################################################
-    class GemmAlpakaKernel
+    class GemmAlpakaSharedKernel
     {
     public:
         ALPAKA_NO_HOST_ACC_WARNING
@@ -110,7 +110,7 @@
                     : B[uiBIdx1d];
 
                 // Synchronize to make sure the complete blocks are loaded before starting the computation.
-                acc.syncBlockThreads();
+                block::sync::syncBlockThreads(acc);
 
                 // Compute the dot products within shared memory.
                 for(TIdx k3(0); k3<uiBlockThreadsExtent; ++k3)
@@ -120,7 +120,7 @@
                 }
 
                 // Synchronize to make sure that the preceding computation is done before loading the next blocks of A and B.
-                acc.syncBlockThreads();
+                block::sync::syncBlockThreads(acc);
             }
 
             // If the element is outside of the matrix it was only a helper thread that did not calculate any meaningful results.
@@ -144,7 +144,7 @@
                 template<
                     typename TAcc>
                 struct BlockSharedExternMemSizeBytes<
-                    GemmAlpakaKernel,
+                    GemmAlpakaSharedKernel,
                     TAcc>
                 {
                     //-----------------------------------------------------------------------------
@@ -191,6 +191,88 @@
         }
     }
 
+    //#############################################################################
+    // This function only works for square blocks.
+    //#############################################################################
+    class GemmAlpakaNoSharedKernel
+    {
+    public:
+        ALPAKA_NO_HOST_ACC_WARNING
+        template<
+            typename TAcc,
+            typename TElem>
+        ALPAKA_FN_ACC auto operator()(
+            TAcc const & acc,
+            TIdx const & m, TIdx const & n, TIdx const & k,
+            TElem const & alpha,
+            TElem const * const MATMUL_RESTRICT A, TIdx const & lda,
+            TElem const * const MATMUL_RESTRICT B, TIdx const & ldb,
+            TElem const & beta,
+            TElem * const MATMUL_RESTRICT C, TIdx const & ldc) const
+        -> void
+        {
+            static_assert(alpaka::dim::Dim<TAcc>::value == 2u,
+                "The accelerator used for the GemmAlpakaKernel has to be 2 dimensional!");
+
+            // Column and row of C to calculate.
+            auto const v2uiGridThreadIdx(alpaka::idx::getIdx<alpaka::Grid, alpaka::Threads>(acc));
+            TIdx const & uiGridThreadIdxX(v2uiGridThreadIdx[1u]);
+            TIdx const & uiGridThreadIdxY(v2uiGridThreadIdx[0u]);
+
+            // The block threads extents.
+            auto const v2uiBlockThreadsExtents(alpaka::workdiv::getWorkDiv<alpaka::Block, alpaka::Threads>(acc));
+            TIdx const & uiBlockThreadsExtentX(v2uiBlockThreadsExtents[1u]);
+            TIdx const & uiBlockThreadsExtentY(v2uiBlockThreadsExtents[0u]);
+            //assert(uiBlockThreadsExtentX == uiBlockThreadsExtentY);
+            TIdx const & uiBlockThreadsExtent(uiBlockThreadsExtentX);
+
+            // If the element corresponding to the current thread is outside of the respective matrix.
+            bool const bInsideA = (uiGridThreadIdxY < m);
+            bool const bInsideB = (uiGridThreadIdxX < n);
+            bool const bInsideC = (bInsideA && bInsideB);
+
+            TElem dotProduct(0);
+
+            // Loop over all blocks of A and B that are required to compute the C block.
+            TIdx const uiBlockMulCount(
+                static_cast<TIdx>(
+                    alpaka::math::ceil(
+                        acc,
+                        static_cast<float>(k)/static_cast<float>(uiBlockThreadsExtent))));
+            for(TIdx k2(0); k2<uiBlockMulCount; ++k2)
+            {
+                TIdx const uiABlockIdxX(k2*uiBlockThreadsExtentX);
+                TIdx const uiBBlockIdxY(k2*uiBlockThreadsExtentY);
+
+                // Compute the dot products.
+                for(TIdx k3(0); k3<uiBlockThreadsExtent; ++k3)
+                {
+                    TIdx const uiAIdxX(uiABlockIdxX + k3);
+                    TIdx const uiAIdx1d(uiGridThreadIdxY*lda + uiAIdxX);
+                    TIdx const uiBIdxY(uiBBlockIdxY + k3);
+                    TIdx const uiBIdx1d(uiGridThreadIdxX + uiBIdxY*ldb);
+
+                    TElem const a(
+                        ((!bInsideA) || (uiAIdxX>=k))
+                        ? static_cast<TElem>(0)
+                        : A[uiAIdx1d]);
+                    TElem const b(
+                        ((!bInsideB) || (uiBIdxY>=k))
+                        ? static_cast<TElem>(0)
+                        : B[uiBIdx1d]);
+                    dotProduct += a * b;
+                }
+            }
+
+            // If the element is outside of the matrix it was only a helper thread that did not calculate any meaningful results.
+            if(bInsideC)
+            {
+                TIdx const uiIdxC1d(uiGridThreadIdxY*ldc + uiGridThreadIdxX);
+                C[uiIdxC1d] = alpha * dotProduct + beta * C[uiIdxC1d];
+            }
+        }
+    };
+
     namespace detail
     {
         //#############################################################################
@@ -235,7 +317,8 @@
     //
     //-----------------------------------------------------------------------------
     template<
-        typename TAcc>
+        typename TAcc,
+        typename TKernelFnObj>
     void matmul_gemm_par_alpaka(
         TIdx const m, TIdx const n, TIdx const k,
         TElem const alpha,
@@ -270,7 +353,7 @@
                 alpaka::workdiv::GridBlockExtentsSubDivRestrictions::EqualExtents));
 
         // Create an instance of the kernel functor.
-        GemmAlpakaKernel kernel;
+        TKernelFnObj kernel;
 
         // Create the executor.
         // NOTE: We remove the __restrict__ because alpaka calls std::ref on the arguments and std::ref errors.
@@ -301,7 +384,8 @@
     //
     //-----------------------------------------------------------------------------
     template<
-        typename TAcc>
+        typename TAcc,
+        typename TKernelFnObj>
     void matmul_gemm_par_alpaka_memcpy(
         TIdx const m, TIdx const n, TIdx const k,
         TElem const alpha,
@@ -370,7 +454,7 @@
                 alpaka::workdiv::GridBlockExtentsSubDivRestrictions::EqualExtents));
 
         // Create an instance of the kernel functor.
-        GemmAlpakaKernel kernel;
+        TKernelFnObj kernel;
 
         // Create the executor.
         // NOTE: We remove the __restrict__ because alpaka calls std::ref on the arguments and std::ref errors.

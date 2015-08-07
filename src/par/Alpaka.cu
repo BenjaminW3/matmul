@@ -36,7 +36,7 @@
         TElem const beta,
         TElem * const MATMUL_RESTRICT C, TIdx const ldc)
     {
-        matmul_gemm_par_alpaka<alpaka::acc::AccGpuCudaRt<alpaka::dim::DimInt<2u>, TIdx>>(
+        matmul_gemm_par_alpaka<alpaka::acc::AccGpuCudaRt<alpaka::dim::DimInt<2u>, TIdx>, GemmAlpakaSharedKernel>(
             m, n, k,
             alpha,
             A, lda,
@@ -55,7 +55,7 @@
         TElem const beta,
         TElem * const MATMUL_RESTRICT C, TIdx const ldc)
     {
-        matmul_gemm_par_alpaka_memcpy<alpaka::acc::AccGpuCudaRt<alpaka::dim::DimInt<2u>, TIdx>>(
+        matmul_gemm_par_alpaka_memcpy<alpaka::acc::AccGpuCudaRt<alpaka::dim::DimInt<2u>, TIdx>, GemmAlpakaSharedKernel>(
             m, n, k,
             alpha,
             A, lda,

@@ -601,41 +601,45 @@ int main(
     #ifdef BENCHMARK_SEQ_STRASSEN
         {matmul_gemm_seq_strassen, "gemm_seq_strassen", 2.80735},   // 2.80735 = log(7.0) / log(2.0)
     #endif
-    #ifdef BENCHMARK_PAR_OMP2
-        #if _OPENMP >= 200203   // OpenMP 2.0
-        {matmul_gemm_par_omp2_guided_schedule, "gemm_par_omp2_guided_schedule", 3.0},
-        {matmul_gemm_par_omp2_static_schedule, "gemm_par_omp2_static_schedule", 3.0},
+    #if _OPENMP >= 200203   // OpenMP 2.0
+        #ifdef BENCHMARK_PAR_OMP2_GUIDED
+            {matmul_gemm_par_omp2_guided_schedule, "gemm_par_omp2_guided_schedule", 3.0},
+        #endif
+        #ifdef BENCHMARK_PAR_OMP2_STATIC
+            {matmul_gemm_par_omp2_static_schedule, "gemm_par_omp2_static_schedule", 3.0},
         #endif
     #endif
-    #ifdef BENCHMARK_PAR_OMP3
-        #if _OPENMP >= 200805   // OpenMP 3.0 (3.1=201107)
-        {matmul_gemm_par_omp3_static_schedule_collapse, "gemm_par_omp3_static_schedule_collapse", 3.0},
+    #if _OPENMP >= 200805   // OpenMP 3.0 (3.1=201107)
+        #ifdef BENCHMARK_PAR_OMP3
+            {matmul_gemm_par_omp3_static_schedule_collapse, "gemm_par_omp3_static_schedule_collapse", 3.0},
         #endif
     #endif
-    #ifdef BENCHMARK_PAR_OMP4
-        #if _OPENMP >= 201307   // OpenMP 4.0
-        {matmul_gemm_par_omp4, "gemm_par_omp4", 3.0},
+    #if _OPENMP >= 201307   // OpenMP 4.0
+        #ifdef BENCHMARK_PAR_OMP4
+            {matmul_gemm_par_omp4, "gemm_par_omp4", 3.0},
         #endif
     #endif
-    #ifdef BENCHMARK_PAR_PHI_OFF_OMP2
-        #if _OPENMP >= 200203   // OpenMP 2.0
-        {matmul_gemm_par_phi_off_omp2_guided_schedule, "gemm_par_phi_off_omp2_guided_schedule", 3.0},
-        {matmul_gemm_par_phi_off_omp2_static_schedule, "gemm_par_phi_off_omp2_static_schedule", 3.0},
+    #if _OPENMP >= 200203   // OpenMP 2.0
+        #ifdef BENCHMARK_PAR_PHI_OFF_OMP2_GUIDED
+            {matmul_gemm_par_phi_off_omp2_guided_schedule, "gemm_par_phi_off_omp2_guided_schedule", 3.0},
+        #endif
+        #ifdef BENCHMARK_PAR_PHI_OFF_OMP2_STATIC
+            {matmul_gemm_par_phi_off_omp2_static_schedule, "gemm_par_phi_off_omp2_static_schedule", 3.0},
         #endif
     #endif
-    #ifdef BENCHMARK_PAR_PHI_OFF_OMP3
-        #if _OPENMP >= 200805   // OpenMP 3.0
-        {matmul_gemm_par_phi_off_omp3_static_schedule_collapse, "gemm_par_phi_off_omp3_static_schedule_collapse", 3.0},
+    #if _OPENMP >= 200805   // OpenMP 3.0
+        #ifdef BENCHMARK_PAR_PHI_OFF_OMP3
+            {matmul_gemm_par_phi_off_omp3_static_schedule_collapse, "gemm_par_phi_off_omp3_static_schedule_collapse", 3.0},
         #endif
     #endif
-    #ifdef BENCHMARK_PAR_PHI_OFF_OMP4
-        #if _OPENMP >= 201307   // OpenMP 4.0
-        {matmul_gemm_par_phi_off_omp4, "gemm_par_phi_off_omp4", 3.0},
+    #if _OPENMP >= 201307   // OpenMP 4.0
+        #ifdef BENCHMARK_PAR_PHI_OFF_OMP4
+            {matmul_gemm_par_phi_off_omp4, "gemm_par_phi_off_omp4", 3.0},
         #endif
     #endif
-    #ifdef BENCHMARK_PAR_STRASSEN_OMP2
-        #if _OPENMP >= 200203   // OpenMP 2.0
-        {matmul_gemm_par_strassen_omp2, "gemm_par_strassen_omp", 2.80735},   // 2.80735 = log(7.0) / log(2.0)
+    #if _OPENMP >= 200203   // OpenMP 2.0
+        #ifdef BENCHMARK_PAR_STRASSEN_OMP2
+            {matmul_gemm_par_strassen_omp2, "gemm_par_strassen_omp", 2.80735},   // 2.80735 = log(7.0) / log(2.0)
         #endif
     #endif
     #ifdef BENCHMARK_PAR_OPENACC
@@ -655,10 +659,10 @@ int main(
         {matmul_gemm_par_alpaka_cpu_b_seq_t_threads, "gemm_par_alpaka_cpu_b_seq_t_threads", 3.0},
     #endif
     #ifdef BENCHMARK_PAR_ALPAKA_ACC_CPU_B_SEQ_T_FIBERS
-        {matmul_gemm_par_alpaka_cpu_b_seq_t_fibers, "gemm_par_alpaka_cpu_b_seq_t_fibers", 3.0},
+        {matmul_gemm_seq_alpaka_cpu_b_seq_t_fibers, "gemm_seq_alpaka_cpu_b_seq_t_fibers", 3.0},
     #endif
     #ifdef BENCHMARK_PAR_ALPAKA_ACC_CPU_B_SEQ_T_SEQ
-        {matmul_gemm_par_alpaka_cpu_b_seq_t_seq, "gemm_par_alpaka_cpu_b_seq_t_seq", 3.0},
+        {matmul_gemm_seq_alpaka_cpu_b_seq_t_seq, "gemm_seq_alpaka_cpu_b_seq_t_seq", 3.0},
     #endif
     #ifdef BENCHMARK_PAR_ALPAKA_ACC_GPU_CUDA_MEMCPY
         {matmul_gemm_par_alpaka_gpu_cuda_memcpy, "gemm_par_alpaka_gpu_cuda_memcpy", 3.0},
