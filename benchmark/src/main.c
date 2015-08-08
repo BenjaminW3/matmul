@@ -108,10 +108,11 @@ double measureRandomMatMul(
     // Generate random alpha and beta.
 #ifdef MATMUL_MPI
     TElem const alpha = (TElem)1;
+    TElem const beta = (TElem)0;
 #else
     TElem const alpha = matmul_gen_rand_val(minVal, maxVal);
-#endif
     TElem const beta = matmul_gen_rand_val(minVal, maxVal);
+#endif
 
     // Allocate and initialize the matrices of the given size.
     TIdx const uiNumElements = n * n;

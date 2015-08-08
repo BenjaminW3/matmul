@@ -78,9 +78,9 @@
             TIdx const uiSharedBlockIdx1d(uiBlockThreadIdxY*uiBlockThreadsExtentX + uiBlockThreadIdxX);
 
             // If the element corresponding to the current thread is outside of the respective matrix.
-            bool const bInsideA = (uiGridThreadIdxY < m);
-            bool const bInsideB = (uiGridThreadIdxX < n);
-            bool const bInsideC = (bInsideA && bInsideB);
+            bool const bInsideA(uiGridThreadIdxY < m);
+            bool const bInsideB(uiGridThreadIdxX < n);
+            bool const bInsideC(bInsideA && bInsideB);
 
             TElem dotProduct(0);
 
@@ -227,9 +227,9 @@
             TIdx const & uiBlockThreadsExtent(uiBlockThreadsExtentX);
 
             // If the element corresponding to the current thread is outside of the respective matrix.
-            bool const bInsideA = (uiGridThreadIdxY < m);
-            bool const bInsideB = (uiGridThreadIdxX < n);
-            bool const bInsideC = (bInsideA && bInsideB);
+            bool const bInsideA(uiGridThreadIdxY < m);
+            bool const bInsideB(uiGridThreadIdxX < n);
+            bool const bInsideC(bInsideA && bInsideB);
 
             TElem dotProduct(0);
 
@@ -267,6 +267,58 @@
             // If the element is outside of the matrix it was only a helper thread that did not calculate any meaningful results.
             if(bInsideC)
             {
+                TIdx const uiIdxC1d(uiGridThreadIdxY*ldc + uiGridThreadIdxX);
+                C[uiIdxC1d] = alpha * dotProduct + beta * C[uiIdxC1d];
+            }
+        }
+    };
+
+    //#############################################################################
+    // This function only works for square blocks.
+    //#############################################################################
+    class GemmAlpakaNoShared2Kernel
+    {
+    public:
+        ALPAKA_NO_HOST_ACC_WARNING
+        template<
+            typename TAcc,
+            typename TElem>
+        ALPAKA_FN_ACC auto operator()(
+            TAcc const & acc,
+            TIdx const & m, TIdx const & n, TIdx const & k,
+            TElem const & alpha,
+            TElem const * const MATMUL_RESTRICT A, TIdx const & lda,
+            TElem const * const MATMUL_RESTRICT B, TIdx const & ldb,
+            TElem const & beta,
+            TElem * const MATMUL_RESTRICT C, TIdx const & ldc) const
+        -> void
+        {
+            static_assert(alpaka::dim::Dim<TAcc>::value == 2u,
+                "The accelerator used for the GemmAlpakaKernel has to be 2 dimensional!");
+
+            // Column and row of C to calculate.
+            auto const v2uiGridThreadIdx(alpaka::idx::getIdx<alpaka::Grid, alpaka::Threads>(acc));
+            TIdx const & uiGridThreadIdxX(v2uiGridThreadIdx[1u]);
+            TIdx const & uiGridThreadIdxY(v2uiGridThreadIdx[0u]);
+
+            // If the element corresponding to the current thread is outside of the respective matrix.
+            bool const bInsideA(uiGridThreadIdxY < m);
+            bool const bInsideB(uiGridThreadIdxX < n);
+            bool const bInsideC(bInsideA && bInsideB);
+
+            // If the element is outside of the matrix it was only a helper thread that did not calculate any meaningful results.
+            if(bInsideC)
+            {
+                TElem dotProduct(0);
+
+                // Compute the dot products.
+                for(TIdx k3(0); k3<k; ++k3)
+                {
+                    TIdx const uiAIdx1d(uiGridThreadIdxY*lda + k3);
+                    TIdx const uiBIdx1d(uiGridThreadIdxX + k3*ldb);
+                    dotProduct += A[uiAIdx1d] * B[uiBIdx1d];
+                }
+
                 TIdx const uiIdxC1d(uiGridThreadIdxY*ldc + uiGridThreadIdxX);
                 C[uiIdxC1d] = alpha * dotProduct + beta * C[uiIdxC1d];
             }
@@ -437,7 +489,9 @@
             TIdx>;
         BufWrapperOut bufCHost(C, devHost, v2uiExtentsC, ldc);
 
-        // Allocate the buffers on the accelerator and copy Host -> Acc (Interleaved for better performance)
+        // Allocate the buffers on the accelerator and copy Host -> Acc.
+        // TODO: Test if interleaved is better then alloc first, copy later.
+        // Because alloc causes a device sync this may hinder the copies.
         auto bufAAcc(alpaka::mem::buf::alloc<TElem, TIdx>(devAcc, v2uiExtentsA));
         alpaka::mem::view::copy(stream, bufAAcc, bufAHost, v2uiExtentsA);
         auto bufBAcc(alpaka::mem::buf::alloc<TElem, TIdx>(devAcc, v2uiExtentsB));
