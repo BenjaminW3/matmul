@@ -75,12 +75,12 @@
 //-----------------------------------------------------------------------------
 //! A struct holding the algorithms to benchmark.
 //-----------------------------------------------------------------------------
-typedef struct SMatMulAlgo
+typedef struct GemmAlgo
 {
-    void(*pMatMul)(TIdx const, TIdx const, TIdx const, TElem const, TElem const * const, TIdx const, TElem const * const, TIdx const, TElem const, TElem * const, TIdx const);
+    void(*pGemm)(TIdx const, TIdx const, TIdx const, TElem const, TElem const * const, TIdx const, TElem const * const, TIdx const, TElem const, TElem * const, TIdx const);
     char const * pszName;
-    double const fExponentOmega;
-} SMatMulAlgo;
+    double const exponentOmega;
+} GemmAlgo;
 
 #ifdef BENCHMARK_CUDA_NO_COPY
     #include <cuda_runtime.h>
@@ -93,12 +93,12 @@ typedef struct SMatMulAlgo
 //! \param n The matrix dimension.
 //-----------------------------------------------------------------------------
 double measureRandomMatMul(
-    SMatMulAlgo const * const algo,
+    GemmAlgo const * const algo,
     TIdx const m, TIdx const n, TIdx const k,
-    TIdx const uiRepeatCount,
+    TIdx const repeatCount,
     bool const bRepeatTakeMinimum
  #ifdef BENCHMARK_VERIFY_RESULT
-    ,bool * pbResultsCorrect
+    ,bool * pResultsCorrect
 #endif
     )
 {
@@ -115,7 +115,7 @@ double measureRandomMatMul(
 #endif
 
     // Allocate and initialize the matrices of the given size.
-    TIdx const uiNumElements = n * n;
+    TIdx const elemCount = n * n;
 #ifdef MATMUL_MPI
     TElem const * /*const*/ A = 0;
     TElem const * /*const*/ B = 0;
@@ -124,49 +124,49 @@ double measureRandomMatMul(
         TElem * /*const*/ D = 0;
     #endif
 
-    int iRank1D;
-    MPI_Comm_rank(MATMUL_MPI_COMM, &iRank1D);
-    if(iRank1D == MATMUL_MPI_ROOT)
+    int rank1D;
+    MPI_Comm_rank(MATMUL_MPI_COMM, &rank1D);
+    if(rank1D == MATMUL_MPI_ROOT)
     {
-        A = matmul_arr_alloc_fill_rand(uiNumElements, minVal, maxVal);
-        B = matmul_arr_alloc_fill_rand(uiNumElements, minVal, maxVal);
-        C = matmul_arr_alloc(uiNumElements);
+        A = matmul_arr_alloc_fill_rand(elemCount, minVal, maxVal);
+        B = matmul_arr_alloc_fill_rand(elemCount, minVal, maxVal);
+        C = matmul_arr_alloc(elemCount);
     #ifdef BENCHMARK_VERIFY_RESULT
-        D = matmul_arr_alloc(uiNumElements);
+        D = matmul_arr_alloc(elemCount);
     #endif
     }
 #else
-    TElem const * const A = matmul_arr_alloc_fill_rand(uiNumElements, minVal, maxVal);
-    TElem const * const B = matmul_arr_alloc_fill_rand(uiNumElements, minVal, maxVal);
-    TElem * const C = matmul_arr_alloc(uiNumElements);
+    TElem const * const A = matmul_arr_alloc_fill_rand(elemCount, minVal, maxVal);
+    TElem const * const B = matmul_arr_alloc_fill_rand(elemCount, minVal, maxVal);
+    TElem * const C = matmul_arr_alloc(elemCount);
     #ifdef BENCHMARK_VERIFY_RESULT
-        TElem * const D = matmul_arr_alloc(uiNumElements);
+        TElem * const D = matmul_arr_alloc(elemCount);
     #endif
 #endif
 
 #ifdef BENCHMARK_CUDA_NO_COPY
     MATMUL_CUDA_RT_CHECK(cudaSetDevice(0));
 
-    size_t uiPitchBytesADev = 0;
-    size_t uiPitchBytesBDev = 0;
-    size_t uiPitchBytesCDev = 0;
-    size_t const uHeightBytesA = m;
-    size_t const uiWidthBytesA = k*sizeof(TElem);
-    size_t const uHeightBytesB = k;
-    size_t const uiWidthBytesB = n*sizeof(TElem);
-    size_t const uHeightBytesC = m;
-    size_t const uiWidthBytesC = n*sizeof(TElem);
+    size_t pitchBytesADev = 0;
+    size_t pitchBytesBDev = 0;
+    size_t pitchBytesCDev = 0;
+    size_t const heightBytesA = m;
+    size_t const widthBytesA = k*sizeof(TElem);
+    size_t const heightBytesB = k;
+    size_t const widthBytesB = n*sizeof(TElem);
+    size_t const heightBytesC = m;
+    size_t const widthBytesC = n*sizeof(TElem);
     TElem * pADev = 0;
     TElem * pBDev = 0;
     TElem * pCDev = 0;
-    MATMUL_CUDA_RT_CHECK(cudaMallocPitch((void **)&pADev, &uiPitchBytesADev, uiWidthBytesA, uHeightBytesA));
-    MATMUL_CUDA_RT_CHECK(cudaMemcpy2D(pADev, uiPitchBytesADev, A, n * sizeof(TElem), uiWidthBytesA, uHeightBytesA, cudaMemcpyHostToDevice));
-    MATMUL_CUDA_RT_CHECK(cudaMallocPitch((void **)&pBDev, &uiPitchBytesBDev, uiWidthBytesB, uHeightBytesB));
-    MATMUL_CUDA_RT_CHECK(cudaMemcpy2D(pBDev, uiPitchBytesBDev, B, n * sizeof(TElem), uiWidthBytesB, uHeightBytesB, cudaMemcpyHostToDevice));
-    MATMUL_CUDA_RT_CHECK(cudaMallocPitch((void **)&pCDev, &uiPitchBytesCDev, uiWidthBytesC, uHeightBytesC));
-    TIdx const lda = (TIdx)(uiPitchBytesADev / sizeof(TElem));
-    TIdx const ldb = (TIdx)(uiPitchBytesBDev / sizeof(TElem));
-    TIdx const ldc = (TIdx)(uiPitchBytesCDev / sizeof(TElem));
+    MATMUL_CUDA_RT_CHECK(cudaMallocPitch((void **)&pADev, &pitchBytesADev, widthBytesA, heightBytesA));
+    MATMUL_CUDA_RT_CHECK(cudaMemcpy2D(pADev, pitchBytesADev, A, n * sizeof(TElem), widthBytesA, heightBytesA, cudaMemcpyHostToDevice));
+    MATMUL_CUDA_RT_CHECK(cudaMallocPitch((void **)&pBDev, &pitchBytesBDev, widthBytesB, heightBytesB));
+    MATMUL_CUDA_RT_CHECK(cudaMemcpy2D(pBDev, pitchBytesBDev, B, n * sizeof(TElem), widthBytesB, heightBytesB, cudaMemcpyHostToDevice));
+    MATMUL_CUDA_RT_CHECK(cudaMallocPitch((void **)&pCDev, &pitchBytesCDev, widthBytesC, heightBytesC));
+    TIdx const lda = (TIdx)(pitchBytesADev / sizeof(TElem));
+    TIdx const ldb = (TIdx)(pitchBytesBDev / sizeof(TElem));
+    TIdx const ldc = (TIdx)(pitchBytesCDev / sizeof(TElem));
 #else
     TIdx const lda = n;
     TIdx const ldb = n;
@@ -174,23 +174,23 @@ double measureRandomMatMul(
 #endif
 
     // Initialize the measurement result.
-    double fTimeMeasuredSec = 0.0;
+    double timeMeasuredSec = 0.0;
     if(bRepeatTakeMinimum)
     {
-        fTimeMeasuredSec = DBL_MAX;
+        timeMeasuredSec = DBL_MAX;
     }
 
     // Iterate.
-    for(TIdx i = 0; i < uiRepeatCount; ++i)
+    for(TIdx i = 0; i < repeatCount; ++i)
     {
 #ifdef MATMUL_MPI
-        if(iRank1D == MATMUL_MPI_ROOT)
+        if(rank1D == MATMUL_MPI_ROOT)
         {
 #endif
             // Because we calculate C += A*B we need to initialize C.
             // Even if we would not need this, we would have to initialize the C array with data before using it because else we would measure page table time on first write.
             // We have to fill C with new data in subsequent iterations because else the values in C would get bigger and bigger in each iteration.
-            matmul_arr_fill_rand(C, uiNumElements, minVal, maxVal);
+            matmul_arr_fill_rand(C, elemCount, minVal, maxVal);
     #ifdef BENCHMARK_VERIFY_RESULT
             matmul_mat_copy(n, n, C, n, D, n);
     #endif
@@ -200,19 +200,19 @@ double measureRandomMatMul(
 #endif
 
 #ifdef BENCHMARK_CUDA_NO_COPY
-        MATMUL_CUDA_RT_CHECK(cudaMemcpy2D(pCDev, uiPitchBytesCDev, C, n * sizeof(TElem), uiWidthBytesC, uHeightBytesC, cudaMemcpyHostToDevice));
+        MATMUL_CUDA_RT_CHECK(cudaMemcpy2D(pCDev, pitchBytesCDev, C, n * sizeof(TElem), widthBytesC, heightBytesC, cudaMemcpyHostToDevice));
 #endif
 
 #ifdef MATMUL_MPI
-        double fTimeStart = 0;
+        double timeStart = 0;
         // Only the root process does the printing.
-        if(iRank1D == MATMUL_MPI_ROOT)
+        if(rank1D == MATMUL_MPI_ROOT)
         {
 #endif
 
 #ifdef BENCHMARK_PRINT_ITERATIONS
             // If there are multiple repetitions, print the iteration we are at now.
-            if(uiRepeatCount!=1)
+            if(repeatCount!=1)
             {
                 if(i>0)
                 {
@@ -234,26 +234,26 @@ double measureRandomMatMul(
 #endif
 
 #ifdef MATMUL_MPI
-            fTimeStart = getTimeSec();
+            timeStart = getTimeSec();
         }
 #else
-        double const fTimeStart = getTimeSec();
+        double const timeStart = getTimeSec();
 #endif
 
         // Matrix multiplication.
 #ifdef BENCHMARK_CUDA_NO_COPY
-        (algo->pMatMul)(n, n, n, alpha, pADev, lda, pBDev, ldb, beta, pCDev, ldc);
+        (algo->pGemm)(n, n, n, alpha, pADev, lda, pBDev, ldb, beta, pCDev, ldc);
 #else
-        (algo->pMatMul)(n, n, n, alpha, A, lda, B, ldb, beta, C, ldc);
+        (algo->pGemm)(n, n, n, alpha, A, lda, B, ldb, beta, C, ldc);
 #endif
 
 #ifdef MATMUL_MPI
         // Only the root process does the printing.
-        if(iRank1D == MATMUL_MPI_ROOT)
+        if(rank1D == MATMUL_MPI_ROOT)
         {
 #endif
-            double const fTimeEnd = getTimeSec();
-            double const fTimeElapsed = fTimeEnd - fTimeStart;
+            double const timeEnd = getTimeSec();
+            double const timeElapsed = timeEnd - timeStart;
 
 #ifdef BENCHMARK_PRINT_MATRICES
             printf("\n=\n");
@@ -261,32 +261,38 @@ double measureRandomMatMul(
 #endif
 
 #ifdef BENCHMARK_VERIFY_RESULT
+
+    #ifdef BENCHMARK_CUDA_NO_COPY
+            MATMUL_CUDA_RT_CHECK(cudaMemcpy2D(C, n * sizeof(TElem), pCDev, pitchBytesCDev, widthBytesC, heightBytesC, cudaMemcpyDeviceToHost));
+    #endif
             matmul_gemm_seq_basic(n, n, n, alpha, A, n, B, n, beta, D, n);
+
     #ifdef BENCHMARK_PRINT_MATRICES
             printf("\n=\n");
             matmul_mat_print_simple(n, n, D, n);
     #endif
 
             // The threshold difference from where the value is considered to be a real error.
-            TElem const fErrorThreshold = (TElem)(MATMUL_EPSILON * ((TElem)m) * maxVal * ((TElem)n) * maxVal * ((TElem)k) * maxVal);
-            bool const bResultCorrect = matmul_mat_cmp(n, n, C, n, D, n, fErrorThreshold);
-            if(!bResultCorrect)
+            TElem const errorThreshold = (TElem)(MATMUL_EPSILON * ((TElem)m) * maxVal * ((TElem)n) * maxVal * ((TElem)k) * maxVal);
+            bool const resultCorrect = matmul_mat_cmp(n, n, C, n, D, n, errorThreshold);
+            if(!resultCorrect)
             {
                 printf("%s iteration %"MATMUL_PRINTF_SIZE_T" result incorrect!", algo->pszName, (size_t)i);
             }
-            *pbResultsCorrect = (*pbResultsCorrect) && bResultCorrect;
+            *pResultsCorrect = (*pResultsCorrect) && resultCorrect;
 #endif
+
 #ifdef BENCHMARK_PRINT_MATRICES
             printf("\n");
 #endif
 
             if(bRepeatTakeMinimum)
             {
-                fTimeMeasuredSec = (fTimeElapsed<fTimeMeasuredSec) ? fTimeElapsed : fTimeMeasuredSec;
+                timeMeasuredSec = (timeElapsed<timeMeasuredSec) ? timeElapsed : timeMeasuredSec;
             }
             else
             {
-                fTimeMeasuredSec += fTimeElapsed * (1.0/(double)uiRepeatCount);
+                timeMeasuredSec += timeElapsed * (1.0/(double)repeatCount);
             }
 
 #ifdef MATMUL_MPI
@@ -302,18 +308,18 @@ double measureRandomMatMul(
 
 #ifdef MATMUL_MPI
     // Only the root process does the printing.
-    if(iRank1D == MATMUL_MPI_ROOT)
+    if(rank1D == MATMUL_MPI_ROOT)
     {
 #endif
 
 #ifndef BENCHMARK_PRINT_GFLOPS
         // Print the time needed for the calculation.
-        printf("\t%12.8lf", fTimeMeasuredSec);
+        printf("\t%12.8lf", timeMeasuredSec);
 #else
         // Print the GFLOPS.
-        double const fOperations = 2.0*pow((double)n, algo->fExponentOmega);
-        double const fFLOPS = (fTimeMeasuredSec!=0) ? (fOperations/fTimeMeasuredSec) : 0.0;
-        printf("\t%12.8lf", fFLOPS*1.0e-9);
+        double const operationCount = 2.0*pow((double)n, algo->exponentOmega);
+        double const flops = (timeMeasuredSec!=0) ? (operationCount/timeMeasuredSec) : 0.0;
+        printf("\t%12.8lf", flops*1.0e-9);
 #endif
 
         matmul_arr_free((TElem * const)A);
@@ -327,46 +333,46 @@ double measureRandomMatMul(
     }
 #endif
 
-    return fTimeMeasuredSec;
+    return timeMeasuredSec;
 }
 
 //-----------------------------------------------------------------------------
 //! A struct containing an array of all matrix sizes to test.
 //-----------------------------------------------------------------------------
-typedef struct SMatMulSizes
+typedef struct GemmSizes
 {
-    TIdx uiNumSizes;
-    TIdx * puiSizes;
-} SMatMulSizes;
+    TIdx sizeCount;
+    TIdx * pSizes;
+} GemmSizes;
 
 //-----------------------------------------------------------------------------
 //! Fills the matrix sizes struct.
-//! \param uiNMin The start matrix dimension.
-//! \param uiStepWidth The step width for each iteration. If set to 0 the size is doubled on each iteration.
-//! \param uiNMax The macimum matrix dimension.
+//! \param minN The start matrix dimension.
+//! \param stepN The step width for each iteration. If set to 0 the size is doubled on each iteration.
+//! \param maxN The maximum matrix dimension.
 //-----------------------------------------------------------------------------
-SMatMulSizes buildSizes(
-    TIdx const uiNMin,
-    TIdx const uiNMax,
-    TIdx const uiNStep)
+GemmSizes buildSizes(
+    TIdx const minN,
+    TIdx const maxN,
+    TIdx const stepN)
 {
-    SMatMulSizes sizes;
-    sizes.uiNumSizes = 0;
-    sizes.puiSizes = 0;
+    GemmSizes sizes;
+    sizes.sizeCount = 0;
+    sizes.pSizes = 0;
 
-    TIdx uiN;
-    for(uiN = uiNMin; uiN <= uiNMax; uiN += (uiNStep == 0) ? uiN : uiNStep)
+    TIdx n;
+    for(n = minN; n <= maxN; n += (stepN == 0) ? n : stepN)
     {
-        ++sizes.uiNumSizes;
+        ++sizes.sizeCount;
     }
 
-    sizes.puiSizes = (TIdx *)malloc(sizes.uiNumSizes * sizeof(TIdx));
+    sizes.pSizes = (TIdx *)malloc(sizes.sizeCount * sizeof(TIdx));
 
-    TIdx uiIdx = 0;
-    for(uiN = uiNMin; uiN <= uiNMax; uiN += (uiNStep == 0) ? uiN : uiNStep)
+    TIdx idx = 0;
+    for(n = minN; n <= maxN; n += (stepN == 0) ? n : stepN)
     {
-        sizes.puiSizes[uiIdx] = uiN;
-        ++uiIdx;
+        sizes.pSizes[idx] = n;
+        ++idx;
     }
 
     return sizes;
@@ -374,9 +380,9 @@ SMatMulSizes buildSizes(
 
 //-----------------------------------------------------------------------------
 //! Class template with static member templates because function templates do not allow partial specialization.
-//! \param uiNMin The start matrix dimension.
-//! \param uiStepWidth The step width for each iteration. If set to 0 the size is doubled on each iteration.
-//! \param uiNMax The maximum matrix dimension.
+//! \param minN The start matrix dimension.
+//! \param stepN The step width for each iteration. If set to 0 the size is doubled on each iteration.
+//! \param maxN The maximum matrix dimension.
 //! \return True, if all results are correct.
 //-----------------------------------------------------------------------------
 #ifdef BENCHMARK_VERIFY_RESULT
@@ -385,15 +391,15 @@ SMatMulSizes buildSizes(
     void
 #endif
 measureRandomMatMuls(
-    SMatMulAlgo const * const pMatMulAlgos,
-    TIdx const uiNumAlgos,
-    SMatMulSizes const * const pSizes,
-    TIdx const uiRepeatCount)
+    GemmAlgo const * const pMatMulAlgos,
+    TIdx const algoCount,
+    GemmSizes const * const pSizes,
+    TIdx const repeatCount)
 {
 #ifdef MATMUL_MPI
-    int iRank1D;
-    MPI_Comm_rank(MATMUL_MPI_COMM, &iRank1D);
-    if(iRank1D==MATMUL_MPI_ROOT)
+    int rank1D;
+    MPI_Comm_rank(MATMUL_MPI_COMM, &rank1D);
+    if(rank1D==MATMUL_MPI_ROOT)
     {
 #endif
 #ifndef BENCHMARK_PRINT_GFLOPS
@@ -403,24 +409,24 @@ measureRandomMatMuls(
 #endif
         printf("\nm=n=k");
         // Table heading
-        for(TIdx uiAlgoIdx = 0; uiAlgoIdx < uiNumAlgos; ++uiAlgoIdx)
+        for(TIdx algoIdx = 0; algoIdx < algoCount; ++algoIdx)
         {
-                printf(" \t%s", pMatMulAlgos[uiAlgoIdx].pszName);
+                printf(" \t%s", pMatMulAlgos[algoIdx].pszName);
         }
 #ifdef MATMUL_MPI
     }
 #endif
 
 #ifdef BENCHMARK_VERIFY_RESULT
-    bool bAllResultsCorrect = true;
+    bool allResultsCorrect = true;
 #endif
     if(pSizes)
     {
-        for(TIdx uiSizeIdx = 0; uiSizeIdx < pSizes->uiNumSizes; ++uiSizeIdx)
+        for(TIdx sizeIdx = 0; sizeIdx < pSizes->sizeCount; ++sizeIdx)
         {
-            TIdx const n = pSizes->puiSizes[uiSizeIdx];
+            TIdx const n = pSizes->pSizes[sizeIdx];
 #ifdef MATMUL_MPI
-            if(iRank1D==MATMUL_MPI_ROOT)
+            if(rank1D==MATMUL_MPI_ROOT)
             {
 #endif
                 // Print the operation
@@ -429,30 +435,30 @@ measureRandomMatMuls(
             }
 #endif
 
-            for(TIdx uiAlgoIdx = 0; uiAlgoIdx < uiNumAlgos; ++uiAlgoIdx)
+            for(TIdx algoIdx = 0; algoIdx < algoCount; ++algoIdx)
             {
 #ifdef BENCHMARK_VERIFY_RESULT
-                bool bResultsCorrectAlgo = true;
+                bool resultsCorrectAlgo = true;
 #endif
                 // Execute the operation and measure the time taken.
                 measureRandomMatMul(
-                    &pMatMulAlgos[uiAlgoIdx],
+                    &pMatMulAlgos[algoIdx],
                     n,
                     n,
                     n,
-                    uiRepeatCount,
+                    repeatCount,
 #ifdef BENCHMARK_REPEAT_TAKE_MINIMUM
                     true
 #else
                     false
 #endif
 #ifdef BENCHMARK_VERIFY_RESULT
-                    , &bResultsCorrectAlgo
+                    , &resultsCorrectAlgo
 #endif
                     );
 
 #ifdef BENCHMARK_VERIFY_RESULT
-                    bAllResultsCorrect &= bResultsCorrectAlgo;
+                    allResultsCorrect &= resultsCorrectAlgo;
 #endif
             }
         }
@@ -463,7 +469,7 @@ measureRandomMatMuls(
     }
 
 #ifdef BENCHMARK_VERIFY_RESULT
-    return bAllResultsCorrect;
+    return allResultsCorrect;
 #endif
 }
 
@@ -474,16 +480,17 @@ measureRandomMatMuls(
 //! Prints some startup informations.
 //-----------------------------------------------------------------------------
 void main_print_startup(
-    TIdx uiNMin,
-    TIdx uiNMax,
-    TIdx uiNStep,
-    TIdx uiRepeatCount)
+    TIdx minN,
+    TIdx maxN,
+    TIdx stepN,
+    TIdx repeatCount)
 {
-    printf("# matmul benchmark copyright (c) 2014-2015, Benjamin Worpitz |");
+    printf("# matmul benchmark copyright (c) 2013-2015, Benjamin Worpitz");
+    printf(" | config:");
 #ifdef NDEBUG
-    printf(" Release");
+    printf("Release");
 #else
-    printf(" Debug");
+    printf("Debug");
 #endif
     printf("; element type:");
 #ifdef MATMUL_ELEMENT_TYPE_DOUBLE
@@ -492,10 +499,10 @@ void main_print_startup(
     printf("float");
 #endif
     printf("; index type:%s", MATMUL_STRINGIFY(MATMUL_INDEX_TYPE));
-    printf("; min N:%"MATMUL_PRINTF_SIZE_T, (size_t)uiNMin);
-    printf("; max N:%"MATMUL_PRINTF_SIZE_T, (size_t)uiNMax);
-    printf("; step N:%"MATMUL_PRINTF_SIZE_T, (size_t)uiNStep);
-    printf("; repeat count:%"MATMUL_PRINTF_SIZE_T, (size_t)uiRepeatCount);
+    printf("; min n:%"MATMUL_PRINTF_SIZE_T, (size_t)minN);
+    printf("; max n:%"MATMUL_PRINTF_SIZE_T, (size_t)maxN);
+    printf("; step n:%"MATMUL_PRINTF_SIZE_T, (size_t)stepN);
+    printf("; repeat count:%"MATMUL_PRINTF_SIZE_T, (size_t)repeatCount);
 #ifdef BENCHMARK_PRINT_GFLOPS
     printf("; BENCHMARK_PRINT_GFLOPS=ON");
 #else
@@ -534,10 +541,10 @@ int main(
     // Set the initial seed to make the measurements repeatable.
     srand(42u);
 
-    TIdx uiNMin = 1;
-    TIdx uiNMax = 1;
-    TIdx uiNStep = 1;
-    TIdx uiRepeatCount = 1;
+    TIdx minN = 1;
+    TIdx maxN = 1;
+    TIdx stepN = 1;
+    TIdx repeatCount = 1;
 
     // Read all arguments.
     if(argc != (4+1))
@@ -548,38 +555,38 @@ int main(
     }
     else
     {
-        uiNMin = atoi(argv[1]);
-        uiNMax = atoi(argv[2]);
-        uiNStep = atoi(argv[3]);
-        uiRepeatCount = atoi(argv[4]);
+        minN = atoi(argv[1]);
+        maxN = atoi(argv[2]);
+        stepN = atoi(argv[3]);
+        repeatCount = atoi(argv[4]);
     }
 
 #ifdef MATMUL_MPI
     // Initialize MPI before calling any MPI methods.
     int mpiStatus = MPI_Init(&argc, &argv);
-    int iRank1D;
+    int rank1D;
     if(mpiStatus != MPI_SUCCESS)
     {
         printf("\nUnable to initialize MPI. MPI_Init failed.\n");
     }
     else
     {
-        MPI_Comm_rank(MATMUL_MPI_COMM, &iRank1D);
+        MPI_Comm_rank(MATMUL_MPI_COMM, &rank1D);
 
-        if(iRank1D==MATMUL_MPI_ROOT)
+        if(rank1D==MATMUL_MPI_ROOT)
         {
-            main_print_startup(uiNMin, uiNMax, uiNStep, uiRepeatCount);
+            main_print_startup(minN, maxN, stepN, repeatCount);
         }
     }
 #else
-    main_print_startup(uiNMin, uiNMax, uiNStep, uiRepeatCount);
+    main_print_startup(minN, maxN, stepN, repeatCount);
 #endif
 
-    double const fTimeStart = getTimeSec();
+    double const timeStart = getTimeSec();
 
     srand((unsigned int)time(0));
 
-    static SMatMulAlgo const algos[] = {
+    static GemmAlgo const algos[] = {
     #ifdef BENCHMARK_SEQ_BASIC
         {matmul_gemm_seq_basic, "gemm_seq_basic", 3.0},
     #endif
@@ -716,41 +723,41 @@ int main(
     #endif
     };
 
-    SMatMulSizes const sizes = buildSizes(
-        uiNMin,
-        uiNMax,
-        uiNStep);
+    GemmSizes const sizes = buildSizes(
+        minN,
+        maxN,
+        stepN);
 
 #ifdef BENCHMARK_VERIFY_RESULT
-    bool const bAllResultsCorrect =
+    bool const allResultsCorrect =
 #endif
     measureRandomMatMuls(
         algos,
         sizeof(algos)/sizeof(algos[0]),
         &sizes,
-        uiRepeatCount);
+        repeatCount);
 
-    free(sizes.puiSizes);
+    free(sizes.pSizes);
 
 #ifdef MATMUL_MPI
     if(mpiStatus == MPI_SUCCESS)
     {
-        if(iRank1D==MATMUL_MPI_ROOT)
+        if(rank1D==MATMUL_MPI_ROOT)
         {
-            double const fTimeEnd = getTimeSec();
-            double const fTimeElapsed = fTimeEnd - fTimeStart;
-            printf("\nTotal runtime: %12.6lf s\n", fTimeElapsed);
+            double const timeEnd = getTimeSec();
+            double const timeElapsed = timeEnd - timeStart;
+            printf("\nTotal runtime: %12.6lf s\n", timeElapsed);
         }
         MPI_Finalize();
     }
 #else
-    double const fTimeEnd = getTimeSec();
-    double const fTimeElapsed = fTimeEnd - fTimeStart;
-    printf("\nTotal runtime: %12.6lf s\n", fTimeElapsed);
+    double const timeEnd = getTimeSec();
+    double const timeElapsed = timeEnd - timeStart;
+    printf("\nTotal runtime: %12.6lf s\n", timeElapsed);
 #endif
 
 #ifdef BENCHMARK_VERIFY_RESULT
-    return !bAllResultsCorrect;
+    return !allResultsCorrect;
 #else
     return EXIT_SUCCESS;
 #endif

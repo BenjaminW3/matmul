@@ -48,12 +48,12 @@
 #ifdef MATMUL_MSVC
         for(TIdx i = 0; i < m; ++i)
         {
-            TIdx const uiRowBeginIdxA = i*lda;
-            TIdx const uiRowBeginIdxB = i*ldb;
-            TIdx const uiRowBeginIdxC = i*ldc;
+            TIdx const rowBeginIdxA = i*lda;
+            TIdx const rowBeginIdxB = i*ldb;
+            TIdx const rowBeginIdxC = i*ldc;
             for(TIdx j = 0; j < n; ++j)
             {
-                C[uiRowBeginIdxC + j] = A[uiRowBeginIdxA + j] + B[uiRowBeginIdxB + j];
+                C[rowBeginIdxC + j] = A[rowBeginIdxA + j] + B[rowBeginIdxB + j];
             }
         }
 #else
@@ -77,11 +77,11 @@
 #ifdef MATMUL_MSVC
         for(TIdx i = 0; i < m; ++i)
         {
-            TIdx const uiRowBeginIdxA = i*lda;
-            TIdx const uiRowBeginIdxC = i*ldc;
+            TIdx const rowBeginIdxA = i*lda;
+            TIdx const rowBeginIdxC = i*ldc;
             for(TIdx j = 0; j < n; ++j)
             {
-                C[uiRowBeginIdxC + j] += A[uiRowBeginIdxA + j];
+                C[rowBeginIdxC + j] += A[rowBeginIdxA + j];
             }
         }
 #else
@@ -106,12 +106,12 @@
 #ifdef MATMUL_MSVC
         for(TIdx i = 0; i < m; ++i)
         {
-            TIdx const uiRowBeginIdxA = i*lda;
-            TIdx const uiRowBeginIdxB = i*ldb;
-            TIdx const uiRowBeginIdxC = i*ldc;
+            TIdx const rowBeginIdxA = i*lda;
+            TIdx const rowBeginIdxB = i*ldb;
+            TIdx const rowBeginIdxC = i*ldc;
             for(TIdx j = 0; j < n; ++j)
             {
-                C[uiRowBeginIdxC + j] = A[uiRowBeginIdxA + j] - B[uiRowBeginIdxB + j];
+                C[rowBeginIdxC + j] = A[rowBeginIdxA + j] - B[rowBeginIdxB + j];
             }
         }
 #else
@@ -181,14 +181,14 @@
             TElem const * const H = G + h;
 
             // Allocate temporary matrices.
-            TIdx const uiNumElements = h * h;
+            TIdx const elemCount = h * h;
             TElem * P[7];
             for(TIdx i = 0; i < 7; ++i)
             {
-                P[i] = matmul_arr_alloc_fill_zero(uiNumElements);
+                P[i] = matmul_arr_alloc_fill_zero(elemCount);
             }
-            TElem * const T = matmul_arr_alloc(uiNumElements);
-            TElem * const U = matmul_arr_alloc(uiNumElements);
+            TElem * const T = matmul_arr_alloc(elemCount);
+            TElem * const U = matmul_arr_alloc(elemCount);
 
             // P0 = A*(F - H);
             matmul_mat_sub_pitch_seq(h, h, F, ldb, H, ldb, T, h);

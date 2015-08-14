@@ -72,21 +72,21 @@
         TElem const * const MATMUL_RESTRICT pX,
         TIdx const ldx,
         TElem * const MATMUL_RESTRICT pXSub,
-        bool const bColumnFirst,
+        bool const columnFirst,
         MPI_Comm const mesh)
     {
         TElem * pXBlocks = 0;
         if(info->iLocalRank1D == MATMUL_MPI_ROOT)
         {
-            TIdx const uiNumElements =  info->n * info->n;
-            pXBlocks = matmul_arr_alloc(uiNumElements);
+            TIdx const elemCount =  info->n * info->n;
+            pXBlocks = matmul_arr_alloc(elemCount);
 
-            matmul_mat_row_major_to_mat_x_block_major(pX, info->n, info->n, ldx, pXBlocks, info->b, bColumnFirst);
+            matmul_mat_row_major_to_mat_x_block_major(pX, info->n, info->n, ldx, pXBlocks, info->b, columnFirst);
         }
 
-        TIdx const uiNumElementsBlock = info->b * info->b;
+        TIdx const numElementsBlock = info->b * info->b;
 
-        MPI_Scatter(pXBlocks, (int)uiNumElementsBlock, MATMUL_MPI_ELEMENT_TYPE, pXSub, (int)uiNumElementsBlock, MATMUL_MPI_ELEMENT_TYPE, MATMUL_MPI_ROOT, mesh);
+        MPI_Scatter(pXBlocks, (int)numElementsBlock, MATMUL_MPI_ELEMENT_TYPE, pXSub, (int)numElementsBlock, MATMUL_MPI_ELEMENT_TYPE, MATMUL_MPI_ROOT, mesh);
 
         if(info->iLocalRank1D == MATMUL_MPI_ROOT)
         {
@@ -103,7 +103,7 @@
         TIdx const ldx,
         TElem * const MATMUL_RESTRICT pXSub,
         TIdx const ringdim,
-        bool const bColumnFirst)
+        bool const columnFirst)
     {
         MPI_Comm mesh, ring;
         if(ringdim == J_DIM)
@@ -125,14 +125,14 @@
                 pX,
                 ldx,
                 pXSub,
-                bColumnFirst,
+                columnFirst,
                 mesh);
         }
 
-        TIdx const uiNumElementsBlock = info->b * info->b;
+        TIdx const numElementsBlock = info->b * info->b;
 
         // Broadcast the matrix into the cube.
-        MPI_Bcast(pXSub, (int)uiNumElementsBlock, MATMUL_MPI_ELEMENT_TYPE, MATMUL_MPI_ROOT, ring);
+        MPI_Bcast(pXSub, (int)numElementsBlock, MATMUL_MPI_ELEMENT_TYPE, MATMUL_MPI_ROOT, ring);
     }
 
     //-----------------------------------------------------------------------------
@@ -142,16 +142,16 @@
         STopologyInfo const * const MATMUL_RESTRICT info,
         TElem * const MATMUL_RESTRICT pCSub)
     {
-        TIdx const uiNumElementsBlock = info->b * info->b;
+        TIdx const numElementsBlock = info->b * info->b;
 
         // Reduce along k dimension to the i-j plane
         if(info->aiGridCoords[K_DIM] == MATMUL_MPI_ROOT)
         {
-            MPI_Reduce(MPI_IN_PLACE, pCSub, (int)uiNumElementsBlock, MATMUL_MPI_ELEMENT_TYPE, MPI_SUM, MATMUL_MPI_ROOT, info->commRingK);
+            MPI_Reduce(MPI_IN_PLACE, pCSub, (int)numElementsBlock, MATMUL_MPI_ELEMENT_TYPE, MPI_SUM, MATMUL_MPI_ROOT, info->commRingK);
         }
         else
         {
-            MPI_Reduce(pCSub, 0, (int)uiNumElementsBlock, MATMUL_MPI_ELEMENT_TYPE, MPI_SUM, MATMUL_MPI_ROOT, info->commRingK);
+            MPI_Reduce(pCSub, 0, (int)numElementsBlock, MATMUL_MPI_ELEMENT_TYPE, MPI_SUM, MATMUL_MPI_ROOT, info->commRingK);
         }
     }
 
@@ -190,13 +190,13 @@
             TElem * pCBlocks = 0;
             if(info->iLocalRank1D == MATMUL_MPI_ROOT)
             {
-                TIdx const uiNumElements = info->n * info->n;
-                pCBlocks = matmul_arr_alloc(uiNumElements);
+                TIdx const elemCount = info->n * info->n;
+                pCBlocks = matmul_arr_alloc(elemCount);
             }
 
-            TIdx const uiNumElementsBlock = info->b * info->b;
+            TIdx const numElementsBlock = info->b * info->b;
 
-            MPI_Gather(pCSub, (int)uiNumElementsBlock, MATMUL_MPI_ELEMENT_TYPE, pCBlocks, (int)uiNumElementsBlock, MATMUL_MPI_ELEMENT_TYPE, MATMUL_MPI_ROOT, info->commMeshIJ);
+            MPI_Gather(pCSub, (int)numElementsBlock, MATMUL_MPI_ELEMENT_TYPE, pCBlocks, (int)numElementsBlock, MATMUL_MPI_ELEMENT_TYPE, MATMUL_MPI_ROOT, info->commMeshIJ);
 
             if(info->iLocalRank1D == MATMUL_MPI_ROOT)
             {
@@ -216,21 +216,21 @@
         TElem const * const MATMUL_RESTRICT B, TIdx const ldb,
         TElem const beta,
         TElem * const MATMUL_RESTRICT C, TIdx const ldc,
-        void(*pMatMul)(TIdx const, TIdx const, TIdx const, TElem const, TElem const * const, TIdx const, TElem const * const, TIdx const, TElem const, TElem * const, TIdx const))
+        void(*pGemm)(TIdx const, TIdx const, TIdx const, TElem const, TElem const * const, TIdx const, TElem const * const, TIdx const, TElem const, TElem * const, TIdx const))
     {
         assert(info->commMesh3D);
         assert(info->n>0);
         assert(info->b>0);
 
         // Allocate the local matrices
-        TIdx const uiNumElementsBlock = info->b * info->b;
-        TElem * const ASub = matmul_arr_alloc(uiNumElementsBlock);
-        TElem * const BSub = matmul_arr_alloc(uiNumElementsBlock);
+        TIdx const numElementsBlock = info->b * info->b;
+        TElem * const ASub = matmul_arr_alloc(numElementsBlock);
+        TElem * const BSub = matmul_arr_alloc(numElementsBlock);
         // The elements in the root IJ plane get sub-matrices of the input C, all others zeros.
         bool const bIJPlane = (info->aiGridCoords[K_DIM] == MATMUL_MPI_ROOT);
         TElem * const CSub = bIJPlane
-                                ? matmul_arr_alloc(uiNumElementsBlock)
-                                : matmul_arr_alloc_fill_zero(uiNumElementsBlock);
+                                ? matmul_arr_alloc(numElementsBlock)
+                                : matmul_arr_alloc_fill_zero(numElementsBlock);
 
         // Scatter C on the i-j plane.
         matmul_gemm_par_mpi_dns_scatter_c_blocks_2d(info, C, ldc, CSub);
@@ -255,7 +255,7 @@
         }
 
         // Do the local matrix multiplication.
-        pMatMul(info->b, info->b, info->b, alpha, ASub, info->b, BSub, info->b, (TElem)1, CSub, info->b);
+        pGemm(info->b, info->b, info->b, alpha, ASub, info->b, BSub, info->b, (TElem)1, CSub, info->b);
 
         // Reduce along k dimension to the i-j plane
         matmul_gemm_par_mpi_dns_reduce_c(info, CSub);
@@ -399,7 +399,7 @@
         TElem const * const MATMUL_RESTRICT B, TIdx const ldb,
         TElem const beta,
         TElem * const MATMUL_RESTRICT C, TIdx const ldc,
-        void(*pMatMul)(TIdx const, TIdx const, TIdx const, TElem const, TElem const * const, TIdx const, TElem const * const, TIdx const, TElem const, TElem * const, TIdx const))
+        void(*pGemm)(TIdx const, TIdx const, TIdx const, TElem const, TElem const * const, TIdx const, TElem const * const, TIdx const, TElem const, TElem * const, TIdx const))
     {
         if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
         {
@@ -423,7 +423,7 @@
         struct STopologyInfo info;
         if(matmul_gemm_par_mpi_dns_create_topology_info(&info, n))
         {
-            matmul_gemm_par_mpi_dns_local(&info, alpha, A, lda, B, ldb, beta, C, ldc, pMatMul);
+            matmul_gemm_par_mpi_dns_local(&info, alpha, A, lda, B, ldb, beta, C, ldc, pGemm);
 
             matmul_gemm_par_mpi_dns_destroy_topology_info(&info);
         }

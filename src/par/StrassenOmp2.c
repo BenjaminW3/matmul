@@ -174,14 +174,14 @@
                 TElem const * const H = G + h;
 
                 // Allocate temporary matrices.
-                TIdx const uiNumElements = h * h;
+                TIdx const elemCount = h * h;
                 TElem * P[7];
                 for(TIdx i = 0; i < 7; ++i)
                 {
-                    P[i] = matmul_arr_alloc_fill_zero(uiNumElements);
+                    P[i] = matmul_arr_alloc_fill_zero(elemCount);
                 }
-                TElem * const T = matmul_arr_alloc(uiNumElements);
-                TElem * const U = matmul_arr_alloc(uiNumElements);
+                TElem * const T = matmul_arr_alloc(elemCount);
+                TElem * const U = matmul_arr_alloc(elemCount);
 
                 //#pragma omp parallel sections    // Parallel sections decrease the performance!
                 {

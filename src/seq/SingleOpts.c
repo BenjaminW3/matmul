@@ -149,18 +149,18 @@
 
         for(TIdx i = 0; i < m; ++i)
         {
-            TIdx const uiRowBeginIdxA = i*lda;
-            TIdx const uiRowBeginIdxC = i*ldc;
+            TIdx const rowBeginIdxA = i*lda;
+            TIdx const rowBeginIdxC = i*ldc;
 
             for(TIdx j = 0; j < n; ++j)
             {
                 C[i*ldc + j] *= beta;
 
-                TIdx const uiIdxC = uiRowBeginIdxC + j;
+                TIdx const idxC = rowBeginIdxC + j;
 
                 for(TIdx k2 = 0; k2 < k; ++k2)
                 {
-                    C[uiIdxC] += alpha * A[uiRowBeginIdxA + k2] * B[k2*ldb + j];
+                    C[idxC] += alpha * A[rowBeginIdxA + k2] * B[k2*ldb + j];
                 }
             }
         }
@@ -334,14 +334,14 @@
                 for(TIdx kk = 0; kk<k; kk += S)
                 {
                     TIdx const kkS = kk+S;
-                    TIdx const uiUpperBoundi = (iiS>m ? m : iiS);
-                    for(TIdx i = ii; i<uiUpperBoundi; ++i)
+                    TIdx const upperBoundi = (iiS>m ? m : iiS);
+                    for(TIdx i = ii; i<upperBoundi; ++i)
                     {
-                        TIdx const uiUpperBoundj = (jjS>n ? n : jjS);
-                        for(TIdx j = jj; j<uiUpperBoundj; ++j)
+                        TIdx const upperBoundj = (jjS>n ? n : jjS);
+                        for(TIdx j = jj; j<upperBoundj; ++j)
                         {
-                            TIdx const uiUpperBoundk = (kkS>k ? k : kkS);
-                            for(TIdx k2 = kk; k2<uiUpperBoundk; ++k2)
+                            TIdx const upperBoundk = (kkS>k ? k : kkS);
+                            for(TIdx k2 = kk; k2<upperBoundk; ++k2)
                             {
                                 C[i*ldc + j] += alpha * A[i*lda + k2] * B[k2*ldb + j];
                             }

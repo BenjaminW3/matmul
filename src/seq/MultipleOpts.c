@@ -50,19 +50,19 @@
                 {
                     C[i*ldc + j] *= beta;
                 }
-                TIdx const uiRowBeginIdxC = i*ldc;
-                TIdx const uiRowBeginIdxA = i*lda;
+                TIdx const rowBeginIdxC = i*ldc;
+                TIdx const rowBeginIdxA = i*lda;
 
                 for(TIdx k2 = 0; k2<k; ++k2)
                 {
-                    TIdx const uiRowBeginIdxB = k2*ldb;
-                    TElem const a = A[uiRowBeginIdxA + k2];
+                    TIdx const rowBeginIdxB = k2*ldb;
+                    TElem const a = A[rowBeginIdxA + k2];
 
                     for(TIdx j = 0; j<n; ++j)
                     {
-                        TIdx uiIdxC = uiRowBeginIdxC + j;
+                        TIdx idxC = rowBeginIdxC + j;
 
-                        C[uiIdxC] += alpha * a * B[uiRowBeginIdxB + j];
+                        C[idxC] += alpha * a * B[rowBeginIdxB + j];
                     }
                 }
             }
@@ -120,28 +120,28 @@
                     for(TIdx jj = 0; jj<n; jj += S)
                     {
                         TIdx const jjS = jj+S;
-                        //TIdx const uiUpperBoundi = (iiS>m ? m : iiS);
-                        //for(TIdx i = ii; i < uiUpperBoundi; ++i)
+                        //TIdx const upperBoundi = (iiS>m ? m : iiS);
+                        //for(TIdx i = ii; i < upperBoundi; ++i)
 
-                        TIdx uiRowBeginIdxC = 0;
-                        TIdx uiRowBeginIdxA = 0;
+                        TIdx rowBeginIdxC = 0;
+                        TIdx rowBeginIdxA = 0;
                         for(TIdx i = 0; i<m; ++i)
                         {
-                            TIdx uiRowBeginIdxB = kk*ldb;
-                            TIdx const uiUpperBoundk = (kkS>k ? k : kkS);
-                            for(TIdx k2 = kk; k2<uiUpperBoundk; ++k2)
+                            TIdx rowBeginIdxB = kk*ldb;
+                            TIdx const upperBoundk = (kkS>k ? k : kkS);
+                            for(TIdx k2 = kk; k2<upperBoundk; ++k2)
                             {
-                                TElem const a = alpha * A[uiRowBeginIdxA + k2];
-                                TIdx const uiUpperBoundj = (jjS>n ? n : jjS);
-                                for(TIdx j = jj; j<uiUpperBoundj; ++j)
+                                TElem const a = alpha * A[rowBeginIdxA + k2];
+                                TIdx const upperBoundj = (jjS>n ? n : jjS);
+                                for(TIdx j = jj; j<upperBoundj; ++j)
                                 {
-                                    TIdx uiIdxC = uiRowBeginIdxC + j;
-                                    C[uiIdxC] += a * B[uiRowBeginIdxB + j];
+                                    TIdx idxC = rowBeginIdxC + j;
+                                    C[idxC] += a * B[rowBeginIdxB + j];
                                 }
-                                uiRowBeginIdxB += ldb;
+                                rowBeginIdxB += ldb;
                             }
-                            uiRowBeginIdxC += ldc;
-                            uiRowBeginIdxA += lda;
+                            rowBeginIdxC += ldc;
+                            rowBeginIdxA += lda;
                         }
                     }
                 }

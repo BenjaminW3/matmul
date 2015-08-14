@@ -51,7 +51,7 @@
                 TElem const * const MATMUL_RESTRICT B, TIdx const ldb,
                 TElem const beta,
                 TElem * const MATMUL_RESTRICT C, TIdx const ldc,
-                void(*pMatMul)(TIdx const, TIdx const, TIdx const, TElem const, TElem const * const, TIdx const, TElem const * const, TIdx const, TElem const, TElem * const, TIdx const));
+                void(*pGemm)(TIdx const, TIdx const, TIdx const, TElem const, TElem const * const, TIdx const, TElem const * const, TIdx const, TElem const, TElem * const, TIdx const));
             //-----------------------------------------------------------------------------
             //! (S/D)GEMM matrix-matrix product C = alpha * A * B + beta * C wrapper copying the matrices host->device prior and device->host after the computation.
             //!
@@ -74,7 +74,7 @@
                 TElem const * const MATMUL_RESTRICT B, TIdx const ldb,
                 TElem const beta,
                 TElem * const MATMUL_RESTRICT C, TIdx const ldc,
-                void(*pMatMul)(TIdx const, TIdx const, TIdx const, TElem const, TElem const * const, TIdx const, TElem const * const, TIdx const, TElem const, TElem * const, TIdx const));
+                void(*pGemm)(TIdx const, TIdx const, TIdx const, TElem const, TElem const * const, TIdx const, TElem const * const, TIdx const, TElem const, TElem * const, TIdx const));
     #ifdef __cplusplus
         }
     #endif

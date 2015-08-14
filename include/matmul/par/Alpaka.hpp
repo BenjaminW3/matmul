@@ -55,68 +55,68 @@
                 "The accelerator used for the GemmAlpakaKernel has to be 2 dimensional!");
 
             // Column and row of C to calculate.
-            auto const v2uiGridThreadIdx(alpaka::idx::getIdx<alpaka::Grid, alpaka::Threads>(acc));
-            TIdx const & uiGridThreadIdxX(v2uiGridThreadIdx[1u]);
-            TIdx const & uiGridThreadIdxY(v2uiGridThreadIdx[0u]);
+            auto const gridThreadIdx(alpaka::idx::getIdx<alpaka::Grid, alpaka::Threads>(acc));
+            TIdx const & gridThreadIdxX(gridThreadIdx[1u]);
+            TIdx const & gridThreadIdxY(gridThreadIdx[0u]);
 
             // Column and row inside the block of C to calculate.
-            auto const v2uiBlockThreadIdx(alpaka::idx::getIdx<alpaka::Block, alpaka::Threads>(acc));
-            TIdx const & uiBlockThreadIdxX(v2uiBlockThreadIdx[1u]);
-            TIdx const & uiBlockThreadIdxY(v2uiBlockThreadIdx[0u]);
+            auto const blockThreadIdx(alpaka::idx::getIdx<alpaka::Block, alpaka::Threads>(acc));
+            TIdx const & blockThreadIdxX(blockThreadIdx[1u]);
+            TIdx const & blockThreadIdxY(blockThreadIdx[0u]);
 
             // The block threads extents.
-            auto const v2uiBlockThreadsExtents(alpaka::workdiv::getWorkDiv<alpaka::Block, alpaka::Threads>(acc));
-            TIdx const & uiBlockThreadsExtentX(v2uiBlockThreadsExtents[1u]);
-            TIdx const & uiBlockThreadsExtentY(v2uiBlockThreadsExtents[0u]);
-            //assert(uiBlockThreadsExtentX == uiBlockThreadsExtentY);
-            TIdx const & uiBlockThreadsExtent(uiBlockThreadsExtentX);
+            auto const blockThreadsExtents(alpaka::workdiv::getWorkDiv<alpaka::Block, alpaka::Threads>(acc));
+            TIdx const & blockThreadsExtentX(blockThreadsExtents[1u]);
+            TIdx const & blockThreadsExtentY(blockThreadsExtents[0u]);
+            //assert(blockThreadsExtentX == blockThreadsExtentY);
+            TIdx const & blockThreadsExtent(blockThreadsExtentX);
 
             // Shared memory used to store the current blocks of A and B.
             TElem * const pBlockSharedA(acc.template getBlockSharedExternMem<TElem>());
-            TElem * const pBlockSharedB(pBlockSharedA + uiBlockThreadsExtentX*uiBlockThreadsExtentY);
+            TElem * const pBlockSharedB(pBlockSharedA + blockThreadsExtentX*blockThreadsExtentY);
 
-            TIdx const uiSharedBlockIdx1d(uiBlockThreadIdxY*uiBlockThreadsExtentX + uiBlockThreadIdxX);
+            TIdx const sharedBlockIdx1d(blockThreadIdxY*blockThreadsExtentX + blockThreadIdxX);
 
             // If the element corresponding to the current thread is outside of the respective matrix.
-            bool const bInsideA(uiGridThreadIdxY < m);
-            bool const bInsideB(uiGridThreadIdxX < n);
-            bool const bInsideC(bInsideA && bInsideB);
+            bool const insideA(gridThreadIdxY < m);
+            bool const insideB(gridThreadIdxX < n);
+            bool const insideC(insideA && insideB);
 
             TElem dotProduct(0);
 
             // Loop over all blocks of A and B that are required to compute the C block.
-            TIdx const uiBlockMulCount(
+            TIdx const blockMulCount(
                 static_cast<TIdx>(
                     alpaka::math::ceil(
                         acc,
-                        static_cast<float>(k)/static_cast<float>(uiBlockThreadsExtent))));
-            for(TIdx k2(0); k2<uiBlockMulCount; ++k2)
+                        static_cast<float>(k)/static_cast<float>(blockThreadsExtent))));
+            for(TIdx k2(0); k2<blockMulCount; ++k2)
             {
                 // Copy the current blocks of A and B into shared memory in parallel.
                 // If the element of the current thread is outside of the matrix, zero is written into the shared memory.
                 // This is possible because zero is a result neutral extension of the matrices regarding the dot product.
-                TIdx const uiAIdxX(k2*uiBlockThreadsExtentX + uiBlockThreadIdxX);
-                TIdx const uiAIdx1d(uiGridThreadIdxY*lda + uiAIdxX);
-                pBlockSharedA[uiSharedBlockIdx1d] =
-                    ((!bInsideA) || (uiAIdxX>=k))
+                TIdx const AIdxX(k2*blockThreadsExtentX + blockThreadIdxX);
+                TIdx const AIdx1d(gridThreadIdxY*lda + AIdxX);
+                pBlockSharedA[sharedBlockIdx1d] =
+                    ((!insideA) || (AIdxX>=k))
                     ? static_cast<TElem>(0)
-                    : A[uiAIdx1d];
+                    : A[AIdx1d];
 
-                TIdx const uiBIdxY(k2*uiBlockThreadsExtentY + uiBlockThreadIdxY);
-                TIdx const uiBIdx1d(uiBIdxY*ldb + uiGridThreadIdxX);
-                pBlockSharedB[uiSharedBlockIdx1d] =
-                    ((!bInsideB) || (uiBIdxY>=k))
+                TIdx const BIdxY(k2*blockThreadsExtentY + blockThreadIdxY);
+                TIdx const BIdx1d(BIdxY*ldb + gridThreadIdxX);
+                pBlockSharedB[sharedBlockIdx1d] =
+                    ((!insideB) || (BIdxY>=k))
                     ? static_cast<TElem>(0)
-                    : B[uiBIdx1d];
+                    : B[BIdx1d];
 
                 // Synchronize to make sure the complete blocks are loaded before starting the computation.
                 alpaka::block::sync::syncBlockThreads(acc);
 
                 // Compute the dot products within shared memory.
-                for(TIdx k3(0); k3<uiBlockThreadsExtent; ++k3)
+                for(TIdx k3(0); k3<blockThreadsExtent; ++k3)
                 {
-                    dotProduct += pBlockSharedA[uiBlockThreadIdxY*uiBlockThreadsExtentX + k3]
-                        * pBlockSharedB[k3*uiBlockThreadsExtentY + uiBlockThreadIdxX];
+                    dotProduct += pBlockSharedA[blockThreadIdxY*blockThreadsExtentX + k3]
+                        * pBlockSharedB[k3*blockThreadsExtentY + blockThreadIdxX];
                 }
 
                 // Synchronize to make sure that the preceding computation is done before loading the next blocks of A and B.
@@ -124,10 +124,10 @@
             }
 
             // If the element is outside of the matrix it was only a helper thread that did not calculate any meaningful results.
-            if(bInsideC)
+            if(insideC)
             {
-                TIdx const uiIdxC1d(uiGridThreadIdxY*ldc + uiGridThreadIdxX);
-                C[uiIdxC1d] = alpha * dotProduct + beta * C[uiIdxC1d];
+                TIdx const CIdx1d(gridThreadIdxY*ldc + gridThreadIdxX);
+                C[CIdx1d] = alpha * dotProduct + beta * C[CIdx1d];
             }
         }
     };
@@ -153,7 +153,7 @@
                     template<
                         typename TElem>
                     ALPAKA_FN_HOST static auto getBlockSharedExternMemSizeBytes(
-                        alpaka::Vec<alpaka::dim::Dim<TAcc>, size::Size<TAcc>> const & vuiBlockThreadsExtents,
+                        alpaka::Vec<alpaka::dim::Dim<TAcc>, size::Size<TAcc>> const & vblockThreadsExtents,
                         TIdx const & m,
                         TIdx const & n,
                         TIdx const & k,
@@ -184,7 +184,7 @@
                         boost::ignore_unused(ldc);
 
                         // Reserve the buffer for the two blocks of A and B.
-                        return 2u * vuiBlockThreadsExtents.prod() * sizeof(TElem);
+                        return 2u * vblockThreadsExtents.prod() * sizeof(TElem);
                     }
                 };
             }
@@ -215,60 +215,60 @@
                 "The accelerator used for the GemmAlpakaKernel has to be 2 dimensional!");
 
             // Column and row of C to calculate.
-            auto const v2uiGridThreadIdx(alpaka::idx::getIdx<alpaka::Grid, alpaka::Threads>(acc));
-            TIdx const & uiGridThreadIdxX(v2uiGridThreadIdx[1u]);
-            TIdx const & uiGridThreadIdxY(v2uiGridThreadIdx[0u]);
+            auto const gridThreadIdx(alpaka::idx::getIdx<alpaka::Grid, alpaka::Threads>(acc));
+            TIdx const & gridThreadIdxX(gridThreadIdx[1u]);
+            TIdx const & gridThreadIdxY(gridThreadIdx[0u]);
 
             // The block threads extents.
-            auto const v2uiBlockThreadsExtents(alpaka::workdiv::getWorkDiv<alpaka::Block, alpaka::Threads>(acc));
-            TIdx const & uiBlockThreadsExtentX(v2uiBlockThreadsExtents[1u]);
-            TIdx const & uiBlockThreadsExtentY(v2uiBlockThreadsExtents[0u]);
-            //assert(uiBlockThreadsExtentX == uiBlockThreadsExtentY);
-            TIdx const & uiBlockThreadsExtent(uiBlockThreadsExtentX);
+            auto const blockThreadsExtents(alpaka::workdiv::getWorkDiv<alpaka::Block, alpaka::Threads>(acc));
+            TIdx const & blockThreadsExtentX(blockThreadsExtents[1u]);
+            TIdx const & blockThreadsExtentY(blockThreadsExtents[0u]);
+            //assert(blockThreadsExtentX == blockThreadsExtentY);
+            TIdx const & blockThreadsExtent(blockThreadsExtentX);
 
             // If the element corresponding to the current thread is outside of the respective matrix.
-            bool const bInsideA(uiGridThreadIdxY < m);
-            bool const bInsideB(uiGridThreadIdxX < n);
-            bool const bInsideC(bInsideA && bInsideB);
+            bool const insideA(gridThreadIdxY < m);
+            bool const insideB(gridThreadIdxX < n);
+            bool const insideC(insideA && insideB);
 
             TElem dotProduct(0);
 
             // Loop over all blocks of A and B that are required to compute the C block.
-            TIdx const uiBlockMulCount(
+            TIdx const blockMulCount(
                 static_cast<TIdx>(
                     alpaka::math::ceil(
                         acc,
-                        static_cast<float>(k)/static_cast<float>(uiBlockThreadsExtent))));
-            for(TIdx k2(0); k2<uiBlockMulCount; ++k2)
+                        static_cast<float>(k)/static_cast<float>(blockThreadsExtent))));
+            for(TIdx k2(0); k2<blockMulCount; ++k2)
             {
-                TIdx const uiABlockIdxX(k2*uiBlockThreadsExtentX);
-                TIdx const uiBBlockIdxY(k2*uiBlockThreadsExtentY);
+                TIdx const ABlockIdxX(k2*blockThreadsExtentX);
+                TIdx const BBlockIdxY(k2*blockThreadsExtentY);
 
                 // Compute the dot products.
-                for(TIdx k3(0); k3<uiBlockThreadsExtent; ++k3)
+                for(TIdx k3(0); k3<blockThreadsExtent; ++k3)
                 {
-                    TIdx const uiAIdxX(uiABlockIdxX + k3);
-                    TIdx const uiAIdx1d(uiGridThreadIdxY*lda + uiAIdxX);
-                    TIdx const uiBIdxY(uiBBlockIdxY + k3);
-                    TIdx const uiBIdx1d(uiGridThreadIdxX + uiBIdxY*ldb);
+                    TIdx const AIdxX(ABlockIdxX + k3);
+                    TIdx const AIdx1d(gridThreadIdxY*lda + AIdxX);
+                    TIdx const BIdxY(BBlockIdxY + k3);
+                    TIdx const BIdx1d(gridThreadIdxX + BIdxY*ldb);
 
                     TElem const a(
-                        ((!bInsideA) || (uiAIdxX>=k))
+                        ((!insideA) || (AIdxX>=k))
                         ? static_cast<TElem>(0)
-                        : A[uiAIdx1d]);
+                        : A[AIdx1d]);
                     TElem const b(
-                        ((!bInsideB) || (uiBIdxY>=k))
+                        ((!insideB) || (BIdxY>=k))
                         ? static_cast<TElem>(0)
-                        : B[uiBIdx1d]);
+                        : B[BIdx1d]);
                     dotProduct += a * b;
                 }
             }
 
             // If the element is outside of the matrix it was only a helper thread that did not calculate any meaningful results.
-            if(bInsideC)
+            if(insideC)
             {
-                TIdx const uiIdxC1d(uiGridThreadIdxY*ldc + uiGridThreadIdxX);
-                C[uiIdxC1d] = alpha * dotProduct + beta * C[uiIdxC1d];
+                TIdx const CIdx1d(gridThreadIdxY*ldc + gridThreadIdxX);
+                C[CIdx1d] = alpha * dotProduct + beta * C[CIdx1d];
             }
         }
     };
@@ -297,30 +297,30 @@
                 "The accelerator used for the GemmAlpakaKernel has to be 2 dimensional!");
 
             // Column and row of C to calculate.
-            auto const v2uiGridThreadIdx(alpaka::idx::getIdx<alpaka::Grid, alpaka::Threads>(acc));
-            TIdx const & uiGridThreadIdxX(v2uiGridThreadIdx[1u]);
-            TIdx const & uiGridThreadIdxY(v2uiGridThreadIdx[0u]);
+            auto const gridThreadIdx(alpaka::idx::getIdx<alpaka::Grid, alpaka::Threads>(acc));
+            TIdx const & gridThreadIdxX(gridThreadIdx[1u]);
+            TIdx const & gridThreadIdxY(gridThreadIdx[0u]);
 
             // If the element corresponding to the current thread is outside of the respective matrix.
-            bool const bInsideA(uiGridThreadIdxY < m);
-            bool const bInsideB(uiGridThreadIdxX < n);
-            bool const bInsideC(bInsideA && bInsideB);
+            bool const insideA(gridThreadIdxY < m);
+            bool const insideB(gridThreadIdxX < n);
+            bool const insideC(insideA && insideB);
 
             // If the element is outside of the matrix it was only a helper thread that did not calculate any meaningful results.
-            if(bInsideC)
+            if(insideC)
             {
                 TElem dotProduct(0);
 
                 // Compute the dot products.
                 for(TIdx k3(0); k3<k; ++k3)
                 {
-                    TIdx const uiAIdx1d(uiGridThreadIdxY*lda + k3);
-                    TIdx const uiBIdx1d(uiGridThreadIdxX + k3*ldb);
-                    dotProduct += A[uiAIdx1d] * B[uiBIdx1d];
+                    TIdx const AIdx1d(gridThreadIdxY*lda + k3);
+                    TIdx const BIdx1d(gridThreadIdxX + k3*ldb);
+                    dotProduct += A[AIdx1d] * B[BIdx1d];
                 }
 
-                TIdx const uiIdxC1d(uiGridThreadIdxY*ldc + uiGridThreadIdxX);
-                C[uiIdxC1d] = alpha * dotProduct + beta * C[uiIdxC1d];
+                TIdx const CIdx1d(gridThreadIdxY*ldc + gridThreadIdxX);
+                C[CIdx1d] = alpha * dotProduct + beta * C[CIdx1d];
             }
         }
     };

@@ -33,21 +33,21 @@
 //
 //-----------------------------------------------------------------------------
 void * matmul_arr_aligned_alloc_internal(
-    TIdx const uiNumBytes)
+    TIdx const numBytes)
 {
 #if defined MATMUL_ALIGNED_MALLOC
     // If c11 were supported we could use void *aligned_alloc(size_t alignment, size_t size);
 #if defined _MSC_VER
-    return _aligned_malloc(uiNumBytes, 64);
+    return _aligned_malloc(numBytes, 64);
 #elif defined __linux__
-    return memalign(64, uiNumBytes);
+    return memalign(64, numBytes);
 #elif defined __MACH__      // Mac OS X
-    return malloc(uiNumBytes);    // malloc is always 16 byte aligned on Mac.
+    return malloc(numBytes);    // malloc is always 16 byte aligned on Mac.
 #else
-    return valloc(uiNumBytes);    // other (use valloc for page-aligned memory)
+    return valloc(numBytes);    // other (use valloc for page-aligned memory)
 #endif
 #else
-    return malloc(uiNumBytes);
+    return malloc(numBytes);
 #endif
 }
 
@@ -55,11 +55,11 @@ void * matmul_arr_aligned_alloc_internal(
 //
 //-----------------------------------------------------------------------------
 TElem * matmul_arr_alloc(
-    TIdx const uiNumElements)
+    TIdx const elemCount)
 {
-    TIdx const uiNumBytes = uiNumElements * sizeof(TElem);
+    TIdx const numBytes = elemCount * sizeof(TElem);
 
-    return (TElem*) matmul_arr_aligned_alloc_internal(uiNumBytes);
+    return (TElem*) matmul_arr_aligned_alloc_internal(numBytes);
 }
 
 //-----------------------------------------------------------------------------

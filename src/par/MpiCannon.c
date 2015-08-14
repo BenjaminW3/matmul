@@ -51,13 +51,13 @@
         int const iRankUp,
         int const iRankDown,
         TIdx const q,
-        void(*pMatMul)(TIdx const, TIdx const, TIdx const, TElem const, TElem const * const, TIdx const, TElem const * const, TIdx const, TElem const, TElem * const, TIdx const))
+        void(*pGemm)(TIdx const, TIdx const, TIdx const, TElem const, TElem const * const, TIdx const, TElem const * const, TIdx const, TElem const, TElem * const, TIdx const))
     {
         assert(pComm2D);
         assert(q>0);
 
-        TIdx const uiNumElementsBlock = b * b;
-        int const iNumElementsBlock = (int)uiNumElementsBlock;
+        TIdx const numElementsBlock = b * b;
+        int const iNumElementsBlock = (int)numElementsBlock;
 
         MPI_Status status;
 
@@ -67,7 +67,7 @@
         for(TIdx i = 0; i<q; ++i)
         {
             // Perform the local calculation.
-            pMatMul(b, b, b, alpha, pALocal, b, pBLocal, b, (TElem)1, pCLocal, b);
+            pGemm(b, b, b, alpha, pALocal, b, pBLocal, b, (TElem)1, pCLocal, b);
 
             // Shift matrix A left by one.
             MPI_Sendrecv_replace(pALocal, iNumElementsBlock, MATMUL_MPI_ELEMENT_TYPE, iRankLeft, iComputeShiftSendRecTagA, iRankRight, iComputeShiftSendRecTagA, *pComm2D, &status);
@@ -91,23 +91,23 @@
         int const iRankUp,
         int const iRankDown,
         TIdx const q,
-        void(*pMatMul)(TIdx const, TIdx const, TIdx const, TElem const, TElem const * const, TIdx const, TElem const * const, TIdx const, TElem const, TElem * const, TIdx const))
+        void(*pGemm)(TIdx const, TIdx const, TIdx const, TElem const, TElem const * const, TIdx const, TElem const * const, TIdx const, TElem const, TElem * const, TIdx const))
     {
         assert(pComm2D);
         assert(q>0);
 
-        TIdx const uiNumElementsBlock = b * b;
-        int const iNumElementsBlock = (int)uiNumElementsBlock;
+        TIdx const numElementsBlock = b * b;
+        int const iNumElementsBlock = (int)numElementsBlock;
 
         MPI_Status status;
 
         // Setup the A and B buffers that are swapped between the current calculation and the current receiver buffer.
         TElem * apALocal[2];
         apALocal[0] = pALocal;
-        apALocal[1] = matmul_arr_alloc(uiNumElementsBlock);
+        apALocal[1] = matmul_arr_alloc(numElementsBlock);
         TElem * apBLocal[2];
         apBLocal[0] = pBLocal;
-        apBLocal[1] = matmul_arr_alloc(uiNumElementsBlock);
+        apBLocal[1] = matmul_arr_alloc(numElementsBlock);
 
         // Compute the current block.
         int const iComputeShiftSendRecTagA = 6;
@@ -127,7 +127,7 @@
             }
 
             // Perform the local calculation.
-            pMatMul(b, b, b, alpha, apALocal[i%2], b, apBLocal[i%2], b, (TElem)1, pCLocal, b);
+            pGemm(b, b, b, alpha, apALocal[i%2], b, apBLocal[i%2], b, (TElem)1, pCLocal, b);
 
             if(!bLastIteration)
             {
@@ -155,13 +155,13 @@
         bool const bBlockingComm,
         int aiGridCoords[2],
         TIdx const q,
-        void(*pMatMul)(TIdx const, TIdx const, TIdx const, TElem const, TElem const * const, TIdx const, TElem const * const, TIdx const, TElem const, TElem * const, TIdx const))
+        void(*pGemm)(TIdx const, TIdx const, TIdx const, TElem const, TElem const * const, TIdx const, TElem const * const, TIdx const, TElem const, TElem * const, TIdx const))
     {
         assert(pComm2D);
         assert(q>0);
 
-        TIdx const uiNumElementsBlock = b * b;
-        int const iNumElementsBlock = (int)uiNumElementsBlock;
+        TIdx const numElementsBlock = b * b;
+        int const iNumElementsBlock = (int)numElementsBlock;
 
         MPI_Status status;
         int const iInitialShiftSendRecTagA = 4;
@@ -182,11 +182,11 @@
 
         if(bBlockingComm)
         {
-            matmul_gemm_par_mpi_cannon_local_block(b, alpha, pALocal, pBLocal, pCLocal, pComm2D, iRankLeft, iRankRight, iRankUp, iRankDown, q, pMatMul);
+            matmul_gemm_par_mpi_cannon_local_block(b, alpha, pALocal, pBLocal, pCLocal, pComm2D, iRankLeft, iRankRight, iRankUp, iRankDown, q, pGemm);
         }
         else
         {
-            matmul_gemm_par_mpi_cannon_local_nonblock(b, alpha, pALocal, pBLocal, pCLocal, pComm2D, iRankLeft, iRankRight, iRankUp, iRankDown, q, pMatMul);
+            matmul_gemm_par_mpi_cannon_local_nonblock(b, alpha, pALocal, pBLocal, pCLocal, pComm2D, iRankLeft, iRankRight, iRankUp, iRankDown, q, pGemm);
         }
 
         // Restore the original distribution of A and B.
@@ -212,7 +212,7 @@
         TElem const beta,
         TElem * const MATMUL_RESTRICT C, TIdx const ldc,
         bool const bBlockingComm,
-        void(*pMatMul)(TIdx const, TIdx const, TIdx const, TElem const, TElem const * const, TIdx const, TElem const * const, TIdx const, TElem const, TElem * const, TIdx const))
+        void(*pGemm)(TIdx const, TIdx const, TIdx const, TElem const, TElem const * const, TIdx const, TElem const * const, TIdx const, TElem const, TElem * const, TIdx const))
     {
         if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
         {
@@ -238,11 +238,11 @@
         MPI_Comm_size(MATMUL_MPI_COMM, &iNumProcesses);
 
         // Get the local Rank.
-        int iRank1D;
-        MPI_Comm_rank(MATMUL_MPI_COMM, &iRank1D);
+        int rank1D;
+        MPI_Comm_rank(MATMUL_MPI_COMM, &rank1D);
 
 #ifdef MATMUL_MPI_ADDITIONAL_DEBUG_OUTPUT
-        if(iRank1D == MATMUL_MPI_ROOT)
+        if(rank1D == MATMUL_MPI_ROOT)
         {
             printf(" p=%d", iNumProcesses);
         }
@@ -254,14 +254,14 @@
         // Test if it is a square.
         if(q * q != iNumProcesses)
         {
-            if(iRank1D == MATMUL_MPI_ROOT)
+            if(rank1D == MATMUL_MPI_ROOT)
             {
                 printf("\n[GEMM MPI Cannon] Invalid environment! The number of processors (%d given) should be perfect square.\n", iNumProcesses);
             }
             return;
         }
 #ifdef MATMUL_MPI_ADDITIONAL_DEBUG_OUTPUT
-        if(iRank1D == MATMUL_MPI_ROOT)
+        if(rank1D == MATMUL_MPI_ROOT)
         {
             printf(" -> %"MATMUL_PRINTF_SIZE_T" x %"MATMUL_PRINTF_SIZE_T" grid", q, q);
         }
@@ -270,7 +270,7 @@
         // Test if the matrix can be divided equally. This can fail if e.g. the matrix is 3x3 and the processes are 2x2.
         if(n % q != 0)
         {
-            if(iRank1D == MATMUL_MPI_ROOT)
+            if(rank1D == MATMUL_MPI_ROOT)
             {
                 printf("\n[GEMM MPI Cannon] The matrices can't be divided among processors equally!\n");
             }
@@ -300,17 +300,17 @@
 #endif
 
         // Initialize the local buffers
-        TIdx const uiNumElementsBlock = b * b;
+        TIdx const numElementsBlock = b * b;
 
-        TElem * const pALocal = matmul_arr_alloc(uiNumElementsBlock);
-        TElem * const pBLocal = matmul_arr_alloc(uiNumElementsBlock);
-        TElem * const pCLocal = matmul_arr_alloc(uiNumElementsBlock);
+        TElem * const pALocal = matmul_arr_alloc(numElementsBlock);
+        TElem * const pBLocal = matmul_arr_alloc(numElementsBlock);
+        TElem * const pCLocal = matmul_arr_alloc(numElementsBlock);
 
         TElem * pBufferCopyLocal = 0;
 
-        if(iRank1D == MATMUL_MPI_ROOT)
+        if(rank1D == MATMUL_MPI_ROOT)
         {
-            pBufferCopyLocal = matmul_arr_alloc(uiNumElementsBlock);
+            pBufferCopyLocal = matmul_arr_alloc(numElementsBlock);
         }
 
         // Send the blocks.
@@ -319,16 +319,16 @@
         TIdx const ald[3] = {lda, ldb, ldc};
 
 #ifdef MATMUL_MPI_ADDITIONAL_DEBUG_OUTPUT
-        if(iRank1D == MATMUL_MPI_ROOT)
+        if(rank1D == MATMUL_MPI_ROOT)
         {
             printf(" Begin sending Blocks.\n");
         }
 #endif
-        for(TIdx uiBuffer = 0; uiBuffer<3; ++uiBuffer)
+        for(TIdx bufferIdx = 0; bufferIdx<3; ++bufferIdx)
         {
             int const iInitSendRecTag = 2;
 
-            if(iRank1D == MATMUL_MPI_ROOT)
+            if(rank1D == MATMUL_MPI_ROOT)
             {
                 for(int iRankDestination = 1; iRankDestination<iNumProcesses; ++iRankDestination)
                 {
@@ -336,22 +336,22 @@
                     MPI_Cart_coords(comm2D, iRankDestination, 2, aiGridCoordsDest);
 
                     // Copy the blocks so that they lay linearly in memory.
-                    matmul_mat_get_block(apBuffersGlobal[uiBuffer], ald[uiBuffer], aiGridCoordsDest[1], aiGridCoordsDest[0], pBufferCopyLocal, b);
+                    matmul_mat_get_block(apBuffersGlobal[bufferIdx], ald[bufferIdx], aiGridCoordsDest[1], aiGridCoordsDest[0], pBufferCopyLocal, b);
 
-                    MPI_Send(pBufferCopyLocal, (int)uiNumElementsBlock, MATMUL_MPI_ELEMENT_TYPE, iRankDestination, iInitSendRecTag, MATMUL_MPI_COMM);
+                    MPI_Send(pBufferCopyLocal, (int)numElementsBlock, MATMUL_MPI_ELEMENT_TYPE, iRankDestination, iInitSendRecTag, MATMUL_MPI_COMM);
                 }
 
                 // Copy the root block.
-                matmul_mat_get_block(apBuffersGlobal[uiBuffer], ald[uiBuffer], aiGridCoords[1], aiGridCoords[0], apBuffersLocal[uiBuffer], b);
+                matmul_mat_get_block(apBuffersGlobal[bufferIdx], ald[bufferIdx], aiGridCoords[1], aiGridCoords[0], apBuffersLocal[bufferIdx], b);
             }
             else
             {
                 MPI_Status status;
-                MPI_Recv(apBuffersLocal[uiBuffer], (int)uiNumElementsBlock, MATMUL_MPI_ELEMENT_TYPE, MATMUL_MPI_ROOT, iInitSendRecTag, MATMUL_MPI_COMM, &status);
+                MPI_Recv(apBuffersLocal[bufferIdx], (int)numElementsBlock, MATMUL_MPI_ELEMENT_TYPE, MATMUL_MPI_ROOT, iInitSendRecTag, MATMUL_MPI_COMM, &status);
             }
         }
 #ifdef MATMUL_MPI_ADDITIONAL_DEBUG_OUTPUT
-        if(iRank1D == MATMUL_MPI_ROOT)
+        if(rank1D == MATMUL_MPI_ROOT)
         {
             printf(" Finished sending Blocks.\n");
         }
@@ -370,18 +370,18 @@
         }
 
         // Do the node local calculation.
-        matmul_gemm_par_mpi_cannon_local(b, alpha, pALocal, pBLocal, pCLocal, &comm2D, bBlockingComm, aiGridCoords, q, pMatMul);
+        matmul_gemm_par_mpi_cannon_local(b, alpha, pALocal, pBLocal, pCLocal, &comm2D, bBlockingComm, aiGridCoords, q, pGemm);
 
         // Collect the results and integrate into C
         int const iCollectSendRecTag = 3;
 
 #ifdef MATMUL_MPI_ADDITIONAL_DEBUG_OUTPUT
-        if(iRank1D == MATMUL_MPI_ROOT)
+        if(rank1D == MATMUL_MPI_ROOT)
         {
             printf(" Begin collecting Blocks.\n");
         }
 #endif
-        if(iRank1D == MATMUL_MPI_ROOT)
+        if(rank1D == MATMUL_MPI_ROOT)
         {
             for(int iRankOrigin = 1; iRankOrigin<iNumProcesses; ++iRankOrigin)
             {
@@ -389,7 +389,7 @@
                 MPI_Cart_coords(comm2D, iRankOrigin, 2, aiGridCoordsDest);
 
                 MPI_Status status;
-                MPI_Recv(pBufferCopyLocal, (int)uiNumElementsBlock, MATMUL_MPI_ELEMENT_TYPE, iRankOrigin, iCollectSendRecTag, MATMUL_MPI_COMM, &status);
+                MPI_Recv(pBufferCopyLocal, (int)numElementsBlock, MATMUL_MPI_ELEMENT_TYPE, iRankOrigin, iCollectSendRecTag, MATMUL_MPI_COMM, &status);
 
                 // Copy the blocks so that they lay linearly in memory.
                 matmul_mat_set_block(pBufferCopyLocal, b, C, ldc, aiGridCoordsDest[1], aiGridCoordsDest[0]);
@@ -400,10 +400,10 @@
         }
         else
         {
-            MPI_Send(pCLocal, (int)uiNumElementsBlock, MATMUL_MPI_ELEMENT_TYPE, MATMUL_MPI_ROOT, iCollectSendRecTag, MATMUL_MPI_COMM);
+            MPI_Send(pCLocal, (int)numElementsBlock, MATMUL_MPI_ELEMENT_TYPE, MATMUL_MPI_ROOT, iCollectSendRecTag, MATMUL_MPI_COMM);
         }
 #ifdef MATMUL_MPI_ADDITIONAL_DEBUG_OUTPUT
-        if(iRank1D == MATMUL_MPI_ROOT)
+        if(rank1D == MATMUL_MPI_ROOT)
         {
             matmul_arr_free(pBufferCopyLocal);
             printf(" Finished collecting Blocks.\n");

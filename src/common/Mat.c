@@ -35,51 +35,51 @@ bool matmul_mat_cmp(
     TIdx const m, TIdx const n,
     TElem const * const MATMUL_RESTRICT A, TIdx const lda,
     TElem const * const MATMUL_RESTRICT B, TIdx const ldb,
-    TElem const fErrorThreshold)
+    TElem const errorThreshold)
 {
     // The maximum number of error values being printed.
-    static TIdx const uiMaxErrorsPrint = 100;
+    static TIdx const maxErrorsPrint = 100;
 
-    TIdx uiNumErrors = 0;
+    TIdx errorCount = 0;
 
     // Loop through all values, print out errors and get the maximum error.
-    TElem fMaxError = (TElem)0.0;
+    TElem maxError = (TElem)0.0;
     for(TIdx i = 0; i < m; ++i)
     {
         for(TIdx j = 0; j < n; ++j)
         {
-            TIdx const uiIdxA = i*lda+j;
-            TIdx const uiIdxB = i*ldb+j;
-            TElem const fError = (TElem)fabs(A[uiIdxA] - B[uiIdxB]);
-            if(fError > fErrorThreshold)
+            TIdx const idxA = i*lda+j;
+            TIdx const idxB = i*ldb+j;
+            TElem const error = (TElem)fabs(A[idxA] - B[idxB]);
+            if(error > errorThreshold)
             {
-                if(uiNumErrors < uiMaxErrorsPrint)
+                if(errorCount < maxErrorsPrint)
                 {
-                    printf("\nError in Cell [%"MATMUL_PRINTF_SIZE_T"][%"MATMUL_PRINTF_SIZE_T"] of %16.16lf A: %f B: %f", (size_t)i, (size_t)j, fError, A[uiIdxA], B[uiIdxB]);
+                    printf("\nError in Cell [%"MATMUL_PRINTF_SIZE_T"][%"MATMUL_PRINTF_SIZE_T"] of %16.16lf A: %f B: %f", (size_t)i, (size_t)j, error, A[idxA], B[idxB]);
                 }
-                ++uiNumErrors;
+                ++errorCount;
             }
 
-            fMaxError = (fMaxError<fError) ? fError : fMaxError;
+            maxError = (maxError<error) ? error : maxError;
         }
     }
     // Print the number of errors not printed.
-    if(uiNumErrors > uiMaxErrorsPrint)
+    if(errorCount > maxErrorsPrint)
     {
-        printf("\n... %"MATMUL_PRINTF_SIZE_T" more errors in the matrix.", (size_t)uiNumErrors-uiMaxErrorsPrint);
+        printf("\n... %"MATMUL_PRINTF_SIZE_T" more errors in the matrix.", (size_t)errorCount-maxErrorsPrint);
     }
     // Print the maximum error.
-    if(fMaxError > fErrorThreshold)
+    if(maxError > errorThreshold)
     {
-        printf("\nfMaxDiff=%32.28lf", fMaxError);
+        printf("\nfMaxDiff=%32.28lf", maxError);
     }
     // If something has been printed, add a newline.
-    if(uiNumErrors > 0)
+    if(errorCount > 0)
     {
         printf("\n");
     }
 
-    return (uiNumErrors==0);
+    return (errorCount==0);
 }
 
 //-----------------------------------------------------------------------------
@@ -88,28 +88,28 @@ bool matmul_mat_cmp(
 void matmul_mat_print(
     TIdx const m, TIdx const n,
     TElem const * const MATMUL_RESTRICT A, TIdx const lda,
-    char * const pElemSeperator, char * const pRowSeperator,
-    char * const pDimBegin, char * const pDimEnd)
+    char * const elemSeperator, char * const rowSeperator,
+    char * const dimBegin, char * const dimEnd)
 {
-    printf("%s", pDimBegin);
+    printf("%s", dimBegin);
     for(TIdx i = 0; i < m; ++i)
     {
         if(i>0)
         {
-            printf("%s", pRowSeperator);
+            printf("%s", rowSeperator);
         }
-        printf("%s", pDimBegin);
+        printf("%s", dimBegin);
         for(TIdx j = 0; j < n; ++j)
         {
             if(j>0)
             {
-                printf("%s", pElemSeperator);
+                printf("%s", elemSeperator);
             }
             printf("%f", A[i*lda+j]);
         }
-        printf("%s", pDimEnd);
+        printf("%s", dimEnd);
     }
-    printf("%s", pDimEnd);
+    printf("%s", dimEnd);
 }
 //-----------------------------------------------------------------------------
 //
@@ -211,13 +211,13 @@ void matmul_mat_copy(
 void matmul_mat_row_major_to_mat_x_block_major(
     TElem const * const MATMUL_RESTRICT pSrcMat, TIdx const m, TIdx const n, TIdx const lds,
     TElem * MATMUL_RESTRICT pBlockMajorMat, TIdx const b,
-    bool const bColumnFirst)
+    bool const columnFirst)
 {
     assert(n == m);
     assert(n % b == 0);
 
     TIdx const q = n / b;
-    if(bColumnFirst)
+    if(columnFirst)
     {
         for(TIdx j = 0; j < q; ++j)
         {
@@ -247,13 +247,13 @@ void matmul_mat_row_major_to_mat_x_block_major(
 void matmul_mat_x_block_major_to_mat_row_major(
     TElem const * MATMUL_RESTRICT pBlockMajorMat, TIdx const b,
     TElem * const MATMUL_RESTRICT pDstMat, TIdx const m, TIdx const n, TIdx const ldd,
-    bool const bColumnFirst)
+    bool const columnFirst)
 {
     assert(n == m);
     assert(n % b == 0);
 
     TIdx const q = n / b;
-    if(bColumnFirst)
+    if(columnFirst)
     {
         for(TIdx j = 0; j < q; j++)
         {
@@ -282,25 +282,25 @@ void matmul_mat_x_block_major_to_mat_row_major(
 //-----------------------------------------------------------------------------
 void matmul_mat_get_block(
     TElem const * const MATMUL_RESTRICT pSrcMat, TIdx const lds,
-    TIdx const uiBlockIdxHorizontal,
-    TIdx const uiBlockIdxVertical,
+    TIdx const blockIdxHorizontal,
+    TIdx const blockIdxVertical,
     TElem * const MATMUL_RESTRICT pDstBlock, TIdx const b)
 {
-    TIdx const uiBlockOffsetHorizontal = uiBlockIdxHorizontal * b;
-    TIdx const uiBlockOffsetVertical = uiBlockIdxVertical * b;
+    TIdx const blockOffsetHorizontal = blockIdxHorizontal * b;
+    TIdx const blockOffsetVertical = blockIdxVertical * b;
 
     // Reorder the block of the input so that it is laying linearly in memory.
     for(TIdx i = 0; i < b; ++i)
     {
-        TIdx const uiOffsetVerticalLocal = i*b;
-        TIdx const uiOffsetVerticalGlobal = (uiBlockOffsetVertical + i) * lds;
-        TIdx const uiOffsetBlockRowGlobal = uiOffsetVerticalGlobal + uiBlockOffsetHorizontal;
+        TIdx const offsetVerticalLocal = i*b;
+        TIdx const offsetVerticalGlobal = (blockOffsetVertical + i) * lds;
+        TIdx const offsetBlockRowGlobal = offsetVerticalGlobal + blockOffsetHorizontal;
         for(TIdx j = 0; j < b; ++j)
         {
-            TIdx const uiOffsetLocal = uiOffsetVerticalLocal + j;
-            TIdx const uiOffsetGlobal = uiOffsetBlockRowGlobal + j;
+            TIdx const offsetLocal = offsetVerticalLocal + j;
+            TIdx const offsetGlobal = offsetBlockRowGlobal + j;
 
-            pDstBlock[uiOffsetLocal] = pSrcMat[uiOffsetGlobal];
+            pDstBlock[offsetLocal] = pSrcMat[offsetGlobal];
         }
     }
 }
@@ -311,24 +311,24 @@ void matmul_mat_get_block(
 void matmul_mat_set_block(
     TElem const * const MATMUL_RESTRICT pSrcBlock, TIdx const b,
     TElem * const MATMUL_RESTRICT pDstMat, TIdx const ldd,
-    TIdx const uiBlockIdxHorizontal,
-    TIdx const uiBlockIdxVertical)
+    TIdx const blockIdxHorizontal,
+    TIdx const blockIdxVertical)
 {
-    TIdx const uiBlockOffsetHorizontal = uiBlockIdxHorizontal * b;
-    TIdx const uiBlockOffsetVertical = uiBlockIdxVertical * b;
+    TIdx const blockOffsetHorizontal = blockIdxHorizontal * b;
+    TIdx const blockOffsetVertical = blockIdxVertical * b;
 
     // Reorder the block of the input so that it is laying linearly in memory.
     for(TIdx i = 0; i < b; ++i)
     {
-        TIdx const uiOffsetVerticalLocal = i*b;
-        TIdx const uiOffsetVerticalGlobal = (uiBlockOffsetVertical + i) * ldd;
-        TIdx const uiOffsetBlockRowGlobal = uiOffsetVerticalGlobal + uiBlockOffsetHorizontal;
+        TIdx const offsetVerticalLocal = i*b;
+        TIdx const offsetVerticalGlobal = (blockOffsetVertical + i) * ldd;
+        TIdx const offsetBlockRowGlobal = offsetVerticalGlobal + blockOffsetHorizontal;
         for(TIdx j = 0; j < b; ++j)
         {
-            TIdx const uiOffsetLocal = uiOffsetVerticalLocal + j;
-            TIdx const uiOffsetGlobal = uiOffsetBlockRowGlobal + j;
+            TIdx const offsetLocal = offsetVerticalLocal + j;
+            TIdx const offsetGlobal = offsetBlockRowGlobal + j;
 
-            pDstMat[uiOffsetGlobal] = pSrcBlock[uiOffsetLocal];
+            pDstMat[offsetGlobal] = pSrcBlock[offsetLocal];
         }
     }
 }

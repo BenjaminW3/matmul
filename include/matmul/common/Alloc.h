@@ -30,14 +30,14 @@
 //-----------------------------------------------------------------------------
 //! Tries to allocate the memory on 64 Byte boundary if the operating system allows this.
 //! \return A array of random values of the given type.
-//! \param uiNumElements The number of elements in the matrix.
+//! \param elemCount The number of elements in the matrix.
 //-----------------------------------------------------------------------------
 TElem * matmul_arr_alloc(
-    TIdx const uiNumBytes);
+    TIdx const numBytes);
 
 //-----------------------------------------------------------------------------
 //! \return A array of random values of the given type.
-//! \param uiNumElements The number of elements in the matrix.
+//! \param elemCount The number of elements in the matrix.
 //-----------------------------------------------------------------------------
 void matmul_arr_free(
     TElem * const MATMUL_RESTRICT ptr);

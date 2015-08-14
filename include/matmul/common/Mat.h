@@ -44,7 +44,7 @@
         TIdx const m, TIdx const n,
         TElem const * const MATMUL_RESTRICT A, TIdx const lda,
         TElem const * const MATMUL_RESTRICT B, TIdx const ldb,
-        TElem const fErrorThreshold);
+        TElem const errorThreshold);
 
     //-----------------------------------------------------------------------------
     //! Prints the matrix to the console.
@@ -57,8 +57,8 @@
     void matmul_mat_print(
         TIdx const m, TIdx const n,
         TElem const * const MATMUL_RESTRICT A, TIdx const lda,
-        char * const pElemSeperator, char * const pRowSeperator,
-        char * const pDimBegin, char * const pDimEnd);
+        char * const elemSeperator, char * const rowSeperator,
+        char * const dimBegin, char * const dimEnd);
     //-----------------------------------------------------------------------------
     //! Prints the matrix to the console.
     //!
@@ -150,15 +150,15 @@
     //! \param m The number of rows of the source matrix.
     //! \param n The number of columns of the source matrix.
     //! \param lds The leading dimension of the source matrix.
-    //! \param pBlockMajorMat 1D array containing the blocks of pSrcMat sequentialized row or column major depending on bColumnFirst.
+    //! \param pBlockMajorMat 1D array containing the blocks of pSrcMat sequentialized row or column major depending on columnFirst.
     //! \param b The block size.
-    //! \param bColumnFirst    If bColumnFirst is true the matrix is stored as:    1  2  5  6  3  4  7  8  9 10 13 14 11 12 15 16.
-    //!                        If bColumnFirst is false the matrix is stored as:    1  2  5  6  9 10 13 14 3  4  7  8  11 12 15 16.
+    //! \param columnFirst    If columnFirst is true the matrix is stored as:    1  2  5  6  3  4  7  8  9 10 13 14 11 12 15 16.
+    //!                        If columnFirst is false the matrix is stored as:    1  2  5  6  9 10 13 14 3  4  7  8  11 12 15 16.
     //-----------------------------------------------------------------------------
     void matmul_mat_row_major_to_mat_x_block_major(
         TElem const * const MATMUL_RESTRICT pSrcMat, TIdx const m, TIdx const n, TIdx const lds,
         TElem * MATMUL_RESTRICT pBlockMajorMat, TIdx const b,
-        bool const bColumnFirst);
+        bool const columnFirst);
 
     //-----------------------------------------------------------------------------
     // Rearrange the matrix so that blocks are continous for scatter.
@@ -175,26 +175,26 @@
     //! \param m The number of rows of the destination matrix.
     //! \param n The number of columns of the destination matrix.
     //! \param ldd The leading dimension of the destination matrix.
-    //! \param bColumnFirst    If bColumnFirst is true the matrix is stored as:    1  2  5  6  3  4  7  8  9 10 13 14 11 12 15 16.
-    //!                        If bColumnFirst is false the matrix is stored as:    1  2  5  6  9 10 13 14 3  4  7  8  11 12 15 16.
+    //! \param columnFirst    If columnFirst is true the matrix is stored as:    1  2  5  6  3  4  7  8  9 10 13 14 11 12 15 16.
+    //!                        If columnFirst is false the matrix is stored as:    1  2  5  6  9 10 13 14 3  4  7  8  11 12 15 16.
     //-----------------------------------------------------------------------------
     void matmul_mat_x_block_major_to_mat_row_major(
         TElem const * MATMUL_RESTRICT pBlockMajorMat, TIdx const b,
         TElem * const MATMUL_RESTRICT pDstMat, TIdx const m, TIdx const n, TIdx const ldd,
-        bool const bColumnFirst);
+        bool const columnFirst);
 
     //-----------------------------------------------------------------------------
     //! \param pSrcMat The block to copy.
     //! \param lds The leading destination of the source matrix (pSrcMat).
-    //! \param uiBlockIdxHorizontal The horizontal destination block index inside source matrix.
-    //! \param uiBlockIdxVertical The vertical destination block index inside source matrix.
+    //! \param blockIdxHorizontal The horizontal destination block index inside source matrix.
+    //! \param blockIdxVertical The vertical destination block index inside source matrix.
     //! \param pDstBlock The destination matrix to copy into.
     //! \param b The block size. This is the size of pDstBlock.
     //-----------------------------------------------------------------------------
     void matmul_mat_get_block(
         TElem const * const MATMUL_RESTRICT pSrcMat, TIdx const lds,
-        TIdx const uiBlockIdxHorizontal,
-        TIdx const uiBlockIdxVertical,
+        TIdx const blockIdxHorizontal,
+        TIdx const blockIdxVertical,
         TElem * const MATMUL_RESTRICT pDstBlock, TIdx const b);
 
     //-----------------------------------------------------------------------------
@@ -202,14 +202,14 @@
     //! \param b The block size. This is the size of pSrcBlock.
     //! \param pDstBlock The destination matrix to copy into.
     //! \param ldd The leading destination of the destination matrix (pDstBlock).
-    //! \param uiBlockIdxHorizontal The horizontal destination block index inside destination matrix.
-    //! \param uiBlockIdxVertical The vertical destination block index inside destination matrix.
+    //! \param blockIdxHorizontal The horizontal destination block index inside destination matrix.
+    //! \param blockIdxVertical The vertical destination block index inside destination matrix.
     //-----------------------------------------------------------------------------
     void matmul_mat_set_block(
         TElem const * const MATMUL_RESTRICT pSrcBlock, TIdx const b,
         TElem * const MATMUL_RESTRICT pDstMat, TIdx const ldd,
-        TIdx const uiBlockIdxHorizontal,
-        TIdx const uiBlockIdxVertical);
+        TIdx const blockIdxHorizontal,
+        TIdx const blockIdxVertical);
 #ifdef __cplusplus
     }
 #endif

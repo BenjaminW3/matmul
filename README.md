@@ -14,7 +14,7 @@ Software License
 Available Implementations
 -------------------------
 
-* Sequential:
+* Sequential
   * Basic (3 nested loops ijk)
   * Basic Algorithm with a Single Optimization:
     * Pointer Instead of Index
@@ -23,13 +23,13 @@ Available Implementations
     * Index Precalculation
     * Loop Unrolling (4, 8, 16)
     * Loop Blocking/Tiling
-  * With Multiple Optimizations:
+  * With Multiple Optimizations
     * restrict + Loop Reordering + Blocking
     * restrict + Loop Reordering
   * Strassen algorithm
 
-* Parallel:
-  * OpenMP 2.0:
+* Parallel
+  * OpenMP 2.0
     * guided schedule
     * static schedule
     * Offload to Intel XeonPhi
@@ -49,6 +49,7 @@ Available Implementations
         * with memory copy
         * without memory copy
   * [alpaka](https://github.com/ComputationalRadiationPhysics/alpaka)
+    * Sequential
     * CUDA
       * with memory copy
       * without memory copy
@@ -56,14 +57,14 @@ Available Implementations
     * OpenMP 4.0 (Host only)
     * std::thread
     * Boost.Fiber
-  * BLAS:
+  * BLAS
     * MKL
     * MKL Offload to Intel XeonPhi
     * cuBLAS2
       * with memory copy
       * without memory copy
-  * MPI:
-    * Cannon Algorithm:
+  * MPI
+    * Cannon Algorithm
       * Optimized Sequential per Node
         * Blocking Communication
         * Non-Blocking Communication

@@ -41,7 +41,7 @@
         TElem const * const MATMUL_RESTRICT B, TIdx const ldb,
         TElem const beta,
         TElem * const MATMUL_RESTRICT C, TIdx const ldc,
-        void(*pMatMul)(TIdx const, TIdx const, TIdx const, TElem const, TElem const * const, TIdx const, TElem const * const, TIdx const, TElem const, TElem * const, TIdx const))
+        void(*pGemm)(TIdx const, TIdx const, TIdx const, TElem const, TElem const * const, TIdx const, TElem const * const, TIdx const, TElem const, TElem * const, TIdx const))
     {
         if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
         {
@@ -50,19 +50,19 @@
 
         MATMUL_CUDA_RT_CHECK(cudaSetDevice(0));
 
-        TIdx const uiBytesA = lda*m*sizeof(TElem);
-        TIdx const uiBytesB = ldb*k*sizeof(TElem);
-        TIdx const uiBytesC = ldc*m*sizeof(TElem);
+        TIdx const bytesA = lda*m*sizeof(TElem);
+        TIdx const bytesB = ldb*k*sizeof(TElem);
+        TIdx const bytesC = ldc*m*sizeof(TElem);
 
         TElem *pADev, *pBDev, *pCDev;
-        MATMUL_CUDA_RT_CHECK(cudaMalloc((void **)&pADev, uiBytesA));
-        MATMUL_CUDA_RT_CHECK(cudaMemcpy(pADev, A, uiBytesA, cudaMemcpyHostToDevice));
-        MATMUL_CUDA_RT_CHECK(cudaMalloc((void **)&pBDev, uiBytesB));
-        MATMUL_CUDA_RT_CHECK(cudaMemcpy(pBDev, B, uiBytesB, cudaMemcpyHostToDevice));
-        MATMUL_CUDA_RT_CHECK(cudaMalloc((void **)&pCDev, uiBytesC));
-        MATMUL_CUDA_RT_CHECK(cudaMemcpy(pCDev, C, uiBytesC, cudaMemcpyHostToDevice));
+        MATMUL_CUDA_RT_CHECK(cudaMalloc((void **)&pADev, bytesA));
+        MATMUL_CUDA_RT_CHECK(cudaMemcpy(pADev, A, bytesA, cudaMemcpyHostToDevice));
+        MATMUL_CUDA_RT_CHECK(cudaMalloc((void **)&pBDev, bytesB));
+        MATMUL_CUDA_RT_CHECK(cudaMemcpy(pBDev, B, bytesB, cudaMemcpyHostToDevice));
+        MATMUL_CUDA_RT_CHECK(cudaMalloc((void **)&pCDev, bytesC));
+        MATMUL_CUDA_RT_CHECK(cudaMemcpy(pCDev, C, bytesC, cudaMemcpyHostToDevice));
 
-        pMatMul(
+        pGemm(
             m, n, k,
             alpha,
             pADev, lda,
@@ -70,7 +70,7 @@
             beta,
             pCDev, ldc);
 
-        MATMUL_CUDA_RT_CHECK(cudaMemcpy(C, pCDev, uiBytesC, cudaMemcpyDeviceToHost));
+        MATMUL_CUDA_RT_CHECK(cudaMemcpy(C, pCDev, bytesC, cudaMemcpyDeviceToHost));
 
         cudaFree(pADev);
         cudaFree(pBDev);
@@ -86,7 +86,7 @@
         TElem const * const MATMUL_RESTRICT B, TIdx const ldb,
         TElem const beta,
         TElem * const MATMUL_RESTRICT C, TIdx const ldc,
-        void(*pMatMul)(TIdx const, TIdx const, TIdx const, TElem const, TElem const * const, TIdx const, TElem const * const, TIdx const, TElem const, TElem * const, TIdx const))
+        void(*pGemm)(TIdx const, TIdx const, TIdx const, TElem const, TElem const * const, TIdx const, TElem const * const, TIdx const, TElem const, TElem * const, TIdx const))
     {
         if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
         {
@@ -95,34 +95,34 @@
 
         MATMUL_CUDA_RT_CHECK(cudaSetDevice(0));
 
-        size_t uiPitchBytesADev = 0;
-        size_t uiPitchBytesBDev = 0;
-        size_t uiPitchBytesCDev = 0;
-        size_t const uHeightBytesA = m;
-        size_t const uiWidthBytesA = k*sizeof(TElem);
-        size_t const uHeightBytesB = k;
-        size_t const uiWidthBytesB = n*sizeof(TElem);
-        size_t const uHeightBytesC = m;
-        size_t const uiWidthBytesC = n*sizeof(TElem);
+        size_t pitchBytesADev = 0;
+        size_t pitchBytesBDev = 0;
+        size_t pitchBytesCDev = 0;
+        size_t const heightBytesA = m;
+        size_t const widthBytesA = k*sizeof(TElem);
+        size_t const heightBytesB = k;
+        size_t const widthBytesB = n*sizeof(TElem);
+        size_t const heightBytesC = m;
+        size_t const widthBytesC = n*sizeof(TElem);
         TElem * pADev = 0;
         TElem * pBDev = 0;
         TElem * pCDev = 0;
-        MATMUL_CUDA_RT_CHECK(cudaMallocPitch((void **)&pADev, &uiPitchBytesADev, uiWidthBytesA, uHeightBytesA));
-        MATMUL_CUDA_RT_CHECK(cudaMemcpy2D(pADev, uiPitchBytesADev, A, lda * sizeof(TElem), uiWidthBytesA, uHeightBytesA, cudaMemcpyHostToDevice));
-        MATMUL_CUDA_RT_CHECK(cudaMallocPitch((void **)&pBDev, &uiPitchBytesBDev, uiWidthBytesB, uHeightBytesB));
-        MATMUL_CUDA_RT_CHECK(cudaMemcpy2D(pBDev, uiPitchBytesBDev, B, ldb * sizeof(TElem), uiWidthBytesB, uHeightBytesB, cudaMemcpyHostToDevice));
-        MATMUL_CUDA_RT_CHECK(cudaMallocPitch((void **)&pCDev, &uiPitchBytesCDev, uiWidthBytesC, uHeightBytesC));
-        MATMUL_CUDA_RT_CHECK(cudaMemcpy2D(pCDev, uiPitchBytesCDev, C, ldc * sizeof(TElem), uiWidthBytesC, uHeightBytesC, cudaMemcpyHostToDevice));
+        MATMUL_CUDA_RT_CHECK(cudaMallocPitch((void **)&pADev, &pitchBytesADev, widthBytesA, heightBytesA));
+        MATMUL_CUDA_RT_CHECK(cudaMemcpy2D(pADev, pitchBytesADev, A, lda * sizeof(TElem), widthBytesA, heightBytesA, cudaMemcpyHostToDevice));
+        MATMUL_CUDA_RT_CHECK(cudaMallocPitch((void **)&pBDev, &pitchBytesBDev, widthBytesB, heightBytesB));
+        MATMUL_CUDA_RT_CHECK(cudaMemcpy2D(pBDev, pitchBytesBDev, B, ldb * sizeof(TElem), widthBytesB, heightBytesB, cudaMemcpyHostToDevice));
+        MATMUL_CUDA_RT_CHECK(cudaMallocPitch((void **)&pCDev, &pitchBytesCDev, widthBytesC, heightBytesC));
+        MATMUL_CUDA_RT_CHECK(cudaMemcpy2D(pCDev, pitchBytesCDev, C, ldc * sizeof(TElem), widthBytesC, heightBytesC, cudaMemcpyHostToDevice));
 
-        pMatMul(
+        pGemm(
             m, n, k,
             alpha,
-            pADev, static_cast<TIdx>(uiPitchBytesADev / sizeof(TElem)),
-            pBDev, static_cast<TIdx>(uiPitchBytesBDev / sizeof(TElem)),
+            pADev, static_cast<TIdx>(pitchBytesADev / sizeof(TElem)),
+            pBDev, static_cast<TIdx>(pitchBytesBDev / sizeof(TElem)),
             beta,
-            pCDev, static_cast<TIdx>(uiPitchBytesCDev / sizeof(TElem)));
+            pCDev, static_cast<TIdx>(pitchBytesCDev / sizeof(TElem)));
 
-        MATMUL_CUDA_RT_CHECK(cudaMemcpy2D(C, ldc * sizeof(TElem), pCDev, uiPitchBytesCDev, uiWidthBytesC, uHeightBytesC, cudaMemcpyDeviceToHost));
+        MATMUL_CUDA_RT_CHECK(cudaMemcpy2D(C, ldc * sizeof(TElem), pCDev, pitchBytesCDev, widthBytesC, heightBytesC, cudaMemcpyDeviceToHost));
 
         cudaFree(pADev);
         cudaFree(pBDev);
