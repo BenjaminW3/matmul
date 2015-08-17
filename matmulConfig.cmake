@@ -94,6 +94,11 @@ IF(MATMUL_ALIGNED_MALLOC)
     LIST(APPEND _MATMUL_COMPILE_DEFINITIONS_PUBLIC "MATMUL_ALIGNED_MALLOC")
 ENDIF()
 
+OPTION(MATMUL_RETURN_COMPUTATION_TIME "If this is defined, the functions return the time needed for the computation itself omitting initialization and shutdown (if possible)." ON)
+IF(MATMUL_RETURN_COMPUTATION_TIME)
+    LIST(APPEND _MATMUL_COMPILE_DEFINITIONS_PUBLIC "MATMUL_RETURN_COMPUTATION_TIME")
+ENDIF()
+
 #-------------------------------------------------------------------------------
 # Add definitions and dependencies.
 #-------------------------------------------------------------------------------

@@ -23,7 +23,7 @@
 
 #if defined(MATMUL_BUILD_PAR_ALPAKA_ACC_CPU_B_SEQ_T_SEQ) || defined(MATMUL_BUILD_PAR_ALPAKA_ACC_GPU_CUDA) || defined(MATMUL_BUILD_PAR_ALPAKA_ACC_GPU_CUDA_MEMCPY) || defined(MATMUL_BUILD_PAR_ALPAKA_ACC_CPU_B_OMP2_T_SEQ) || defined(MATMUL_BUILD_PAR_ALPAKA_ACC_CPU_B_SEQ_T_OMP2) || defined(MATMUL_BUILD_PAR_ALPAKA_ACC_CPU_BT_OMP4) || defined(MATMUL_BUILD_PAR_ALPAKA_ACC_CPU_B_SEQ_T_THREADS) || defined(MATMUL_BUILD_PAR_ALPAKA_ACC_CPU_B_SEQ_T_FIBERS)
 
-    #include <matmul/common/Config.h>   // TElem, TIdx
+    #include <matmul/common/Config.h>   // TElem, TIdx, TReturn
 
     #ifdef __cplusplus
         extern "C"
@@ -45,7 +45,7 @@
         //! \param C Array, size ldc-by-n. The leading m-by-n part of the array must contain the matrix C.
         //! \param ldc Specifies the leading dimension of C.
         //-----------------------------------------------------------------------------
-        void matmul_gemm_seq_alpaka_cpu_b_seq_t_seq(
+        TReturn matmul_gemm_seq_alpaka_cpu_b_seq_t_seq(
             TIdx const m, TIdx const n, TIdx const k,
             TElem const alpha,
             TElem const * const MATMUL_RESTRICT A, TIdx const lda,
@@ -69,7 +69,7 @@
         //! \param C Array, size ldc-by-n. The leading m-by-n part of the array must contain the matrix C.
         //! \param ldc Specifies the leading dimension of C.
         //-----------------------------------------------------------------------------
-        void matmul_gemm_par_alpaka_cpu_b_omp2_t_seq(
+        TReturn matmul_gemm_par_alpaka_cpu_b_omp2_t_seq(
             TIdx const m, TIdx const n, TIdx const k,
             TElem const alpha,
             TElem const * const MATMUL_RESTRICT A, TIdx const lda,
@@ -93,7 +93,7 @@
         //! \param C Array, size ldc-by-n. The leading m-by-n part of the array must contain the matrix C.
         //! \param ldc Specifies the leading dimension of C.
         //-----------------------------------------------------------------------------
-        void matmul_gemm_par_alpaka_cpu_b_seq_t_omp2(
+        TReturn matmul_gemm_par_alpaka_cpu_b_seq_t_omp2(
             TIdx const m, TIdx const n, TIdx const k,
             TElem const alpha,
             TElem const * const MATMUL_RESTRICT A, TIdx const lda,
@@ -117,7 +117,7 @@
         //! \param C Array, size ldc-by-n. The leading m-by-n part of the array must contain the matrix C.
         //! \param ldc Specifies the leading dimension of C.
         //-----------------------------------------------------------------------------
-        void matmul_gemm_par_alpaka_cpu_bt_omp4(
+        TReturn matmul_gemm_par_alpaka_cpu_bt_omp4(
             TIdx const m, TIdx const n, TIdx const k,
             TElem const alpha,
             TElem const * const MATMUL_RESTRICT A, TIdx const lda,
@@ -141,7 +141,7 @@
         //! \param C Array, size ldc-by-n. The leading m-by-n part of the array must contain the matrix C.
         //! \param ldc Specifies the leading dimension of C.
         //-----------------------------------------------------------------------------
-        void matmul_gemm_par_alpaka_cpu_b_seq_t_threads(
+        TReturn matmul_gemm_par_alpaka_cpu_b_seq_t_threads(
             TIdx const m, TIdx const n, TIdx const k,
             TElem const alpha,
             TElem const * const MATMUL_RESTRICT A, TIdx const lda,
@@ -165,7 +165,7 @@
         //! \param C Array, size ldc-by-n. The leading m-by-n part of the array must contain the matrix C.
         //! \param ldc Specifies the leading dimension of C.
         //-----------------------------------------------------------------------------
-        void matmul_gemm_seq_alpaka_cpu_b_seq_t_fibers(
+        TReturn matmul_gemm_seq_alpaka_cpu_b_seq_t_fibers(
             TIdx const m, TIdx const n, TIdx const k,
             TElem const alpha,
             TElem const * const MATMUL_RESTRICT A, TIdx const lda,
@@ -189,7 +189,7 @@
         //! \param C Array, size ldc-by-n. The leading m-by-n part of the array must contain the matrix C.
         //! \param ldc Specifies the leading dimension of C.
         //-----------------------------------------------------------------------------
-        void matmul_gemm_par_alpaka_gpu_cuda(
+        TReturn matmul_gemm_par_alpaka_gpu_cuda(
             TIdx const m, TIdx const n, TIdx const k,
             TElem const alpha,
             TElem const * const MATMUL_RESTRICT A, TIdx const lda,
@@ -213,7 +213,7 @@
         //! \param C Array, size ldc-by-n. The leading m-by-n part of the array must contain the matrix C.
         //! \param ldc Specifies the leading dimension of C.
         //-----------------------------------------------------------------------------
-        void matmul_gemm_par_alpaka_gpu_cuda_memcpy(
+        TReturn matmul_gemm_par_alpaka_gpu_cuda_memcpy(
             TIdx const m, TIdx const n, TIdx const k,
             TElem const alpha,
             TElem const * const MATMUL_RESTRICT A, TIdx const lda,

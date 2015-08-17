@@ -23,7 +23,7 @@
 
 #ifdef MATMUL_BUILD_SEQ_BASIC
 
-    #include <matmul/common/Config.h>   // TElem, TIdx
+    #include <matmul/common/Config.h>   // TElem, TIdx, TReturn
 
     #ifdef __cplusplus
         extern "C"
@@ -44,7 +44,7 @@
     //! \param C Array, size ldc-by-n. The leading m-by-n part of the array must contain the matrix C.
     //! \param ldc Specifies the leading dimension of C.
     //-----------------------------------------------------------------------------
-    void matmul_gemm_seq_basic(
+    TReturn matmul_gemm_seq_basic(
         TIdx const m, TIdx const n, TIdx const k,
         TElem const alpha,
         TElem const * const A, TIdx const lda,

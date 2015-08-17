@@ -41,3 +41,4 @@
 #include <matmul/common/Array.h>
 #include <matmul/common/Config.h>
 #include <matmul/common/Mat.h>
+#include <matmul/common/Time.h>

@@ -28,7 +28,7 @@
     //-----------------------------------------------------------------------------
     //
     //-----------------------------------------------------------------------------
-    void matmul_gemm_seq_basic(
+    TReturn matmul_gemm_seq_basic(
         TIdx const m, TIdx const n, TIdx const k,
         TElem const alpha,
         TElem const * const A, TIdx const lda,
@@ -38,8 +38,10 @@
     {
         if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
         {
-            return;
+            MATMUL_TIME_RETURN_EARLY_OUT;
         }
+
+        MATMUL_TIME_START;
 
         for(TIdx i = 0; i < m; ++i)
         {
@@ -52,5 +54,8 @@
                 }
             }
         }
+
+        MATMUL_TIME_END;
+        MATMUL_TIME_RETURN;
     }
 #endif

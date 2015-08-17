@@ -34,18 +34,18 @@
     //-----------------------------------------------------------------------------
     //
     //-----------------------------------------------------------------------------
-    void matmul_gemm_wrap_memcpy_host_cuda(
+    TReturn matmul_gemm_wrap_memcpy_host_cuda(
         TIdx const m, TIdx const n, TIdx const k,
         TElem const alpha,
         TElem const * const MATMUL_RESTRICT A, TIdx const lda,
         TElem const * const MATMUL_RESTRICT B, TIdx const ldb,
         TElem const beta,
         TElem * const MATMUL_RESTRICT C, TIdx const ldc,
-        void(*pGemm)(TIdx const, TIdx const, TIdx const, TElem const, TElem const * const, TIdx const, TElem const * const, TIdx const, TElem const, TElem * const, TIdx const))
+        TReturn(*pGemm)(TIdx const, TIdx const, TIdx const, TElem const, TElem const * const, TIdx const, TElem const * const, TIdx const, TElem const, TElem * const, TIdx const))
     {
         if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
         {
-            return;
+            MATMUL_TIME_RETURN_EARLY_OUT;
         }
 
         MATMUL_CUDA_RT_CHECK(cudaSetDevice(0));
@@ -62,35 +62,38 @@
         MATMUL_CUDA_RT_CHECK(cudaMalloc((void **)&pCDev, bytesC));
         MATMUL_CUDA_RT_CHECK(cudaMemcpy(pCDev, C, bytesC, cudaMemcpyHostToDevice));
 
-        pGemm(
-            m, n, k,
-            alpha,
-            pADev, lda,
-            pBDev, ldb,
-            beta,
-            pCDev, ldc);
+        MATMUL_TIME_STORE
+            pGemm(
+                m, n, k,
+                alpha,
+                pADev, lda,
+                pBDev, ldb,
+                beta,
+                pCDev, ldc);
 
         MATMUL_CUDA_RT_CHECK(cudaMemcpy(C, pCDev, bytesC, cudaMemcpyDeviceToHost));
 
         cudaFree(pADev);
         cudaFree(pBDev);
         cudaFree(pCDev);
+
+        MATMUL_TIME_RETURN;
     }
     //-----------------------------------------------------------------------------
     //
     //-----------------------------------------------------------------------------
-    void matmul_gemm_wrap_memcpy_host_cuda_2d(
+    TReturn matmul_gemm_wrap_memcpy_host_cuda_2d(
         TIdx const m, TIdx const n, TIdx const k,
         TElem const alpha,
         TElem const * const MATMUL_RESTRICT A, TIdx const lda,
         TElem const * const MATMUL_RESTRICT B, TIdx const ldb,
         TElem const beta,
         TElem * const MATMUL_RESTRICT C, TIdx const ldc,
-        void(*pGemm)(TIdx const, TIdx const, TIdx const, TElem const, TElem const * const, TIdx const, TElem const * const, TIdx const, TElem const, TElem * const, TIdx const))
+        TReturn(*pGemm)(TIdx const, TIdx const, TIdx const, TElem const, TElem const * const, TIdx const, TElem const * const, TIdx const, TElem const, TElem * const, TIdx const))
     {
         if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
         {
-            return;
+            MATMUL_TIME_RETURN_EARLY_OUT;
         }
 
         MATMUL_CUDA_RT_CHECK(cudaSetDevice(0));
@@ -114,18 +117,21 @@
         MATMUL_CUDA_RT_CHECK(cudaMallocPitch((void **)&pCDev, &pitchBytesCDev, widthBytesC, heightBytesC));
         MATMUL_CUDA_RT_CHECK(cudaMemcpy2D(pCDev, pitchBytesCDev, C, ldc * sizeof(TElem), widthBytesC, heightBytesC, cudaMemcpyHostToDevice));
 
-        pGemm(
-            m, n, k,
-            alpha,
-            pADev, static_cast<TIdx>(pitchBytesADev / sizeof(TElem)),
-            pBDev, static_cast<TIdx>(pitchBytesBDev / sizeof(TElem)),
-            beta,
-            pCDev, static_cast<TIdx>(pitchBytesCDev / sizeof(TElem)));
+        MATMUL_TIME_STORE
+            pGemm(
+                m, n, k,
+                alpha,
+                pADev, static_cast<TIdx>(pitchBytesADev / sizeof(TElem)),
+                pBDev, static_cast<TIdx>(pitchBytesBDev / sizeof(TElem)),
+                beta,
+                pCDev, static_cast<TIdx>(pitchBytesCDev / sizeof(TElem)));
 
         MATMUL_CUDA_RT_CHECK(cudaMemcpy2D(C, ldc * sizeof(TElem), pCDev, pitchBytesCDev, widthBytesC, heightBytesC, cudaMemcpyDeviceToHost));
 
         cudaFree(pADev);
         cudaFree(pBDev);
         cudaFree(pCDev);
+
+        MATMUL_TIME_RETURN;
     }
 #endif

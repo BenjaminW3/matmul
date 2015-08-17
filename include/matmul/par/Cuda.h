@@ -23,7 +23,7 @@
 
 #if defined(MATMUL_BUILD_PAR_CUDA_FIXED_BLOCK_SIZE) || defined(MATMUL_BUILD_PAR_CUDA_MEMCPY_FIXED_BLOCK_SIZE) || defined(MATMUL_BUILD_PAR_CUDA_DYN_BLOCK_SIZE) || defined(MATMUL_BUILD_PAR_CUDA_MEMCPY_DYN_BLOCK_SIZE)
 
-    #include <matmul/common/Config.h>   // TElem, TIdx
+    #include <matmul/common/Config.h>   // TElem, TIdx, TReturn
 
     #ifdef __cplusplus
         extern "C"
@@ -45,7 +45,7 @@
         //! \param C Array, size ldc-by-n. The leading m-by-n part of the array must contain the matrix C.
         //! \param ldc Specifies the leading dimension of C.
         //-----------------------------------------------------------------------------
-        void matmul_gemm_par_cuda_fixed_block_size_2d_static_shared(
+        TReturn matmul_gemm_par_cuda_fixed_block_size_2d_static_shared(
             TIdx const m, TIdx const n, TIdx const k,
             TElem const alpha,
             TElem const * const MATMUL_RESTRICT A, TIdx const lda,
@@ -69,7 +69,7 @@
         //! \param C Array, size ldc-by-n. The leading m-by-n part of the array must contain the matrix C.
         //! \param ldc Specifies the leading dimension of C.
         //-----------------------------------------------------------------------------
-        void matmul_gemm_par_cuda_memcpy_fixed_block_size_2d_static_shared(
+        TReturn matmul_gemm_par_cuda_memcpy_fixed_block_size_2d_static_shared(
             TIdx const m, TIdx const n, TIdx const k,
             TElem const alpha,
             TElem const * const MATMUL_RESTRICT A, TIdx const lda,
@@ -93,7 +93,7 @@
         //! \param C Array, size ldc-by-n. The leading m-by-n part of the array must contain the matrix C.
         //! \param ldc Specifies the leading dimension of C.
         //-----------------------------------------------------------------------------
-        void matmul_gemm_par_cuda_fixed_block_size_1d_static_shared(
+        TReturn matmul_gemm_par_cuda_fixed_block_size_1d_static_shared(
             TIdx const m, TIdx const n, TIdx const k,
             TElem const alpha,
             TElem const * const MATMUL_RESTRICT A, TIdx const lda,
@@ -117,7 +117,7 @@
         //! \param C Array, size ldc-by-n. The leading m-by-n part of the array must contain the matrix C.
         //! \param ldc Specifies the leading dimension of C.
         //-----------------------------------------------------------------------------
-        void matmul_gemm_par_cuda_memcpy_fixed_block_size_1d_static_shared(
+        TReturn matmul_gemm_par_cuda_memcpy_fixed_block_size_1d_static_shared(
             TIdx const m, TIdx const n, TIdx const k,
             TElem const alpha,
             TElem const * const MATMUL_RESTRICT A, TIdx const lda,
@@ -141,7 +141,7 @@
         //! \param C Array, size ldc-by-n. The leading m-by-n part of the array must contain the matrix C.
         //! \param ldc Specifies the leading dimension of C.
         //-----------------------------------------------------------------------------
-        void matmul_gemm_par_cuda_fixed_block_size_1d_extern_shared(
+        TReturn matmul_gemm_par_cuda_fixed_block_size_1d_extern_shared(
             TIdx const m, TIdx const n, TIdx const k,
             TElem const alpha,
             TElem const * const MATMUL_RESTRICT A, TIdx const lda,
@@ -165,7 +165,7 @@
         //! \param C Array, size ldc-by-n. The leading m-by-n part of the array must contain the matrix C.
         //! \param ldc Specifies the leading dimension of C.
         //-----------------------------------------------------------------------------
-        void matmul_gemm_par_cuda_memcpy_fixed_block_size_1d_extern_shared(
+        TReturn matmul_gemm_par_cuda_memcpy_fixed_block_size_1d_extern_shared(
             TIdx const m, TIdx const n, TIdx const k,
             TElem const alpha,
             TElem const * const MATMUL_RESTRICT A, TIdx const lda,
@@ -189,7 +189,7 @@
         //! \param C Array, size ldc-by-n. The leading m-by-n part of the array must contain the matrix C.
         //! \param ldc Specifies the leading dimension of C.
         //-----------------------------------------------------------------------------
-        void matmul_gemm_par_cuda_dyn_block_size_1d_extern_shared(
+        TReturn matmul_gemm_par_cuda_dyn_block_size_1d_extern_shared(
             TIdx const m, TIdx const n, TIdx const k,
             TElem const alpha,
             TElem const * const MATMUL_RESTRICT A, TIdx const lda,
@@ -213,7 +213,7 @@
         //! \param C Array, size ldc-by-n. The leading m-by-n part of the array must contain the matrix C.
         //! \param ldc Specifies the leading dimension of C.
         //-----------------------------------------------------------------------------
-        void matmul_gemm_par_cuda_memcpy_dyn_block_size_1d_extern_shared(
+        TReturn matmul_gemm_par_cuda_memcpy_dyn_block_size_1d_extern_shared(
             TIdx const m, TIdx const n, TIdx const k,
             TElem const alpha,
             TElem const * const MATMUL_RESTRICT A, TIdx const lda,

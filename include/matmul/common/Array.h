@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include <matmul/common/Config.h>   // TElem, TIdx
+#include <matmul/common/Config.h>   // TElem, TIdx, TReturn
 
 #ifdef __cplusplus
     extern "C"

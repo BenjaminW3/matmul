@@ -216,7 +216,7 @@
         TElem const * const MATMUL_RESTRICT B, TIdx const ldb,
         TElem const beta,
         TElem * const MATMUL_RESTRICT C, TIdx const ldc,
-        void(*pGemm)(TIdx const, TIdx const, TIdx const, TElem const, TElem const * const, TIdx const, TElem const * const, TIdx const, TElem const, TElem * const, TIdx const))
+        TReturn(*pGemm)(TIdx const, TIdx const, TIdx const, TElem const, TElem const * const, TIdx const, TElem const * const, TIdx const, TElem const, TElem * const, TIdx const))
     {
         assert(info->commMesh3D);
         assert(info->n>0);
@@ -379,7 +379,7 @@
     //-----------------------------------------------------------------------------
     //
     //-----------------------------------------------------------------------------
-    void matmul_gemm_par_mpi_dns_destroy_topology_info(STopologyInfo * const info)
+    TReturn matmul_gemm_par_mpi_dns_destroy_topology_info(STopologyInfo * const info)
     {
         MPI_Comm_free(&info->commMeshIK);
         MPI_Comm_free(&info->commMeshJK);
@@ -392,47 +392,57 @@
     //-----------------------------------------------------------------------------
     //
     //-----------------------------------------------------------------------------
-    void matmul_gemm_par_mpi_dns_local_algo(
+    TReturn matmul_gemm_par_mpi_dns_algo(
         TIdx const m, TIdx const n, TIdx const k,
         TElem const alpha,
         TElem const * const MATMUL_RESTRICT A, TIdx const lda,
         TElem const * const MATMUL_RESTRICT B, TIdx const ldb,
         TElem const beta,
         TElem * const MATMUL_RESTRICT C, TIdx const ldc,
-        void(*pGemm)(TIdx const, TIdx const, TIdx const, TElem const, TElem const * const, TIdx const, TElem const * const, TIdx const, TElem const, TElem * const, TIdx const))
+        TReturn(*pGemm)(TIdx const, TIdx const, TIdx const, TElem const, TElem const * const, TIdx const, TElem const * const, TIdx const, TElem const, TElem * const, TIdx const))
     {
         if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
         {
-            return;
+            MATMUL_TIME_RETURN_EARLY_OUT;
         }
 
         // \TODO: Implement for non square matrices?
         if((m!=n) || (m!=k))
         {
             printf("[GEMM MPI DNS] Invalid matrix size! The matrices have to be square for the MPI DNS GEMM.\n");
-            return;
+            MATMUL_TIME_RETURN_EARLY_OUT;
         }
 
         // \FIXME: Fix alpha != 1!
         if(alpha!=(TElem)1)
         {
             printf("[GEMM MPI DNS] alpha != 1 currently not implemented.\n");
-            return;
+            MATMUL_TIME_RETURN_EARLY_OUT;
         }
 
         struct STopologyInfo info;
-        if(matmul_gemm_par_mpi_dns_create_topology_info(&info, n))
+        if(!matmul_gemm_par_mpi_dns_create_topology_info(&info, n))
         {
+            MATMUL_TIME_RETURN_EARLY_OUT;
+        }
+        else
+        {
+            MATMUL_TIME_START;
+
             matmul_gemm_par_mpi_dns_local(&info, alpha, A, lda, B, ldb, beta, C, ldc, pGemm);
 
+            MATMUL_TIME_END;
+
             matmul_gemm_par_mpi_dns_destroy_topology_info(&info);
+
+            MATMUL_TIME_RETURN;
         }
     }
 
     //-----------------------------------------------------------------------------
     //
     //-----------------------------------------------------------------------------
-    void matmul_gemm_par_mpi_dns(
+    TReturn matmul_gemm_par_mpi_dns(
         TIdx const m, TIdx const n, TIdx const k,
         TElem const alpha,
         TElem const * const MATMUL_RESTRICT A, TIdx const lda,
@@ -442,16 +452,17 @@
     {
         if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
         {
-            return;
+            MATMUL_TIME_RETURN_EARLY_OUT;
         }
 
-        matmul_gemm_par_mpi_dns_local_algo(
-            m, n, k,
-            alpha,
-            A, lda,
-            B, ldb,
-            beta,
-            C, ldc,
-            matmul_gemm_seq_multiple_opts);
+        return
+            matmul_gemm_par_mpi_dns_algo(
+                m, n, k,
+                alpha,
+                A, lda,
+                B, ldb,
+                beta,
+                C, ldc,
+                matmul_gemm_seq_multiple_opts);
     }
 #endif

@@ -23,7 +23,7 @@
 
 #if defined(MATMUL_BUILD_PAR_MPI_CANNON_STD) || defined(MATMUL_BUILD_PAR_MPI_CANNON_MKL) || defined(MATMUL_BUILD_PAR_MPI_CANNON_CUBLAS)
 
-    #include <matmul/common/Config.h>   // TElem, TIdx
+    #include <matmul/common/Config.h>   // TElem, TIdx, TReturn
 
     #ifdef __cplusplus
         extern "C"
@@ -45,7 +45,7 @@
         //! \param C Array, size ldc-by-n. The leading m-by-n part of the array must contain the matrix C. All processes except root will ignore the value.
         //! \param ldc Specifies the leading dimension of C. All processes except root will ignore the value.
         //-----------------------------------------------------------------------------
-        void matmul_gemm_par_mpi_cannon_block(
+        TReturn matmul_gemm_par_mpi_cannon_block(
             TIdx const m, TIdx const n, TIdx const k,
             TElem const alpha,
             TElem const * const MATMUL_RESTRICT A, TIdx const lda,
@@ -68,7 +68,7 @@
         //! \param C Array, size ldc-by-n. The leading m-by-n part of the array must contain the matrix C. All processes except root will ignore the value.
         //! \param ldc Specifies the leading dimension of C. All processes except root will ignore the value.
         //-----------------------------------------------------------------------------
-        void matmul_gemm_par_mpi_cannon_nonblock(
+        TReturn matmul_gemm_par_mpi_cannon_nonblock(
             TIdx const m, TIdx const n, TIdx const k,
             TElem const alpha,
             TElem const * const MATMUL_RESTRICT A, TIdx const lda,
@@ -92,7 +92,7 @@
         //! \param C Array, size ldc-by-n. The leading m-by-n part of the array must contain the matrix C. All processes except root will ignore the value.
         //! \param ldc Specifies the leading dimension of C. All processes except root will ignore the value.
         //-----------------------------------------------------------------------------
-        void matmul_gemm_par_mpi_cannon_nonblock_blas_mkl(
+        TReturn matmul_gemm_par_mpi_cannon_nonblock_blas_mkl(
             TIdx const m, TIdx const n, TIdx const k,
             TElem const alpha,
             TElem const * const MATMUL_RESTRICT A, TIdx const lda,
@@ -116,7 +116,7 @@
         //! \param C Array, size ldc-by-n. The leading m-by-n part of the array must contain the matrix C. All processes except root will ignore the value.
         //! \param ldc Specifies the leading dimension of C. All processes except root will ignore the value.
         //-----------------------------------------------------------------------------
-        void matmul_gemm_par_mpi_cannon_nonblock_blas_cublas(
+        TReturn matmul_gemm_par_mpi_cannon_nonblock_blas_cublas(
             TIdx const m, TIdx const n, TIdx const k,
             TElem const alpha,
             TElem const * const MATMUL_RESTRICT A, TIdx const lda,

@@ -1,7 +1,7 @@
-matmul - General Matrix Multiplication Library with C Interface
+matmul - Generalized Matrix-Matrix-Multiplication (GEMM) Library with C Interface
 ===============================================================
 
-This repository contains multiple sequential and parallel implementations of the general matrix multiplication GEMM (C = alpha * A * B + beta * C).
+This repository contains multiple sequential and parallel implementations of the generalized matrix-matrix-multiplication GEMM (C = alpha * A * B + beta * C).
 Single and double precision values are supported (compile-time decision).
 
 

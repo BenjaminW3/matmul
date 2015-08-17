@@ -30,7 +30,7 @@
     //-----------------------------------------------------------------------------
     //
     //-----------------------------------------------------------------------------
-    void matmul_gemm_par_openacc_kernels(
+    TReturn matmul_gemm_par_openacc_kernels(
         TIdx const m, TIdx const n, TIdx const k,
         TElem const alpha,
         TElem const * const MATMUL_RESTRICT A, TIdx const lda,
@@ -40,8 +40,10 @@
     {
         if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
         {
-            return;
+            MATMUL_TIME_RETURN_EARLY_OUT;
         }
+
+        MATMUL_TIME_START;
 
 #pragma acc kernels copyin(A[0:(lda*m)], B[0:(ldb*k)]) copy(C[0:(ldc*m)])
         {
@@ -61,12 +63,15 @@
                 }
             }
         }
+
+        MATMUL_TIME_END;
+        MATMUL_TIME_RETURN;
     }
 
     //-----------------------------------------------------------------------------
     //
     //-----------------------------------------------------------------------------
-    void matmul_gemm_par_openacc_parallel(
+    TReturn matmul_gemm_par_openacc_parallel(
         TIdx const m, TIdx const n, TIdx const k,
         TElem const alpha,
         TElem const * const MATMUL_RESTRICT A, TIdx const lda,
@@ -76,8 +81,10 @@
     {
         if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
         {
-            return;
+            MATMUL_TIME_RETURN_EARLY_OUT;
         }
+
+        MATMUL_TIME_START;
 
 #pragma acc parallel copyin(A[0:(lda*m)], B[0:(ldb*k)]) copy(C[0:(ldc*m)])
         {
@@ -96,6 +103,9 @@
                 }
             }
         }
+
+        MATMUL_TIME_END;
+        MATMUL_TIME_RETURN;
     }
 
 #endif

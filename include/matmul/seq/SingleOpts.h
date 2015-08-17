@@ -23,7 +23,7 @@
 
 #ifdef MATMUL_BUILD_SEQ_SINGLE_OPTS
 
-    #include <matmul/common/Config.h>   // TElem, TIdx
+    #include <matmul/common/Config.h>   // TElem, TIdx, TReturn
 
     #ifdef __cplusplus
         extern "C"
@@ -44,7 +44,7 @@
     //! \param C Array, size ldc-by-n. The leading m-by-n part of the array must contain the matrix C.
     //! \param ldc Specifies the leading dimension of C.
     //-----------------------------------------------------------------------------
-    void matmul_gemm_seq_index_pointer(
+    TReturn matmul_gemm_seq_index_pointer(
         TIdx const m, TIdx const n, TIdx const k,
         TElem const alpha,
         TElem const * const A, TIdx const lda,
@@ -67,7 +67,7 @@
     //! \param C Array, size ldc-by-n. The leading m-by-n part of the array must contain the matrix C.
     //! \param ldc Specifies the leading dimension of C.
     //-----------------------------------------------------------------------------
-    void matmul_gemm_seq_restrict(
+    TReturn matmul_gemm_seq_restrict(
         TIdx const m, TIdx const n, TIdx const k,
         TElem const alpha,
         TElem const * const MATMUL_RESTRICT A, TIdx const lda,
@@ -90,7 +90,7 @@
     //! \param C Array, size ldc-by-n. The leading m-by-n part of the array must contain the matrix C.
     //! \param ldc Specifies the leading dimension of C.
     //-----------------------------------------------------------------------------
-    void matmul_gemm_seq_loop_reorder(
+    TReturn matmul_gemm_seq_loop_reorder(
         TIdx const m, TIdx const n, TIdx const k,
         TElem const alpha,
         TElem const * const A, TIdx const lda,
@@ -113,7 +113,7 @@
     //! \param C Array, size ldc-by-n. The leading m-by-n part of the array must contain the matrix C.
     //! \param ldc Specifies the leading dimension of C.
     //-----------------------------------------------------------------------------
-    void matmul_gemm_seq_index_precalculate(
+    TReturn matmul_gemm_seq_index_precalculate(
         TIdx const m, TIdx const n, TIdx const k,
         TElem const alpha,
         TElem const * const A, TIdx const lda,
@@ -136,7 +136,7 @@
     //! \param C Array, size ldc-by-n. The leading m-by-n part of the array must contain the matrix C.
     //! \param ldc Specifies the leading dimension of C.
     //-----------------------------------------------------------------------------
-    void matmul_gemm_seq_loop_unroll_4(
+    TReturn matmul_gemm_seq_loop_unroll_4(
         TIdx const m, TIdx const n, TIdx const k,
         TElem const alpha,
         TElem const * const A, TIdx const lda,
@@ -159,7 +159,7 @@
     //! \param C Array, size ldc-by-n. The leading m-by-n part of the array must contain the matrix C.
     //! \param ldc Specifies the leading dimension of C.
     //-----------------------------------------------------------------------------
-    void matmul_gemm_seq_loop_unroll_8(
+    TReturn matmul_gemm_seq_loop_unroll_8(
         TIdx const m, TIdx const n, TIdx const k,
         TElem const alpha,
         TElem const * const A, TIdx const lda,
@@ -182,7 +182,7 @@
     //! \param C Array, size ldc-by-n. The leading m-by-n part of the array must contain the matrix C.
     //! \param ldc Specifies the leading dimension of C.
     //-----------------------------------------------------------------------------
-    void matmul_gemm_seq_loop_unroll_16(
+    TReturn matmul_gemm_seq_loop_unroll_16(
         TIdx const m, TIdx const n, TIdx const k,
         TElem const alpha,
         TElem const * const A, TIdx const lda,
@@ -205,7 +205,7 @@
     //! \param C Array, size ldc-by-n. The leading m-by-n part of the array must contain the matrix C.
     //! \param ldc Specifies the leading dimension of C.
     //-----------------------------------------------------------------------------
-    void matmul_gemm_seq_block(
+    TReturn matmul_gemm_seq_block(
         TIdx const m, TIdx const n, TIdx const k,
         TElem const alpha,
         TElem const * const A, TIdx const lda,

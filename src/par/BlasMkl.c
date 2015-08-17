@@ -45,7 +45,7 @@
     //-----------------------------------------------------------------------------
     //
     //-----------------------------------------------------------------------------
-    void matmul_gemm_par_blas_mkl(
+    TReturn matmul_gemm_par_blas_mkl(
         TIdx const m, TIdx const n, TIdx const k,
         TElem const alpha,
         TElem const * const MATMUL_RESTRICT A, TIdx const lda,
@@ -55,7 +55,7 @@
     {
         if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
         {
-            return;
+            MATMUL_TIME_RETURN_EARLY_OUT;
         }
 
         CBLAS_ORDER const order = CblasRowMajor;
@@ -70,6 +70,8 @@
 
         // Disable automatic MKL offloading to Xeon Phi.
         mkl_mic_disable();
+        
+        MATMUL_TIME_START;
 
         #ifdef MATMUL_ELEMENT_TYPE_DOUBLE
             cblas_dgemm(
@@ -86,5 +88,8 @@
                 alpha, A, lda_, B, ldb_,    // C = alpha * A * B
                 beta, C, ldc_);            // + beta * C
         #endif
+
+        MATMUL_TIME_END;
+        MATMUL_TIME_RETURN;
     }
 #endif

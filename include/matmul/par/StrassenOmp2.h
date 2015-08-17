@@ -23,7 +23,7 @@
 
 #ifdef MATMUL_BUILD_PAR_STRASSEN_OMP2
 
-    #include <matmul/common/Config.h>   // TElem, TIdx
+    #include <matmul/common/Config.h>   // TElem, TIdx, TReturn
 
     #ifdef __cplusplus
         extern "C"
@@ -113,7 +113,7 @@
         //! http://mathworld.wolfram.com/StrassenFormulas.html
         //! http://en.wikipedia.org/wiki/Strassen_algorithm
         //-----------------------------------------------------------------------------
-        void matmul_gemm_par_strassen_omp2(
+        TReturn matmul_gemm_par_strassen_omp2(
             TIdx const m, TIdx const n, TIdx const k,
             TElem const alpha,
             TElem const * const MATMUL_RESTRICT A, TIdx const lda,

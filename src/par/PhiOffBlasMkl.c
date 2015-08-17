@@ -46,7 +46,7 @@
     //-----------------------------------------------------------------------------
     //
     //-----------------------------------------------------------------------------
-    void matmul_gemm_par_phi_off_blas_mkl(
+    TReturn matmul_gemm_par_phi_off_blas_mkl(
         TIdx const m, TIdx const n, TIdx const k,
         TElem const alpha,
         TElem const * const MATMUL_RESTRICT A, TIdx const lda,
@@ -56,7 +56,7 @@
     {
         if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
         {
-            return;
+            MATMUL_TIME_RETURN_EARLY_OUT;
         }
 
         CBLAS_ORDER const order = CblasRowMajor;
@@ -81,6 +81,8 @@
                 mkl_mic_set_workdivision(MKL_TARGET_MIC, 0, 1.0);
             #endif
 
+            MATMUL_TIME_START;
+
             #ifdef MATMUL_ELEMENT_TYPE_DOUBLE
                 cblas_dgemm(
                     order,
@@ -96,10 +98,14 @@
                     alpha, A, lda_, B, ldb_,    // C = alpha * A * B
                     beta, C, ldc_);             // + beta * C
             #endif
+
+            MATMUL_TIME_END;
+            MATMUL_TIME_RETURN;
         }
         else
         {
             printf("[GEMM Phi Off MKL] mkl_mic_enable() returned error value %d", iError);
+            MATMUL_TIME_RETURN_EARLY_OUT;
         }
     }
 #endif

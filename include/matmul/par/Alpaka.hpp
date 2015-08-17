@@ -335,11 +335,11 @@
             typename TSfinae = void>
         struct StreamType
         {
-#if (MATMUL_DEBUG >= MATMUL_DEBUG_FULL)
+//#if (MATMUL_DEBUG >= MATMUL_DEBUG_FULL)
             using type = alpaka::stream::StreamCpuSync;
-#else
-            using type = alpaka::stream::StreamCpuAsync;
-#endif
+//#else
+//            using type = alpaka::stream::StreamCpuAsync;
+//#endif
         };
 
 #if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) && defined(__CUDACC__)
@@ -371,7 +371,7 @@
     template<
         typename TAcc,
         typename TKernelFnObj>
-    void matmul_gemm_par_alpaka(
+    TReturn matmul_gemm_par_alpaka(
         TIdx const m, TIdx const n, TIdx const k,
         TElem const alpha,
         TElem const * const MATMUL_RESTRICT A, TIdx const lda,
@@ -381,7 +381,7 @@
     {
         if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
         {
-            return;
+            MATMUL_TIME_RETURN_EARLY_OUT;
         }
 
         // Select a device to execute on.
@@ -425,11 +425,16 @@
             reinterpret_cast<TElem *>(C),
             ldc));
 
+        MATMUL_TIME_START;
+
         // Execute the kernel.
         alpaka::stream::enqueue(stream, exec);
 
         // Wait for the stream to finish the operations.
         alpaka::wait::wait(stream);
+
+        MATMUL_TIME_END;
+        MATMUL_TIME_RETURN;
     }
 
     //-----------------------------------------------------------------------------
@@ -438,7 +443,7 @@
     template<
         typename TAcc,
         typename TKernelFnObj>
-    void matmul_gemm_par_alpaka_memcpy(
+    TReturn matmul_gemm_par_alpaka_memcpy(
         TIdx const m, TIdx const n, TIdx const k,
         TElem const alpha,
         TElem const * const MATMUL_RESTRICT A, TIdx const lda,
@@ -448,7 +453,7 @@
     {
         if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
         {
-            return;
+            MATMUL_TIME_RETURN_EARLY_OUT;
         }
 
         // Get the host device.
@@ -528,13 +533,22 @@
             reinterpret_cast<TElem *>(C),
             ldc));
 
+        MATMUL_TIME_START;
+
         // Execute the kernel.
         alpaka::stream::enqueue(stream, exec);
+
+#ifdef MATMUL_RETURN_COMPUTATION_TIME
+        alpaka::wait::wait(stream);
+#endif
+        MATMUL_TIME_END;
 
         // Copy back the result.
         alpaka::mem::view::copy(stream, bufCHost, bufCAcc, v2uiExtentsC);
 
         // Wait for the stream to finish the operations.
         alpaka::wait::wait(stream);
+
+        MATMUL_TIME_RETURN;
     }
 #endif

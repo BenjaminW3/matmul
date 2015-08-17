@@ -35,6 +35,26 @@
 #endif
 
 //-----------------------------------------------------------------------------
+// Return type.
+//-----------------------------------------------------------------------------
+#ifdef MATMUL_RETURN_COMPUTATION_TIME
+    #include <matmul/common/Time.h>
+    typedef double TReturn;
+    #define MATMUL_TIME_START double const matmulTimeStart = getTimeSec()
+    #define MATMUL_TIME_END double const matmulTimeEnd = getTimeSec(); double const matmulTimeDiff = matmulTimeEnd - matmulTimeStart
+    #define MATMUL_TIME_STORE double const matmulTimeDiff =
+    #define MATMUL_TIME_RETURN return matmulTimeDiff
+    #define MATMUL_TIME_RETURN_EARLY_OUT return 0.0
+#else
+    typedef void TReturn;
+    #define MATMUL_TIME_START
+    #define MATMUL_TIME_END
+    #define MATMUL_TIME_STORE
+    #define MATMUL_TIME_RETURN
+    #define MATMUL_TIME_RETURN_EARLY_OUT return;
+#endif
+
+//-----------------------------------------------------------------------------
 // Data type depending definitions.
 //-----------------------------------------------------------------------------
 #ifdef MATMUL_ELEMENT_TYPE_DOUBLE

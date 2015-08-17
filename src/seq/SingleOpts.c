@@ -29,7 +29,7 @@
     // Use explicit pointer access instead of index access that requires multiplication.
     // This prohibits vectorization by the compiler because the pointers are not marked with MATMUL_RESTRICT.
     //-----------------------------------------------------------------------------
-    void matmul_gemm_seq_index_pointer(
+    TReturn matmul_gemm_seq_index_pointer(
         TIdx const m, TIdx const n, TIdx const k,
         TElem const alpha,
         TElem const * const A, TIdx const lda,
@@ -37,10 +37,14 @@
         TElem const beta,
         TElem * const C, TIdx const ldc)
     {
+        double const timeStart = getTimeSec();
+
         if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
         {
-            return;
+            MATMUL_TIME_RETURN_EARLY_OUT;
         }
+
+        MATMUL_TIME_START;
 
         TElem * pCRow = C;
         TElem const * pARow = A;
@@ -63,12 +67,15 @@
                 }
             }
         }
+
+        MATMUL_TIME_END;
+        MATMUL_TIME_RETURN;
     }
 
     //-----------------------------------------------------------------------------
     //
     //-----------------------------------------------------------------------------
-    void matmul_gemm_seq_restrict(
+    TReturn matmul_gemm_seq_restrict(
         TIdx const m, TIdx const n, TIdx const k,
         TElem const alpha,
         TElem const * const MATMUL_RESTRICT A, TIdx const lda,
@@ -76,10 +83,14 @@
         TElem const beta,
         TElem * const MATMUL_RESTRICT C, TIdx const ldc)
     {
+        double const timeStart = getTimeSec();
+
         if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
         {
-            return;
+            MATMUL_TIME_RETURN_EARLY_OUT;
         }
+
+        MATMUL_TIME_START;
 
         for(TIdx i = 0; i < m; ++i)
         {
@@ -93,12 +104,15 @@
                 }
             }
         }
+
+        MATMUL_TIME_END;
+        MATMUL_TIME_RETURN;
     }
 
     //-----------------------------------------------------------------------------
     //
     //-----------------------------------------------------------------------------
-    void matmul_gemm_seq_loop_reorder(
+    TReturn matmul_gemm_seq_loop_reorder(
         TIdx const m, TIdx const n, TIdx const k,
         TElem const alpha,
         TElem const * const A, TIdx const lda,
@@ -106,10 +120,14 @@
         TElem const beta,
         TElem * const C, TIdx const ldc)
     {
+        double const timeStart = getTimeSec();
+
         if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
         {
-            return;
+            MATMUL_TIME_RETURN_EARLY_OUT;
         }
+
+        MATMUL_TIME_START;
 
         for(TIdx i = 0; i < m; ++i)
         {
@@ -129,12 +147,15 @@
                 }
             }
         }
+
+        MATMUL_TIME_END;
+        MATMUL_TIME_RETURN;
     }
 
     //-----------------------------------------------------------------------------
     //
     //-----------------------------------------------------------------------------
-    void matmul_gemm_seq_index_precalculate(
+    TReturn matmul_gemm_seq_index_precalculate(
         TIdx const m, TIdx const n, TIdx const k,
         TElem const alpha,
         TElem const * const A, TIdx const lda,
@@ -142,10 +163,14 @@
         TElem const beta,
         TElem * const C, TIdx const ldc)
     {
+        double const timeStart = getTimeSec();
+
         if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
         {
-            return;
+            MATMUL_TIME_RETURN_EARLY_OUT;
         }
+
+        MATMUL_TIME_START;
 
         for(TIdx i = 0; i < m; ++i)
         {
@@ -164,12 +189,15 @@
                 }
             }
         }
+
+        MATMUL_TIME_END;
+        MATMUL_TIME_RETURN;
     }
 
     //-----------------------------------------------------------------------------
     //
     //-----------------------------------------------------------------------------
-    void matmul_gemm_seq_loop_unroll_4(
+    TReturn matmul_gemm_seq_loop_unroll_4(
         TIdx const m, TIdx const n, TIdx const k,
         TElem const alpha,
         TElem const * const A, TIdx const lda,
@@ -177,10 +205,14 @@
         TElem const beta,
         TElem * const C, TIdx const ldc)
     {
+        double const timeStart = getTimeSec();
+
         if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
         {
-            return;
+            MATMUL_TIME_RETURN_EARLY_OUT;
         }
+
+        MATMUL_TIME_START;
 
         for(TIdx i = 0; i < m; ++i)
         {
@@ -203,12 +235,15 @@
                 }
             }
         }
+
+        MATMUL_TIME_END;
+        MATMUL_TIME_RETURN;
     }
 
     //-----------------------------------------------------------------------------
     //
     //-----------------------------------------------------------------------------
-    void matmul_gemm_seq_loop_unroll_8(
+    TReturn matmul_gemm_seq_loop_unroll_8(
         TIdx const m, TIdx const n, TIdx const k,
         TElem const alpha,
         TElem const * const A, TIdx const lda,
@@ -216,10 +251,14 @@
         TElem const beta,
         TElem * const C, TIdx const ldc)
     {
+        double const timeStart = getTimeSec();
+
         if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
         {
-            return;
+            MATMUL_TIME_RETURN_EARLY_OUT;
         }
+
+        MATMUL_TIME_START;
 
         for(TIdx i = 0; i < m; ++i)
         {
@@ -246,12 +285,15 @@
                 }
             }
         }
+
+        MATMUL_TIME_END;
+        MATMUL_TIME_RETURN;
     }
 
     //-----------------------------------------------------------------------------
     //
     //-----------------------------------------------------------------------------
-    void matmul_gemm_seq_loop_unroll_16(
+    TReturn matmul_gemm_seq_loop_unroll_16(
         TIdx const m, TIdx const n, TIdx const k,
         TElem const alpha,
         TElem const * const A, TIdx const lda,
@@ -259,10 +301,14 @@
         TElem const beta,
         TElem * const C, TIdx const ldc)
     {
+        double const timeStart = getTimeSec();
+
         if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
         {
-            return;
+            MATMUL_TIME_RETURN_EARLY_OUT;
         }
+
+        MATMUL_TIME_START;
 
         for(TIdx i = 0; i < m; ++i)
         {
@@ -297,12 +343,15 @@
                 }
             }
         }
+
+        MATMUL_TIME_END;
+        MATMUL_TIME_RETURN;
     }
 
     //-----------------------------------------------------------------------------
     //
     //-----------------------------------------------------------------------------
-    void matmul_gemm_seq_block(
+    TReturn matmul_gemm_seq_block(
         TIdx const m, TIdx const n, TIdx const k,
         TElem const alpha,
         TElem const * const A, TIdx const lda,
@@ -312,8 +361,10 @@
     {
         if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
         {
-            return;
+            MATMUL_TIME_RETURN_EARLY_OUT;
         }
+
+        MATMUL_TIME_START;
 
         for(TIdx i = 0; i < m; ++i)
         {
@@ -350,5 +401,8 @@
                 }
             }
         }
+
+        MATMUL_TIME_END;
+        MATMUL_TIME_RETURN;
     }
 #endif

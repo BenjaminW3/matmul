@@ -30,7 +30,7 @@
         //-----------------------------------------------------------------------------
         //
         //-----------------------------------------------------------------------------
-        void matmul_gemm_seq_multiple_opts(
+        TReturn matmul_gemm_seq_multiple_opts(
             TIdx const m, TIdx const n, TIdx const k,
             TElem const alpha,
             TElem const * const MATMUL_RESTRICT A, TIdx const lda,
@@ -40,8 +40,10 @@
         {
             if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
             {
-                return;
+                MATMUL_TIME_RETURN_EARLY_OUT;
             }
+
+            MATMUL_TIME_START;
 
 #ifdef MATMUL_MSVC
             for(TIdx i = 0; i<m; ++i)
@@ -82,13 +84,16 @@
                 }
             }
 #endif
+
+            MATMUL_TIME_END;
+            MATMUL_TIME_RETURN;
         }
     #endif
     #ifdef MATMUL_BUILD_SEQ_MULTIPLE_OPTS_BLOCK
         //-----------------------------------------------------------------------------
         //
         //-----------------------------------------------------------------------------
-        void matmul_gemm_seq_multiple_opts_block(
+        TReturn matmul_gemm_seq_multiple_opts_block(
             TIdx const m, TIdx const n, TIdx const k,
             TElem const alpha,
             TElem const * const MATMUL_RESTRICT A, TIdx const lda,
@@ -98,8 +103,10 @@
         {
             if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
             {
-                return;
+                MATMUL_TIME_RETURN_EARLY_OUT;
             }
+
+            MATMUL_TIME_START;
 
             for(TIdx i = 0; i < m; ++i)
             {
@@ -146,6 +153,9 @@
                     }
                 }
             }
+
+            MATMUL_TIME_END;
+            MATMUL_TIME_RETURN;
         }
     #endif
 #endif

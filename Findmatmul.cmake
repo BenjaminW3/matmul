@@ -27,8 +27,9 @@
 # - ``MATMUL_ELEMENT_TYPE_DOUBLE`` {ON, OFF}
 # - ``MATMUL_INDEX_TYPE`` {int, size_t, ...}
 # - ``MATMUL_ALIGNED_MALLOC`` {ON, OFF}
+# - ``MATMUL_RETURN_COMPUTATION_TIME`` {ON, OFF}
+#
 # - ``MATMUL_SEQ_BLOCK_FACTOR`` {0<MATMUL_SEQ_BLOCK_FACTOR}
-# - ``MATMUL_SEQ_COMPLETE_OPT_NO_BLOCK_CUT_OFF`` {0<MATMUL_SEQ_COMPLETE_OPT_NO_BLOCK_CUT_OFF}
 # - ``MATMUL_STRASSEN_CUT_OFF`` {0<MATMUL_STRASSEN_CUT_OFF}
 # - ``MATMUL_STRASSEN_OMP_CUT_OFF`` {0<MATMUL_STRASSEN_OMP_CUT_OFF}
 # - ``MATMUL_OMP_PRINT_NUM_CORES`` {ON, OFF}
@@ -40,7 +41,7 @@
 # Set the following CMake variables BEFORE calling FIND_PACKAGE to
 # select the versions being compiled:
 # NOTE: Either MPI or CUDA device only or host timings can be activated.
-# So only elements of one of the following 3 blocks can be active:
+# Only elements of one of the following 3 blocks can be active:
 # - ``MATMUL_BUILD_SEQ_BASIC`` {ON, OFF}
 # - ``MATMUL_BUILD_SEQ_SINGLE_OPTS`` {ON, OFF}
 # - ``MATMUL_BUILD_SEQ_MULTIPLE_OPTS`` {ON, OFF}

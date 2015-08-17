@@ -23,7 +23,7 @@
 
 #if defined(MATMUL_BUILD_SEQ_MULTIPLE_OPTS) || defined(MATMUL_BUILD_SEQ_MULTIPLE_OPTS_BLOCK)
 
-    #include <matmul/common/Config.h>   // TElem, TIdx
+    #include <matmul/common/Config.h>   // TElem, TIdx, TReturn
 
     #ifdef __cplusplus
         extern "C"
@@ -45,7 +45,7 @@
         //! \param C Array, size ldc-by-n. The leading m-by-n part of the array must contain the matrix C.
         //! \param ldc Specifies the leading dimension of C.
         //-----------------------------------------------------------------------------
-        void matmul_gemm_seq_multiple_opts(
+        TReturn matmul_gemm_seq_multiple_opts(
             TIdx const m, TIdx const n, TIdx const k,
             TElem const alpha,
             TElem const * const MATMUL_RESTRICT A, TIdx const lda,
@@ -69,7 +69,7 @@
         //! \param C Array, size ldc-by-n. The leading m-by-n part of the array must contain the matrix C.
         //! \param ldc Specifies the leading dimension of C.
         //-----------------------------------------------------------------------------
-        void matmul_gemm_seq_multiple_opts_block(
+        TReturn matmul_gemm_seq_multiple_opts_block(
             TIdx const m, TIdx const n, TIdx const k,
             TElem const alpha,
             TElem const * const MATMUL_RESTRICT A, TIdx const lda,

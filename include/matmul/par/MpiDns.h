@@ -23,7 +23,7 @@
 
 #ifdef MATMUL_BUILD_PAR_MPI_DNS
 
-    #include <matmul/common/Config.h>   // TElem, TIdx
+    #include <matmul/common/Config.h>   // TElem, TIdx, TReturn
 
     #ifdef __cplusplus
         extern "C"
@@ -49,7 +49,7 @@
     //! \param B The right input matrix. All processes except root will ignore the value.
     //! \param C The input and result matrix. All processes except root will ignore the value.
     //-----------------------------------------------------------------------------
-    void matmul_gemm_par_mpi_dns(
+    TReturn matmul_gemm_par_mpi_dns(
         TIdx const m, TIdx const n, TIdx const k,
         TElem const alpha,
         TElem const * const MATMUL_RESTRICT A, TIdx const lda,

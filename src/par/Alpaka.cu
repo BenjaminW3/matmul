@@ -28,7 +28,7 @@
     //-----------------------------------------------------------------------------
     //
     //-----------------------------------------------------------------------------
-    void matmul_gemm_par_alpaka_gpu_cuda(
+    TReturn matmul_gemm_par_alpaka_gpu_cuda(
         TIdx const m, TIdx const n, TIdx const k,
         TElem const alpha,
         TElem const * const MATMUL_RESTRICT A, TIdx const lda,
@@ -36,18 +36,19 @@
         TElem const beta,
         TElem * const MATMUL_RESTRICT C, TIdx const ldc)
     {
-        matmul_gemm_par_alpaka<alpaka::acc::AccGpuCudaRt<alpaka::dim::DimInt<2u>, TIdx>, GemmAlpakaSharedKernel>(
-            m, n, k,
-            alpha,
-            A, lda,
-            B, ldb,
-            beta,
-            C, ldc);
+        return
+            matmul_gemm_par_alpaka<alpaka::acc::AccGpuCudaRt<alpaka::dim::DimInt<2u>, TIdx>, GemmAlpakaSharedKernel>(
+                m, n, k,
+                alpha,
+                A, lda,
+                B, ldb,
+                beta,
+                C, ldc);
     }
     //-----------------------------------------------------------------------------
     //
     //-----------------------------------------------------------------------------
-    void matmul_gemm_par_alpaka_gpu_cuda_memcpy(
+    TReturn matmul_gemm_par_alpaka_gpu_cuda_memcpy(
         TIdx const m, TIdx const n, TIdx const k,
         TElem const alpha,
         TElem const * const MATMUL_RESTRICT A, TIdx const lda,
@@ -55,12 +56,13 @@
         TElem const beta,
         TElem * const MATMUL_RESTRICT C, TIdx const ldc)
     {
-        matmul_gemm_par_alpaka_memcpy<alpaka::acc::AccGpuCudaRt<alpaka::dim::DimInt<2u>, TIdx>, GemmAlpakaSharedKernel>(
-            m, n, k,
-            alpha,
-            A, lda,
-            B, ldb,
-            beta,
-            C, ldc);
+        return
+            matmul_gemm_par_alpaka_memcpy<alpaka::acc::AccGpuCudaRt<alpaka::dim::DimInt<2u>, TIdx>, GemmAlpakaSharedKernel>(
+                m, n, k,
+                alpha,
+                A, lda,
+                B, ldb,
+                beta,
+                C, ldc);
     }
 #endif

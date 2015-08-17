@@ -23,7 +23,7 @@
 
 #if defined(MATMUL_BUILD_PAR_OMP2_GUIDED) || defined(MATMUL_BUILD_PAR_OMP2_STATIC) || defined(MATMUL_BUILD_PAR_OMP3) || defined(MATMUL_BUILD_PAR_OMP4)
 
-    #include <matmul/common/Config.h>   // TElem, TIdx
+    #include <matmul/common/Config.h>   // TElem, TIdx, TReturn
 
     #ifdef __cplusplus
         extern "C"
@@ -46,7 +46,7 @@
             //! \param C Array, size ldc-by-n. The leading m-by-n part of the array must contain the matrix C.
             //! \param ldc Specifies the leading dimension of C.
             //-----------------------------------------------------------------------------
-            void matmul_gemm_par_omp2_guided_schedule(
+            TReturn matmul_gemm_par_omp2_guided_schedule(
                 TIdx const m, TIdx const n, TIdx const k,
                 TElem const alpha,
                 TElem const * const MATMUL_RESTRICT A, TIdx const lda,
@@ -70,7 +70,7 @@
             //! \param C Array, size ldc-by-n. The leading m-by-n part of the array must contain the matrix C.
             //! \param ldc Specifies the leading dimension of C.
             //-----------------------------------------------------------------------------
-            void matmul_gemm_par_omp2_static_schedule(
+            TReturn matmul_gemm_par_omp2_static_schedule(
                 TIdx const m, TIdx const n, TIdx const k,
                 TElem const alpha,
                 TElem const * const MATMUL_RESTRICT A, TIdx const lda,
@@ -96,7 +96,7 @@
             //! \param C Array, size ldc-by-n. The leading m-by-n part of the array must contain the matrix C.
             //! \param ldc Specifies the leading dimension of C.
             //-----------------------------------------------------------------------------
-            void matmul_gemm_par_omp3_static_schedule_collapse(
+            TReturn matmul_gemm_par_omp3_static_schedule_collapse(
                 TIdx const m, TIdx const n, TIdx const k,
                 TElem const alpha,
                 TElem const * const MATMUL_RESTRICT A,  TIdx const lda,
@@ -122,7 +122,7 @@
             //! \param C Array, size ldc-by-n. The leading m-by-n part of the array must contain the matrix C.
             //! \param ldc Specifies the leading dimension of C.
             //-----------------------------------------------------------------------------
-            void matmul_gemm_par_omp4(
+            TReturn matmul_gemm_par_omp4(
                 TIdx const m, TIdx const n, TIdx const k,
                 TElem const alpha,
                 TElem const * const MATMUL_RESTRICT A,  TIdx const lda,

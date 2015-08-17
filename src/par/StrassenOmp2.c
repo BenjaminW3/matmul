@@ -113,7 +113,7 @@
         //-----------------------------------------------------------------------------
         //
         //-----------------------------------------------------------------------------
-        void matmul_gemm_par_strassen_omp2(
+        TReturn matmul_gemm_par_strassen_omp2(
             TIdx const m, TIdx const n, TIdx const k,
             TElem const alpha,
             TElem const * const MATMUL_RESTRICT X, TIdx const lda,
@@ -123,8 +123,10 @@
         {
             if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
             {
-                return;
+                MATMUL_TIME_RETURN_EARLY_OUT;
             }
+
+            MATMUL_TIME_START;
 
             // Apply beta multiplication to C.
             if(beta != (TElem)1)
@@ -158,7 +160,7 @@
                 if(m!=n || m!=k)
                 {
                     printf("[GEMM Strassen OpenMP] Invalid matrix size! The matrices have to be square for the MPI Cannon GEMM.\n");
-                    return;
+                    MATMUL_TIME_RETURN_EARLY_OUT;
                 }
 
                 TIdx const h = n/2;             // size of sub-matrices
@@ -271,6 +273,9 @@
                     matmul_arr_free(P[i]);
                 }
             }
+
+            MATMUL_TIME_END;
+            MATMUL_TIME_RETURN;
         }
     #endif
 #endif

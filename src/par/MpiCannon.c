@@ -51,7 +51,7 @@
         int const iRankUp,
         int const iRankDown,
         TIdx const q,
-        void(*pGemm)(TIdx const, TIdx const, TIdx const, TElem const, TElem const * const, TIdx const, TElem const * const, TIdx const, TElem const, TElem * const, TIdx const))
+        TReturn(*pGemm)(TIdx const, TIdx const, TIdx const, TElem const, TElem const * const, TIdx const, TElem const * const, TIdx const, TElem const, TElem * const, TIdx const))
     {
         assert(pComm2D);
         assert(q>0);
@@ -91,7 +91,7 @@
         int const iRankUp,
         int const iRankDown,
         TIdx const q,
-        void(*pGemm)(TIdx const, TIdx const, TIdx const, TElem const, TElem const * const, TIdx const, TElem const * const, TIdx const, TElem const, TElem * const, TIdx const))
+        TReturn(*pGemm)(TIdx const, TIdx const, TIdx const, TElem const, TElem const * const, TIdx const, TElem const * const, TIdx const, TElem const, TElem * const, TIdx const))
     {
         assert(pComm2D);
         assert(q>0);
@@ -155,7 +155,7 @@
         bool const bBlockingComm,
         int aiGridCoords[2],
         TIdx const q,
-        void(*pGemm)(TIdx const, TIdx const, TIdx const, TElem const, TElem const * const, TIdx const, TElem const * const, TIdx const, TElem const, TElem * const, TIdx const))
+        TReturn(*pGemm)(TIdx const, TIdx const, TIdx const, TElem const, TElem const * const, TIdx const, TElem const * const, TIdx const, TElem const, TElem * const, TIdx const))
     {
         assert(pComm2D);
         assert(q>0);
@@ -204,7 +204,7 @@
     //-----------------------------------------------------------------------------
     //
     //-----------------------------------------------------------------------------
-    void matmul_gemm_par_mpi_cannon_local_algo(
+    TReturn matmul_gemm_par_mpi_cannon_algo(
         TIdx const m, TIdx const n, TIdx const k,
         TElem const alpha,
         TElem const * const MATMUL_RESTRICT A, TIdx const lda,
@@ -212,25 +212,25 @@
         TElem const beta,
         TElem * const MATMUL_RESTRICT C, TIdx const ldc,
         bool const bBlockingComm,
-        void(*pGemm)(TIdx const, TIdx const, TIdx const, TElem const, TElem const * const, TIdx const, TElem const * const, TIdx const, TElem const, TElem * const, TIdx const))
+        TReturn(*pGemm)(TIdx const, TIdx const, TIdx const, TElem const, TElem const * const, TIdx const, TElem const * const, TIdx const, TElem const, TElem * const, TIdx const))
     {
         if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
         {
-            return;
+            MATMUL_TIME_RETURN_EARLY_OUT;
         }
 
         // \TODO: Implement for non square matrices?
         if((m!=n) || (m!=k))
         {
             printf("[GEMM MPI Cannon] Invalid matrix size! The matrices have to be square for the MPI Cannon GEMM.\n");
-            return;
+            MATMUL_TIME_RETURN_EARLY_OUT;
         }
 
         // \FIXME: Fix alpha != 1!
         if(alpha!=(TElem)1)
         {
             printf("[GEMM MPI Cannon] alpha != 1 currently not implemented.\n");
-            return;
+            MATMUL_TIME_RETURN_EARLY_OUT;
         }
 
         // Get the number of processes.
@@ -258,7 +258,7 @@
             {
                 printf("\n[GEMM MPI Cannon] Invalid environment! The number of processors (%d given) should be perfect square.\n", iNumProcesses);
             }
-            return;
+            MATMUL_TIME_RETURN_EARLY_OUT;
         }
 #ifdef MATMUL_MPI_ADDITIONAL_DEBUG_OUTPUT
         if(rank1D == MATMUL_MPI_ROOT)
@@ -274,7 +274,7 @@
             {
                 printf("\n[GEMM MPI Cannon] The matrices can't be divided among processors equally!\n");
             }
-            return;
+            MATMUL_TIME_RETURN_EARLY_OUT;
         }
 
         // Determine block size of the local block.
@@ -298,6 +298,8 @@
 #ifdef MATMUL_MPI_ADDITIONAL_DEBUG_OUTPUT
         printf(" iRank2D=%d, x=%d y=%d\n", iRank2D, aiGridCoords[1], aiGridCoords[0]);
 #endif
+
+        MATMUL_TIME_START;
 
         // Initialize the local buffers
         TIdx const numElementsBlock = b * b;
@@ -414,14 +416,19 @@
         matmul_arr_free(pALocal);
         matmul_arr_free(pBLocal);
         matmul_arr_free(pCLocal);
+
+        MATMUL_TIME_END;
+
         MPI_Comm_free(&comm2D);
+
+        MATMUL_TIME_RETURN;
     }
 
 #ifdef MATMUL_BUILD_PAR_MPI_CANNON_STD
     //-----------------------------------------------------------------------------
     //
     //-----------------------------------------------------------------------------
-    void matmul_gemm_par_mpi_cannon_block(
+    TReturn matmul_gemm_par_mpi_cannon_block(
         TIdx const m, TIdx const n, TIdx const k,
         TElem const alpha,
         TElem const * const MATMUL_RESTRICT A, TIdx const lda,
@@ -431,16 +438,17 @@
     {
         if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
         {
-            return;
+            MATMUL_TIME_RETURN_EARLY_OUT;
         }
 
-        matmul_gemm_par_mpi_cannon_local_algo(m, n, k, alpha, A, lda, B, ldb, beta, C, ldc, true, matmul_gemm_seq_multiple_opts);
+        return
+            matmul_gemm_par_mpi_cannon_algo(m, n, k, alpha, A, lda, B, ldb, beta, C, ldc, true, matmul_gemm_seq_multiple_opts);
     }
 
     //-----------------------------------------------------------------------------
     //
     //-----------------------------------------------------------------------------
-    void matmul_gemm_par_mpi_cannon_nonblock(
+    TReturn matmul_gemm_par_mpi_cannon_nonblock(
         TIdx const m, TIdx const n, TIdx const k,
         TElem const alpha,
         TElem const * const MATMUL_RESTRICT A, TIdx const lda,
@@ -450,10 +458,11 @@
     {
         if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
         {
-            return;
+            MATMUL_TIME_RETURN_EARLY_OUT;
         }
 
-        matmul_gemm_par_mpi_cannon_local_algo(m, n, k, alpha, A, lda, B, ldb, beta, C, ldc, false, matmul_gemm_seq_multiple_opts);
+        return
+            matmul_gemm_par_mpi_cannon_algo(m, n, k, alpha, A, lda, B, ldb, beta, C, ldc, false, matmul_gemm_seq_multiple_opts);
     }
 #endif
 #ifdef MATMUL_BUILD_PAR_MPI_CANNON_MKL
@@ -463,7 +472,7 @@
     //-----------------------------------------------------------------------------
     //
     //-----------------------------------------------------------------------------
-    void matmul_gemm_par_mpi_cannon_nonblock_blas_mkl(
+    TReturn matmul_gemm_par_mpi_cannon_nonblock_blas_mkl(
         TIdx const m, TIdx const n, TIdx const k,
         TElem const alpha,
         TElem const * const MATMUL_RESTRICT A, TIdx const lda,
@@ -473,10 +482,11 @@
     {
         if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
         {
-            return;
+            MATMUL_TIME_RETURN_EARLY_OUT;
         }
 
-        matmul_gemm_par_mpi_cannon_local_algo(m, n, k, alpha, A, lda, B, ldb, beta, C, ldc, false, matmul_gemm_par_blas_mkl);
+        return
+            matmul_gemm_par_mpi_cannon_algo(m, n, k, alpha, A, lda, B, ldb, beta, C, ldc, false, matmul_gemm_par_blas_mkl);
     }
 #endif
 #ifdef MATMUL_BUILD_PAR_MPI_CANNON_CUBLAS
@@ -486,7 +496,7 @@
     //-----------------------------------------------------------------------------
     //
     //-----------------------------------------------------------------------------
-    void matmul_gemm_par_mpi_cannon_nonblock_blas_cublas(
+    TReturn matmul_gemm_par_mpi_cannon_nonblock_blas_cublas(
         TIdx const m, TIdx const n, TIdx const k,
         TElem const alpha,
         TElem const * const MATMUL_RESTRICT A, TIdx const lda,
@@ -496,10 +506,11 @@
     {
         if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
         {
-            return;
+            MATMUL_TIME_RETURN_EARLY_OUT;
         }
 
-        matmul_gemm_par_mpi_cannon_local_algo(m, n, k, alpha, A, lda, B, ldb, beta, C, ldc, false, matmul_gemm_par_blas_cublas2_memcpy);
+        return
+            matmul_gemm_par_mpi_cannon_algo(m, n, k, alpha, A, lda, B, ldb, beta, C, ldc, false, matmul_gemm_par_blas_cublas2_memcpy);
     }
 #endif
 #endif

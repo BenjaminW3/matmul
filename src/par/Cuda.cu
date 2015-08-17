@@ -118,7 +118,7 @@
         //-----------------------------------------------------------------------------
         //
         //-----------------------------------------------------------------------------
-        void matmul_gemm_par_cuda_fixed_block_size_2d_static_shared(
+        TReturn matmul_gemm_par_cuda_fixed_block_size_2d_static_shared(
             TIdx const m, TIdx const n, TIdx const k,
             TElem const alpha,
             TElem const * const MATMUL_RESTRICT A, TIdx const lda,
@@ -128,7 +128,7 @@
         {
             if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
             {
-                return;
+                MATMUL_TIME_RETURN_EARLY_OUT;
             }
 
             dim3 const dimBlock(MATMUL_CUDA_FIXED_BLOCK_SIZE, MATMUL_CUDA_FIXED_BLOCK_SIZE);
@@ -137,6 +137,8 @@
             unsigned int const gridThreadExtentX = (unsigned int)fGridThreadExtentX;
             unsigned int const gridThreadExtentY = (unsigned int)fGridThreadExtentY;
             dim3 const dimGrid(gridThreadExtentX, gridThreadExtentY);
+
+            MATMUL_TIME_START;
 
             matmul_gemm_par_cuda_fixed_block_size_2d_static_shared_kernel<<<
                 dimGrid,
@@ -150,13 +152,16 @@
                     C, ldc);
 
             MATMUL_CUDA_RT_CHECK(cudaDeviceSynchronize());
+            
+            MATMUL_TIME_END;
+            MATMUL_TIME_RETURN;
         }
     #endif
     #ifdef MATMUL_BUILD_PAR_CUDA_MEMCPY_FIXED_BLOCK_SIZE
         //-----------------------------------------------------------------------------
         //
         //-----------------------------------------------------------------------------
-        void matmul_gemm_par_cuda_memcpy_fixed_block_size_2d_static_shared(
+        TReturn matmul_gemm_par_cuda_memcpy_fixed_block_size_2d_static_shared(
             TIdx const m, TIdx const n, TIdx const k,
             TElem const alpha,
             TElem const * const MATMUL_RESTRICT A, TIdx const lda,
@@ -164,14 +169,15 @@
             TElem const beta,
             TElem * const MATMUL_RESTRICT C, TIdx const ldc)
         {
-            matmul_gemm_wrap_memcpy_host_cuda_2d(
-                m, n, k,
-                alpha,
-                A, lda,
-                B, ldb,
-                beta,
-                C, ldc,
-                matmul_gemm_par_cuda_fixed_block_size_2d_static_shared);
+            return
+                matmul_gemm_wrap_memcpy_host_cuda_2d(
+                    m, n, k,
+                    alpha,
+                    A, lda,
+                    B, ldb,
+                    beta,
+                    C, ldc,
+                    matmul_gemm_par_cuda_fixed_block_size_2d_static_shared);
         }
     #endif
     #ifdef MATMUL_BUILD_PAR_CUDA_FIXED_BLOCK_SIZE
@@ -260,7 +266,7 @@
         //-----------------------------------------------------------------------------
         //
         //-----------------------------------------------------------------------------
-        void matmul_gemm_par_cuda_fixed_block_size_1d_static_shared(
+        TReturn matmul_gemm_par_cuda_fixed_block_size_1d_static_shared(
             TIdx const m, TIdx const n, TIdx const k,
             TElem const alpha,
             TElem const * const MATMUL_RESTRICT A, TIdx const lda,
@@ -270,7 +276,7 @@
         {
             if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
             {
-                return;
+                MATMUL_TIME_RETURN_EARLY_OUT;
             }
 
             dim3 const dimBlock(MATMUL_CUDA_FIXED_BLOCK_SIZE, MATMUL_CUDA_FIXED_BLOCK_SIZE);
@@ -279,6 +285,8 @@
             unsigned int const gridThreadExtentX = (unsigned int)fGridThreadExtentX;
             unsigned int const gridThreadExtentY = (unsigned int)fGridThreadExtentY;
             dim3 const dimGrid(gridThreadExtentX, gridThreadExtentY);
+
+            MATMUL_TIME_START;
 
             matmul_gemm_par_cuda_fixed_block_size_1d_static_shared_kernel<<<
                 dimGrid,
@@ -292,13 +300,16 @@
                     C, ldc);
 
             MATMUL_CUDA_RT_CHECK(cudaDeviceSynchronize());
+            
+            MATMUL_TIME_END;
+            MATMUL_TIME_RETURN;
         }
     #endif
     #ifdef MATMUL_BUILD_PAR_CUDA_MEMCPY_FIXED_BLOCK_SIZE
         //-----------------------------------------------------------------------------
         //
         //-----------------------------------------------------------------------------
-        void matmul_gemm_par_cuda_memcpy_fixed_block_size_1d_static_shared(
+        TReturn matmul_gemm_par_cuda_memcpy_fixed_block_size_1d_static_shared(
             TIdx const m, TIdx const n, TIdx const k,
             TElem const alpha,
             TElem const * const MATMUL_RESTRICT A, TIdx const lda,
@@ -306,14 +317,15 @@
             TElem const beta,
             TElem * const MATMUL_RESTRICT C, TIdx const ldc)
         {
-            matmul_gemm_wrap_memcpy_host_cuda_2d(
-                m, n, k,
-                alpha,
-                A, lda,
-                B, ldb,
-                beta,
-                C, ldc,
-                matmul_gemm_par_cuda_fixed_block_size_1d_static_shared);
+            return
+                matmul_gemm_wrap_memcpy_host_cuda_2d(
+                    m, n, k,
+                    alpha,
+                    A, lda,
+                    B, ldb,
+                    beta,
+                    C, ldc,
+                    matmul_gemm_par_cuda_fixed_block_size_1d_static_shared);
         }
     #endif
     #ifdef MATMUL_BUILD_PAR_CUDA_FIXED_BLOCK_SIZE
@@ -402,7 +414,7 @@
         //-----------------------------------------------------------------------------
         //
         //-----------------------------------------------------------------------------
-        void matmul_gemm_par_cuda_fixed_block_size_1d_extern_shared(
+        TReturn matmul_gemm_par_cuda_fixed_block_size_1d_extern_shared(
             TIdx const m, TIdx const n, TIdx const k,
             TElem const alpha,
             TElem const * const MATMUL_RESTRICT A, TIdx const lda,
@@ -412,7 +424,7 @@
         {
             if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
             {
-                return;
+                MATMUL_TIME_RETURN_EARLY_OUT;
             }
 
             dim3 const dimBlock(MATMUL_CUDA_FIXED_BLOCK_SIZE, MATMUL_CUDA_FIXED_BLOCK_SIZE);
@@ -421,6 +433,8 @@
             unsigned int const gridThreadExtentX = (unsigned int)fGridThreadExtentX;
             unsigned int const gridThreadExtentY = (unsigned int)fGridThreadExtentY;
             dim3 const dimGrid(gridThreadExtentX, gridThreadExtentY);
+
+            MATMUL_TIME_START;
 
             matmul_gemm_par_cuda_fixed_block_size_1d_extern_shared_kernel<<<
                 dimGrid,
@@ -434,13 +448,16 @@
                     C, ldc);
 
             MATMUL_CUDA_RT_CHECK(cudaDeviceSynchronize());
+            
+            MATMUL_TIME_END;
+            MATMUL_TIME_RETURN;
         }
     #endif
     #ifdef MATMUL_BUILD_PAR_CUDA_MEMCPY_FIXED_BLOCK_SIZE
         //-----------------------------------------------------------------------------
         //
         //-----------------------------------------------------------------------------
-        void matmul_gemm_par_cuda_memcpy_fixed_block_size_1d_extern_shared(
+        TReturn matmul_gemm_par_cuda_memcpy_fixed_block_size_1d_extern_shared(
             TIdx const m, TIdx const n, TIdx const k,
             TElem const alpha,
             TElem const * const MATMUL_RESTRICT A, TIdx const lda,
@@ -448,14 +465,15 @@
             TElem const beta,
             TElem * const MATMUL_RESTRICT C, TIdx const ldc)
         {
-            matmul_gemm_wrap_memcpy_host_cuda_2d(
-                m, n, k,
-                alpha,
-                A, lda,
-                B, ldb,
-                beta,
-                C, ldc,
-                matmul_gemm_par_cuda_fixed_block_size_1d_extern_shared);
+            return
+                matmul_gemm_wrap_memcpy_host_cuda_2d(
+                    m, n, k,
+                    alpha,
+                    A, lda,
+                    B, ldb,
+                    beta,
+                    C, ldc,
+                    matmul_gemm_par_cuda_fixed_block_size_1d_extern_shared);
         }
     #endif
     #ifdef MATMUL_BUILD_PAR_CUDA_DYN_BLOCK_SIZE
@@ -502,7 +520,7 @@
                 static_cast<TIdx>(
                     ceil(
                         static_cast<float>(k) / static_cast<float>(blockThreadsExtent))));
-            for (TIdx k2(0); k2<blockMulCount; ++k2)
+            for(TIdx k2(0); k2<blockMulCount; ++k2)
             {
                 // Copy the current blocks of A and B into shared memory in parallel.
                 // If the element of the current thread is outside of the matrix, zero is written into the shared memory.
@@ -525,7 +543,7 @@
                 __syncthreads();
 
                 // Compute the dot products within shared memory.
-                for (TIdx k3(0); k3<blockThreadsExtent; ++k3)
+                for(TIdx k3(0); k3<blockThreadsExtent; ++k3)
                 {
                     dotProduct += pBlockSharedA[blockThreadIdxY*blockThreadsExtentX + k3]
                         * pBlockSharedB[k3*blockThreadsExtentY + blockThreadIdxX];
@@ -544,7 +562,7 @@
         //-----------------------------------------------------------------------------
         //
         //-----------------------------------------------------------------------------
-        void matmul_gemm_par_cuda_dyn_block_size_1d_extern_shared(
+        TReturn matmul_gemm_par_cuda_dyn_block_size_1d_extern_shared(
             TIdx const m, TIdx const n, TIdx const k,
             TElem const alpha,
             TElem const * const MATMUL_RESTRICT A, TIdx const lda,
@@ -554,7 +572,7 @@
         {
             if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
             {
-                return;
+                MATMUL_TIME_RETURN_EARLY_OUT;
             }
 
             // MATMUL_CUDA_RT_CHECK(cudaSetDevice(0));
@@ -573,7 +591,7 @@
             // Restrict the max block thread extents with the grid thread extents.
             // This removes dimensions not required in the given grid thread extents.
             // This has to be done before the maxThreadsPerBlock clipping to get the maximum correctly.
-            for (TIdx i(0); i<2; ++i)
+            for(TIdx i(0); i<2; ++i)
             {
                 blockThreadExtents[i] = std::min(blockThreadExtents[i], gridThreadExtents[i]);
             }
@@ -581,11 +599,11 @@
             // Restrict it to its minimum component.
             // For example (512, 256) will get (256, 256).
             auto minBlockThreadExtent(blockThreadExtents[0]);
-            for (TIdx i(1); i<2; ++i)
+            for(TIdx i(1); i<2; ++i)
             {
                 minBlockThreadExtent = std::min(minBlockThreadExtent, blockThreadExtents[i]);
             }
-            for (TIdx i(0); i<2; ++i)
+            for(TIdx i(0); i<2; ++i)
             {
                 blockThreadExtents[i] = minBlockThreadExtent;
             }
@@ -600,7 +618,7 @@
                 // For equal block thread extent this is easily the nth root of cudaDevProp.maxThreadsPerBlock.
                 double const fNthRoot(std::pow(cudaDevProp.maxThreadsPerBlock, 1.0 / 2.0));
                 auto const nthRoot(static_cast<TIdx>(fNthRoot));
-                for (TIdx i(0); i<2; ++i)
+                for(TIdx i(0); i<2; ++i)
                 {
                     blockThreadExtents[i] = nthRoot;
                 }
@@ -608,7 +626,7 @@
 
             // Set the grid block extents (rounded to the next integer not less then the quotient.
             TIdx gridBlockExtents[] = {1, 1};
-            for (TIdx i(0); i<2; ++i)
+            for(TIdx i(0); i<2; ++i)
             {
                 gridBlockExtents[i] =
                     static_cast<TIdx>(
@@ -618,6 +636,8 @@
 
             dim3 const dimBlock(blockThreadExtents[0], blockThreadExtents[1]);
             dim3 const dimGrid(gridBlockExtents[0], gridBlockExtents[1]);
+
+            MATMUL_TIME_START;
 
             matmul_gemm_par_cuda_dyn_block_size_1d_extern_shared_kernel<<<
                 dimGrid,
@@ -632,14 +652,19 @@
                     C, ldc);
 
             MATMUL_CUDA_RT_CHECK(cudaStreamSynchronize(stream));
+
+            MATMUL_TIME_END;
+
             MATMUL_CUDA_RT_CHECK(cudaStreamDestroy(stream));
+
+            MATMUL_TIME_RETURN;
         }
     #endif
     #ifdef MATMUL_BUILD_PAR_CUDA_MEMCPY_DYN_BLOCK_SIZE
         //-----------------------------------------------------------------------------
         //
         //-----------------------------------------------------------------------------
-        void matmul_gemm_par_cuda_memcpy_dyn_block_size_1d_extern_shared(
+        TReturn matmul_gemm_par_cuda_memcpy_dyn_block_size_1d_extern_shared(
             TIdx const m, TIdx const n, TIdx const k,
             TElem const alpha,
             TElem const * const MATMUL_RESTRICT A, TIdx const lda,
@@ -647,14 +672,15 @@
             TElem const beta,
             TElem * const MATMUL_RESTRICT C, TIdx const ldc)
         {
-            matmul_gemm_wrap_memcpy_host_cuda_2d(
-                m, n, k,
-                alpha,
-                A, lda,
-                B, ldb,
-                beta,
-                C, ldc,
-                matmul_gemm_par_cuda_dyn_block_size_1d_extern_shared);
+            return
+                matmul_gemm_wrap_memcpy_host_cuda_2d(
+                    m, n, k,
+                    alpha,
+                    A, lda,
+                    B, ldb,
+                    beta,
+                    C, ldc,
+                    matmul_gemm_par_cuda_dyn_block_size_1d_extern_shared);
         }
     #endif
 #endif
