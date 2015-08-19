@@ -282,13 +282,13 @@
 
         // Set that the structure is periodical around the given dimension for wraparound connections.
         int aiPeriods[2];
-        aiPeriods[0] = aiPeriods[1] = 1;
+        aiPeriods[0] = aiPeriods[1] = (int)true;
 
         int aiProcesses[2];
         aiProcesses[0] = aiProcesses[1] = (int)q;
         // Create the cartesian 2d grid topology. Ranks can be reordered.
         MPI_Comm comm2D;
-        MPI_Cart_create(MATMUL_MPI_COMM, 2, aiProcesses, aiPeriods, 1, &comm2D);
+        MPI_Cart_create(MATMUL_MPI_COMM, 2, aiProcesses, aiPeriods, (int)true, &comm2D);
 
         // Get the rank and coordinates with respect to the new 2D grid topology.
         int iRank2D;

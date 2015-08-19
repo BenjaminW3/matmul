@@ -226,7 +226,8 @@
         TIdx const numElementsBlock = info->b * info->b;
         TElem * const ASub = matmul_arr_alloc(numElementsBlock);
         TElem * const BSub = matmul_arr_alloc(numElementsBlock);
-        // The elements in the root IJ plane get sub-matrices of the input C, all others zeros.
+        // The elements in the root IJ plane get sub-matrices of the input C.
+        // All others are zero. Even though we multiply with beta=0, an uninitialized array is not enough because values could be NaN and 0*NaN=NaN.
         bool const bIJPlane = (info->aiGridCoords[K_DIM] == MATMUL_MPI_ROOT);
         TElem * const CSub = bIJPlane
                                 ? matmul_arr_alloc(numElementsBlock)
@@ -327,11 +328,11 @@
         info->b = n/q;
 
         // Set that the structure is periodical around the given dimension for wraparound connections.
-        int aiPeriods[3] = {1, 1, 1};
+        int aiPeriods[3] = {(int)true, (int)true, (int)true};
         int aiProcesses[3] = {(int)q, (int)q, (int)q};
 
         // Create the cartesian 2d grid topology. Ranks can be reordered.
-        MPI_Cart_create(MATMUL_MPI_COMM, 3, aiProcesses, aiPeriods, 1, &info->commMesh3D);
+        MPI_Cart_create(MATMUL_MPI_COMM, 3, aiProcesses, aiPeriods, (int)true, &info->commMesh3D);
 
         // Get the rank and coordinates with respect to the new 3D grid topology.
         int iLocalRank3D = 0;
@@ -339,39 +340,39 @@
         MPI_Cart_coords(info->commMesh3D, iLocalRank3D, 3, info->aiGridCoords);
 
 #ifdef MATMUL_MPI_ADDITIONAL_DEBUG_OUTPUT
-        printf(" iLocalRank3D=%d, i=%d j=%d k2=%d\n", iLocalRank3D, info->aiGridCoords[2], info->aiGridCoords[1], info->aiGridCoords[0]);
+        printf(" iLocalRank3D=%d, i=%d j=%d k=%d\n", iLocalRank3D, info->aiGridCoords[I_DIM], info->aiGridCoords[J_DIM], info->aiGridCoords[K_DIM]);
 #endif
 
         int dims[3];
 
         // Create the i-k plane.
-        dims[I_DIM] = dims[K_DIM] = 1;
-        dims[J_DIM] = 0;
+        dims[I_DIM] = dims[K_DIM] = (int)true;
+        dims[J_DIM] = (int)false;
         MPI_Cart_sub(info->commMesh3D, dims, &info->commMeshIK);
 
         // Create the j-k plane.
-        dims[J_DIM] = dims[K_DIM] = 1;
-        dims[I_DIM] = 0;
+        dims[J_DIM] = dims[K_DIM] = (int)true;
+        dims[I_DIM] = (int)false;
         MPI_Cart_sub(info->commMesh3D, dims, &info->commMeshJK);
 
         // Create the i-j plane.
-        dims[I_DIM] = dims[J_DIM] = 1;
-        dims[K_DIM] = 0;
+        dims[I_DIM] = dims[J_DIM] = (int)true;
+        dims[K_DIM] = (int)false;
         MPI_Cart_sub(info->commMesh3D, dims, &info->commMeshIJ);
 
         // Create the i ring.
-        dims[J_DIM] = dims[K_DIM] = 0;
-        dims[I_DIM] = 1;
+        dims[J_DIM] = dims[K_DIM] = (int)false;
+        dims[I_DIM] = (int)true;
         MPI_Cart_sub(info->commMesh3D, dims, &info->commRingI);
 
         // Create the j ring.
-        dims[I_DIM] = dims[K_DIM] = 0;
-        dims[J_DIM] = 1;
+        dims[I_DIM] = dims[K_DIM] = (int)false;
+        dims[J_DIM] = (int)true;
         MPI_Cart_sub(info->commMesh3D, dims, &info->commRingJ);
 
         // Create the k rings.
-        dims[I_DIM] = dims[J_DIM] = 0;
-        dims[K_DIM] = 1;
+        dims[I_DIM] = dims[J_DIM] = (int)false;
+        dims[K_DIM] = (int)true;
         MPI_Cart_sub(info->commMesh3D, dims, &info->commRingK);
 
         return true;
@@ -379,7 +380,7 @@
     //-----------------------------------------------------------------------------
     //
     //-----------------------------------------------------------------------------
-    TReturn matmul_gemm_par_mpi_dns_destroy_topology_info(STopologyInfo * const info)
+    void matmul_gemm_par_mpi_dns_destroy_topology_info(STopologyInfo * const info)
     {
         MPI_Comm_free(&info->commMeshIK);
         MPI_Comm_free(&info->commMeshJK);

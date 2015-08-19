@@ -41,9 +41,9 @@
     //! \return If the matrices compare equal (under the given threshold).
     //-----------------------------------------------------------------------------
     bool matmul_mat_cmp(
-        TIdx const m, TIdx const n,
         TElem const * const MATMUL_RESTRICT A, TIdx const lda,
         TElem const * const MATMUL_RESTRICT B, TIdx const ldb,
+        TIdx const m, TIdx const n,
         TElem const errorThreshold);
 
     //-----------------------------------------------------------------------------
@@ -55,8 +55,8 @@
     //! \param lda Specifies the leading dimension of A.
     //-----------------------------------------------------------------------------
     void matmul_mat_print(
-        TIdx const m, TIdx const n,
         TElem const * const MATMUL_RESTRICT A, TIdx const lda,
+        TIdx const m, TIdx const n,
         char * const elemSeperator, char * const rowSeperator,
         char * const dimBegin, char * const dimEnd);
     //-----------------------------------------------------------------------------
@@ -68,8 +68,8 @@
     //! \param lda Specifies the leading dimension of A.
     //-----------------------------------------------------------------------------
     void matmul_mat_print_simple(
-        TIdx const m, TIdx const n,
-        TElem const * const MATMUL_RESTRICT A, TIdx const lda);
+        TElem const * const MATMUL_RESTRICT A, TIdx const lda,
+        TIdx const m, TIdx const n);
     //-----------------------------------------------------------------------------
     //! Prints the matrix to the console.
     //!
@@ -79,8 +79,8 @@
     //! \param lda Specifies the leading dimension of A.
     //-----------------------------------------------------------------------------
     void matmul_mat_print_mathematica(
-        TIdx const m, TIdx const n,
-        TElem const * const MATMUL_RESTRICT A, TIdx const lda);
+        TElem const * const MATMUL_RESTRICT A, TIdx const lda,
+        TIdx const m, TIdx const n);
 
     //-----------------------------------------------------------------------------
     //! Get if the GEMM is allowed to return early.
@@ -124,18 +124,18 @@
     //-----------------------------------------------------------------------------
     //! Copy the matrix pSrcMat to the pDstMat.
     //!
-    //! \param m The number of rows.
-    //! \param n The number of columns.
-    //! \param pSrcMat Row major source matrix.
-    //! \param lds The leading dimension of the source matrix.
     //! \param pDstMat Row major destination matrix.
     //! \param ldd The leading dimension of the destination matrix.
+    //! \param pSrcMat Row major source matrix.
+    //! \param lds The leading dimension of the source matrix.
+    //! \param m The number of rows.
+    //! \param n The number of columns.
     //-----------------------------------------------------------------------------
     void matmul_mat_copy(
-        TIdx const m,
-        TIdx const n,
+        TElem * const MATMUL_RESTRICT pDstMat, TIdx const ldd,
         TElem const * const MATMUL_RESTRICT pSrcMat, TIdx const lds,
-        TElem * const MATMUL_RESTRICT pDstMat, TIdx const ldd);
+        TIdx const m,
+        TIdx const n);
 
     //-----------------------------------------------------------------------------
     //! Rearrange the matrix so that blocks are continous for scatter.

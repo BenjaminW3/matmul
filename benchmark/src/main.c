@@ -62,6 +62,11 @@ double measureRandomMatMul(
     TElem const minVal = MATMUL_EPSILON;
     TElem const maxVal = (TElem)10;
 
+#ifdef MATMUL_BENCHMARK_VERIFY_RESULT
+    // The threshold difference from where the value is considered to be a real error.
+    TElem const errorThreshold = (TElem)(((TElem)2) * MATMUL_EPSILON * ((TElem)m) * ((TElem)n) * ((TElem)k) * maxVal);
+#endif
+
     // Generate random alpha and beta.
 #ifdef MATMUL_MPI
     TElem const alpha = (TElem)1;
@@ -124,10 +129,6 @@ double measureRandomMatMul(
     TIdx const lda = (TIdx)(pitchBytesADev / sizeof(TElem));
     TIdx const ldb = (TIdx)(pitchBytesBDev / sizeof(TElem));
     TIdx const ldc = (TIdx)(pitchBytesCDev / sizeof(TElem));
-#else
-    TIdx const lda = n;
-    TIdx const ldb = n;
-    TIdx const ldc = n;
 #endif
 
     // Initialize the measurement result.
@@ -149,7 +150,7 @@ double measureRandomMatMul(
             // We have to fill C with new data in subsequent iterations because else the values in C would get bigger and bigger in each iteration.
             matmul_arr_fill_rand(C, elemCount, minVal, maxVal);
     #ifdef MATMUL_BENCHMARK_VERIFY_RESULT
-            matmul_mat_copy(n, n, C, n, D, n);
+            matmul_mat_copy(D, n, C, n, n, n);
     #endif
 
 #ifdef MATMUL_MPI
@@ -182,19 +183,21 @@ double measureRandomMatMul(
 #ifdef MATMUL_BENCHMARK_PRINT_MATRICES
             printf("\n");
             printf("%f\n*\n", alpha);
-            matmul_mat_print_simple(n, n, A, n);
+            matmul_mat_print_simple(A, n, n, n);
             printf("\n*\n");
-            matmul_mat_print_simple(n, n, B, n);
+            matmul_mat_print_simple(B, n, n, n);
             printf("\n+\n");
             printf("%f\n*\n", beta);
-            matmul_mat_print_simple(n, n, C, n);
+            matmul_mat_print_simple(C, n, n, n);
 #endif
 
-#ifndef MATMUL_BENCHMARK_COMPUTATION_TIME
-    #ifdef MATMUL_MPI
+#ifdef MATMUL_MPI
+    #ifndef MATMUL_BENCHMARK_COMPUTATION_TIME
             timeStart = getTimeSec();
+    #endif
         }
-    #else
+#else
+    #ifndef MATMUL_BENCHMARK_COMPUTATION_TIME
         double const timeStart = getTimeSec();
     #endif
 #endif
@@ -206,7 +209,7 @@ double measureRandomMatMul(
 #ifdef MATMUL_BENCHMARK_CUDA_NO_COPY
         (algo->pGemm)(n, n, n, alpha, pADev, lda, pBDev, ldb, beta, pCDev, ldc);
 #else
-        (algo->pGemm)(n, n, n, alpha, A, lda, B, ldb, beta, C, ldc);
+        (algo->pGemm)(n, n, n, alpha, A, n, B, n, beta, C, n);
 #endif
 
 #ifdef MATMUL_MPI
@@ -221,7 +224,7 @@ double measureRandomMatMul(
 
 #ifdef MATMUL_BENCHMARK_PRINT_MATRICES
             printf("\n=\n");
-            matmul_mat_print_simple(n, n, C, n);
+            matmul_mat_print_simple(C, n, n, n);
 #endif
 
 #ifdef MATMUL_BENCHMARK_VERIFY_RESULT
@@ -233,12 +236,10 @@ double measureRandomMatMul(
 
     #ifdef MATMUL_BENCHMARK_PRINT_MATRICES
             printf("\n=\n");
-            matmul_mat_print_simple(n, n, D, n);
+            matmul_mat_print_simple(D, n, n, n);
     #endif
 
-            // The threshold difference from where the value is considered to be a real error.
-            TElem const errorThreshold = (TElem)(MATMUL_EPSILON * ((TElem)m) * maxVal * ((TElem)n) * maxVal * ((TElem)k) * maxVal);
-            bool const resultCorrect = matmul_mat_cmp(n, n, C, n, D, n, errorThreshold);
+            bool const resultCorrect = matmul_mat_cmp(C, n, D, n, n, n, errorThreshold);
             if(!resultCorrect)
             {
                 printf("%s iteration %"MATMUL_PRINTF_SIZE_T" result incorrect!", algo->pszName, (size_t)i);

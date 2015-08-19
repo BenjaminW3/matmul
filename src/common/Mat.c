@@ -32,11 +32,13 @@
 //
 //-----------------------------------------------------------------------------
 bool matmul_mat_cmp(
-    TIdx const m, TIdx const n,
     TElem const * const MATMUL_RESTRICT A, TIdx const lda,
     TElem const * const MATMUL_RESTRICT B, TIdx const ldb,
+    TIdx const m, TIdx const n,
     TElem const errorThreshold)
 {
+    assert(n<=lda);
+
     // The maximum number of error values being printed.
     static TIdx const maxErrorsPrint = 100;
 
@@ -86,11 +88,13 @@ bool matmul_mat_cmp(
 //
 //-----------------------------------------------------------------------------
 void matmul_mat_print(
-    TIdx const m, TIdx const n,
     TElem const * const MATMUL_RESTRICT A, TIdx const lda,
+    TIdx const m, TIdx const n,
     char * const elemSeperator, char * const rowSeperator,
     char * const dimBegin, char * const dimEnd)
 {
+    assert(n<=lda);
+
     printf("%s", dimBegin);
     for(TIdx i = 0; i < m; ++i)
     {
@@ -115,12 +119,14 @@ void matmul_mat_print(
 //
 //-----------------------------------------------------------------------------
 void matmul_mat_print_simple(
-    TIdx const m, TIdx const n,
-    TElem const * const MATMUL_RESTRICT A, TIdx const lda)
+    TElem const * const MATMUL_RESTRICT A, TIdx const lda,
+    TIdx const m, TIdx const n)
 {
+    assert(n<=lda);
+
     matmul_mat_print(
-        m, n,
         A, lda,
+        m, n,
         ",", "\n",
         "", "");
 }
@@ -128,12 +134,14 @@ void matmul_mat_print_simple(
 //
 //-----------------------------------------------------------------------------
 void matmul_mat_print_mathematica(
-    TIdx const m, TIdx const n,
-    TElem const * const MATMUL_RESTRICT A, TIdx const lda)
+    TElem const * const MATMUL_RESTRICT A, TIdx const lda,
+    TIdx const m, TIdx const n)
 {
+    assert(n<=lda);
+
     matmul_mat_print(
-        m, n,
         A, lda,
+        m, n,
         ",", ",\n",
         "{", "}");
 }
@@ -187,10 +195,10 @@ void matmul_mat_copy_block(
 //
 //-----------------------------------------------------------------------------
 void matmul_mat_copy(
-    TIdx const m,
-    TIdx const n,
+    TElem * const MATMUL_RESTRICT pDstMat, TIdx const ldd,
     TElem const * const MATMUL_RESTRICT pSrcMat, TIdx const lds,
-    TElem * const MATMUL_RESTRICT pDstMat, TIdx const ldd)
+    TIdx const m,
+    TIdx const n)
 {
     matmul_mat_copy_block(
         m,
