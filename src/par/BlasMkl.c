@@ -32,7 +32,7 @@
     #include <mkl_cblas.h>
 
     #ifdef _MSC_VER
-        // When compiling with visual studio the msvc open mp libs are used by default. The mkl routines are linked with the intel openmp libs.
+        // When compiling with visual studio the msvc open mp libs are used by default. The mkl routines are linked with the intel OpenMP libs.
         #pragma comment(linker,"/NODEFAULTLIB:VCOMPD.lib" ) // So we have to remove the msvc default ones ...
         #pragma comment(linker,"/NODEFAULTLIB:VCOMP.lib")
         #pragma comment(lib,"libiomp5md.lib")               // ... and add the intel libs.
