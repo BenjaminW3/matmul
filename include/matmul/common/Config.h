@@ -80,7 +80,6 @@ typedef MATMUL_INDEX_TYPE TIdx;
 // Compiler Settings.
 //-----------------------------------------------------------------------------
 #if defined __INTEL_COMPILER                    // ICC additionally defines _MSC_VER if used in VS so this has to come first
-    #define MATMUL_ICC
     #ifdef __cplusplus
         #define MATMUL_RESTRICT __restrict
     #else
@@ -93,7 +92,6 @@ typedef MATMUL_INDEX_TYPE TIdx;
     #endif
 
 #elif defined __clang__
-    #define MATMUL_CLANG
     #ifdef __cplusplus
         #define MATMUL_RESTRICT __restrict__
     #else
@@ -106,7 +104,6 @@ typedef MATMUL_INDEX_TYPE TIdx;
     #endif
 
 #elif defined __GNUC__
-    #define MATMUL_GCC
     #ifdef __cplusplus
         #define MATMUL_RESTRICT __restrict__
     #else
@@ -115,7 +112,6 @@ typedef MATMUL_INDEX_TYPE TIdx;
     #define MATMUL_PRINTF_SIZE_T "zu"
 
 #elif defined _MSC_VER
-    #define MATMUL_MSVC
     #define MATMUL_RESTRICT __restrict          // Visual C++ 2013 and below do not define C99 restrict keyword under its supposed name. (And its not fully standard conformant)
     #if _MSC_VER<=1800
         #define MATMUL_PRINTF_SIZE_T "Iu"       // Visual C++ 2013 and below do not support C99 printf specifiers.

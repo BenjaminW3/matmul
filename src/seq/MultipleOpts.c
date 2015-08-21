@@ -45,7 +45,7 @@
 
             MATMUL_TIME_START;
 
-#ifdef MATMUL_MSVC
+#ifdef _MSC_VER
             for(TIdx i = 0; i<m; ++i)
             {
                 for(TIdx j = 0; j<n; ++j)

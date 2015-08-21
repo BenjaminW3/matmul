@@ -45,7 +45,7 @@
         TElem const * const MATMUL_RESTRICT B, TIdx const ldb,
         TElem * const MATMUL_RESTRICT C, TIdx const ldc)
     {
-#ifdef MATMUL_MSVC
+#ifdef _MSC_VER
         for(TIdx i = 0; i < m; ++i)
         {
             TIdx const rowBeginIdxA = i*lda;
@@ -74,7 +74,7 @@
         TElem const * const MATMUL_RESTRICT A, TIdx const lda,
         TElem * const MATMUL_RESTRICT C, TIdx const ldc)
     {
-#ifdef MATMUL_MSVC
+#ifdef _MSC_VER
         for(TIdx i = 0; i < m; ++i)
         {
             TIdx const rowBeginIdxA = i*lda;
@@ -103,7 +103,7 @@
         TElem const * const MATMUL_RESTRICT B, TIdx const ldb,
         TElem * const MATMUL_RESTRICT C, TIdx const ldc)
     {
-#ifdef MATMUL_MSVC
+#ifdef _MSC_VER
         for(TIdx i = 0; i < m; ++i)
         {
             TIdx const rowBeginIdxA = i*lda;
