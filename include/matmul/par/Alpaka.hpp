@@ -328,23 +328,30 @@
     namespace detail
     {
         //#############################################################################
-        //! The stream type trait for the stream that should be used for the given accelerator.
+        //! The stream type trait for the stream that should be used for the given device.
         //#############################################################################
         template<
             typename TDev,
             typename TSfinae = void>
-        struct StreamType
+        struct StreamType;
+
+        //#############################################################################
+        //! The stream type trait specialization for the CPU device.
+        //#############################################################################
+        template<>
+        struct StreamType<
+            alpaka::dev::DevCpu>
         {
-//#if (MATMUL_DEBUG >= MATMUL_DEBUG_FULL)
+#if (MATMUL_DEBUG >= MATMUL_DEBUG_FULL)
             using type = alpaka::stream::StreamCpuSync;
-//#else
-//            using type = alpaka::stream::StreamCpuAsync;
-//#endif
+#else
+            using type = alpaka::stream::StreamCpuAsync;
+#endif
         };
 
 #if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) && defined(__CUDACC__)
         //#############################################################################
-        //! The stream type trait specialization for the CUDA accelerator.
+        //! The stream type trait specialization for the CUDA device.
         //#############################################################################
         template<>
         struct StreamType<
@@ -359,11 +366,11 @@
 #endif
     }
     //#############################################################################
-    //! The stream type that should be used for the given accelerator.
+    //! The stream type that should be used for the given device.
     //#############################################################################
     template<
-        typename TAcc>
-    using Stream = typename detail::StreamType<TAcc>::type;
+        typename TDev>
+    using Stream = typename detail::StreamType<TDev>::type;
 
     //-----------------------------------------------------------------------------
     //
