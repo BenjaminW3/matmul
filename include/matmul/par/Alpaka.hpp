@@ -342,11 +342,11 @@
         struct StreamType<
             alpaka::dev::DevCpu>
         {
-#if (MATMUL_DEBUG >= MATMUL_DEBUG_FULL)
+//#if (MATMUL_DEBUG >= MATMUL_DEBUG_FULL)
             using type = alpaka::stream::StreamCpuSync;
-#else
+/*#else
             using type = alpaka::stream::StreamCpuAsync;
-#endif
+#endif*/
         };
 
 #if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) && defined(__CUDACC__)
