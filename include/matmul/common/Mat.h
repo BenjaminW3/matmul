@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include <matmul/common/Config.h>   // TElem, TIdx, TReturn
+#include <matmul/common/Config.h>   // TElem, TSize, TReturn
 
 #include <stdbool.h>                // bool
 
@@ -41,9 +41,9 @@
     //! \return If the matrices compare equal (under the given threshold).
     //-----------------------------------------------------------------------------
     bool matmul_mat_cmp(
-        TElem const * const MATMUL_RESTRICT A, TIdx const lda,
-        TElem const * const MATMUL_RESTRICT B, TIdx const ldb,
-        TIdx const m, TIdx const n,
+        TElem const * const MATMUL_RESTRICT A, TSize const lda,
+        TElem const * const MATMUL_RESTRICT B, TSize const ldb,
+        TSize const m, TSize const n,
         TElem const errorThreshold);
 
     //-----------------------------------------------------------------------------
@@ -55,8 +55,8 @@
     //! \param lda Specifies the leading dimension of A.
     //-----------------------------------------------------------------------------
     void matmul_mat_print(
-        TElem const * const MATMUL_RESTRICT A, TIdx const lda,
-        TIdx const m, TIdx const n,
+        TElem const * const MATMUL_RESTRICT A, TSize const lda,
+        TSize const m, TSize const n,
         char * const elemSeperator, char * const rowSeperator,
         char * const dimBegin, char * const dimEnd);
     //-----------------------------------------------------------------------------
@@ -68,8 +68,8 @@
     //! \param lda Specifies the leading dimension of A.
     //-----------------------------------------------------------------------------
     void matmul_mat_print_simple(
-        TElem const * const MATMUL_RESTRICT A, TIdx const lda,
-        TIdx const m, TIdx const n);
+        TElem const * const MATMUL_RESTRICT A, TSize const lda,
+        TSize const m, TSize const n);
     //-----------------------------------------------------------------------------
     //! Prints the matrix to the console.
     //!
@@ -79,8 +79,8 @@
     //! \param lda Specifies the leading dimension of A.
     //-----------------------------------------------------------------------------
     void matmul_mat_print_mathematica(
-        TElem const * const MATMUL_RESTRICT A, TIdx const lda,
-        TIdx const m, TIdx const n);
+        TElem const * const MATMUL_RESTRICT A, TSize const lda,
+        TSize const m, TSize const n);
 
     //-----------------------------------------------------------------------------
     //! Get if the GEMM is allowed to return early.
@@ -93,7 +93,7 @@
     //! \return If the matrix multiplication is allowed to return without calculations.
     //-----------------------------------------------------------------------------
     bool matmul_mat_gemm_early_out(
-        TIdx const m, TIdx const n, TIdx const k,
+        TSize const m, TSize const n, TSize const k,
         TElem const alpha,
         TElem const beta);
 
@@ -112,14 +112,14 @@
     //! \param dc The column in the destination matrix the block to copy begins.
     //-----------------------------------------------------------------------------
     void matmul_mat_copy_block(
-        TIdx const m,
-        TIdx const n,
-        TElem const * const MATMUL_RESTRICT pSrcMat, TIdx const lds,
-        TIdx const sr,
-        TIdx const sc,
-        TElem * const MATMUL_RESTRICT pDstMat, TIdx const ldd,
-        TIdx const dr,
-        TIdx const dc);
+        TSize const m,
+        TSize const n,
+        TElem const * const MATMUL_RESTRICT pSrcMat, TSize const lds,
+        TSize const sr,
+        TSize const sc,
+        TElem * const MATMUL_RESTRICT pDstMat, TSize const ldd,
+        TSize const dr,
+        TSize const dc);
 
     //-----------------------------------------------------------------------------
     //! Copy the matrix pSrcMat to the pDstMat.
@@ -132,10 +132,10 @@
     //! \param n The number of columns.
     //-----------------------------------------------------------------------------
     void matmul_mat_copy(
-        TElem * const MATMUL_RESTRICT pDstMat, TIdx const ldd,
-        TElem const * const MATMUL_RESTRICT pSrcMat, TIdx const lds,
-        TIdx const m,
-        TIdx const n);
+        TElem * const MATMUL_RESTRICT pDstMat, TSize const ldd,
+        TElem const * const MATMUL_RESTRICT pSrcMat, TSize const lds,
+        TSize const m,
+        TSize const n);
 
     //-----------------------------------------------------------------------------
     //! Rearrange the matrix so that blocks are continous for scatter.
@@ -156,8 +156,8 @@
     //!                        If columnFirst is false the matrix is stored as:    1  2  5  6  9 10 13 14 3  4  7  8  11 12 15 16.
     //-----------------------------------------------------------------------------
     void matmul_mat_row_major_to_mat_x_block_major(
-        TElem const * const MATMUL_RESTRICT pSrcMat, TIdx const m, TIdx const n, TIdx const lds,
-        TElem * MATMUL_RESTRICT pBlockMajorMat, TIdx const b,
+        TElem const * const MATMUL_RESTRICT pSrcMat, TSize const m, TSize const n, TSize const lds,
+        TElem * MATMUL_RESTRICT pBlockMajorMat, TSize const b,
         bool const columnFirst);
 
     //-----------------------------------------------------------------------------
@@ -179,8 +179,8 @@
     //!                        If columnFirst is false the matrix is stored as:    1  2  5  6  9 10 13 14 3  4  7  8  11 12 15 16.
     //-----------------------------------------------------------------------------
     void matmul_mat_x_block_major_to_mat_row_major(
-        TElem const * MATMUL_RESTRICT pBlockMajorMat, TIdx const b,
-        TElem * const MATMUL_RESTRICT pDstMat, TIdx const m, TIdx const n, TIdx const ldd,
+        TElem const * MATMUL_RESTRICT pBlockMajorMat, TSize const b,
+        TElem * const MATMUL_RESTRICT pDstMat, TSize const m, TSize const n, TSize const ldd,
         bool const columnFirst);
 
     //-----------------------------------------------------------------------------
@@ -192,10 +192,10 @@
     //! \param b The block size. This is the size of pDstBlock.
     //-----------------------------------------------------------------------------
     void matmul_mat_get_block(
-        TElem const * const MATMUL_RESTRICT pSrcMat, TIdx const lds,
-        TIdx const blockIdxHorizontal,
-        TIdx const blockIdxVertical,
-        TElem * const MATMUL_RESTRICT pDstBlock, TIdx const b);
+        TElem const * const MATMUL_RESTRICT pSrcMat, TSize const lds,
+        TSize const blockIdxHorizontal,
+        TSize const blockIdxVertical,
+        TElem * const MATMUL_RESTRICT pDstBlock, TSize const b);
 
     //-----------------------------------------------------------------------------
     //! \param pSrcBlock The block to copy.
@@ -206,10 +206,10 @@
     //! \param blockIdxVertical The vertical destination block index inside destination matrix.
     //-----------------------------------------------------------------------------
     void matmul_mat_set_block(
-        TElem const * const MATMUL_RESTRICT pSrcBlock, TIdx const b,
-        TElem * const MATMUL_RESTRICT pDstMat, TIdx const ldd,
-        TIdx const blockIdxHorizontal,
-        TIdx const blockIdxVertical);
+        TElem const * const MATMUL_RESTRICT pSrcBlock, TSize const b,
+        TElem * const MATMUL_RESTRICT pDstMat, TSize const ldd,
+        TSize const blockIdxHorizontal,
+        TSize const blockIdxVertical);
 #ifdef __cplusplus
     }
 #endif

@@ -40,26 +40,26 @@
     //
     //-----------------------------------------------------------------------------
     void matmul_mat_add_pitch_seq(
-        TIdx const m, TIdx const n,
-        TElem const * const MATMUL_RESTRICT A, TIdx const lda,
-        TElem const * const MATMUL_RESTRICT B, TIdx const ldb,
-        TElem * const MATMUL_RESTRICT C, TIdx const ldc)
+        TSize const m, TSize const n,
+        TElem const * const MATMUL_RESTRICT A, TSize const lda,
+        TElem const * const MATMUL_RESTRICT B, TSize const ldb,
+        TElem * const MATMUL_RESTRICT C, TSize const ldc)
     {
 #ifdef _MSC_VER
-        for(TIdx i = 0; i < m; ++i)
+        for(TSize i = 0; i < m; ++i)
         {
-            TIdx const rowBeginIdxA = i*lda;
-            TIdx const rowBeginIdxB = i*ldb;
-            TIdx const rowBeginIdxC = i*ldc;
-            for(TIdx j = 0; j < n; ++j)
+            TSize const rowBeginIdxA = i*lda;
+            TSize const rowBeginIdxB = i*ldb;
+            TSize const rowBeginIdxC = i*ldc;
+            for(TSize j = 0; j < n; ++j)
             {
                 C[rowBeginIdxC + j] = A[rowBeginIdxA + j] + B[rowBeginIdxB + j];
             }
         }
 #else
-        for(TIdx i = 0; i < m; ++i)
+        for(TSize i = 0; i < m; ++i)
         {
-            for(TIdx j = 0; j < n; ++j)
+            for(TSize j = 0; j < n; ++j)
             {
                 C[i*ldc + j] = A[i*lda + j] + B[i*ldb + j];
             }
@@ -70,24 +70,24 @@
     //
     //-----------------------------------------------------------------------------
     void matmul_mat_add2_pitch_seq(
-        TIdx const m, TIdx const n,
-        TElem const * const MATMUL_RESTRICT A, TIdx const lda,
-        TElem * const MATMUL_RESTRICT C, TIdx const ldc)
+        TSize const m, TSize const n,
+        TElem const * const MATMUL_RESTRICT A, TSize const lda,
+        TElem * const MATMUL_RESTRICT C, TSize const ldc)
     {
 #ifdef _MSC_VER
-        for(TIdx i = 0; i < m; ++i)
+        for(TSize i = 0; i < m; ++i)
         {
-            TIdx const rowBeginIdxA = i*lda;
-            TIdx const rowBeginIdxC = i*ldc;
-            for(TIdx j = 0; j < n; ++j)
+            TSize const rowBeginIdxA = i*lda;
+            TSize const rowBeginIdxC = i*ldc;
+            for(TSize j = 0; j < n; ++j)
             {
                 C[rowBeginIdxC + j] += A[rowBeginIdxA + j];
             }
         }
 #else
-        for(TIdx i = 0; i < m; ++i)
+        for(TSize i = 0; i < m; ++i)
         {
-            for(TIdx j = 0; j < n; ++j)
+            for(TSize j = 0; j < n; ++j)
             {
                 C[i*ldc + j] += A[i*lda + j];
             }
@@ -98,26 +98,26 @@
     //
     //-----------------------------------------------------------------------------
     void matmul_mat_sub_pitch_seq(
-        TIdx const m, TIdx const n,
-        TElem const * const MATMUL_RESTRICT A, TIdx const lda,
-        TElem const * const MATMUL_RESTRICT B, TIdx const ldb,
-        TElem * const MATMUL_RESTRICT C, TIdx const ldc)
+        TSize const m, TSize const n,
+        TElem const * const MATMUL_RESTRICT A, TSize const lda,
+        TElem const * const MATMUL_RESTRICT B, TSize const ldb,
+        TElem * const MATMUL_RESTRICT C, TSize const ldc)
     {
 #ifdef _MSC_VER
-        for(TIdx i = 0; i < m; ++i)
+        for(TSize i = 0; i < m; ++i)
         {
-            TIdx const rowBeginIdxA = i*lda;
-            TIdx const rowBeginIdxB = i*ldb;
-            TIdx const rowBeginIdxC = i*ldc;
-            for(TIdx j = 0; j < n; ++j)
+            TSize const rowBeginIdxA = i*lda;
+            TSize const rowBeginIdxB = i*ldb;
+            TSize const rowBeginIdxC = i*ldc;
+            for(TSize j = 0; j < n; ++j)
             {
                 C[rowBeginIdxC + j] = A[rowBeginIdxA + j] - B[rowBeginIdxB + j];
             }
         }
 #else
-        for(TIdx i = 0; i < m; ++i)
+        for(TSize i = 0; i < m; ++i)
         {
-            for(TIdx j = 0; j < n; ++j)
+            for(TSize j = 0; j < n; ++j)
             {
                 C[i*ldc + j] = A[i*lda + j] - B[i*ldb + j];
             }
@@ -129,12 +129,12 @@
     //
     //-----------------------------------------------------------------------------
     TReturn matmul_gemm_seq_strassen(
-        TIdx const m, TIdx const n, TIdx const k,
+        TSize const m, TSize const n, TSize const k,
         TElem const alpha,
-        TElem const * const MATMUL_RESTRICT X, TIdx const lda,
-        TElem const * const MATMUL_RESTRICT Y, TIdx const ldb,
+        TElem const * const MATMUL_RESTRICT X, TSize const lda,
+        TElem const * const MATMUL_RESTRICT Y, TSize const ldb,
         TElem const beta,
-        TElem * const MATMUL_RESTRICT Z, TIdx const ldc)
+        TElem * const MATMUL_RESTRICT Z, TSize const ldc)
     {
         if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
         {
@@ -146,9 +146,9 @@
         // Apply beta multiplication to C.
         if(beta != (TElem)1)
         {
-            for(TIdx i = 0; i < m; ++i)
+            for(TSize i = 0; i < m; ++i)
             {
-                for(TIdx j = 0; j < n; ++j)
+                for(TSize j = 0; j < n; ++j)
                 {
                     Z[i*ldc + j] *= beta;
                 }
@@ -170,7 +170,7 @@
                 MATMUL_TIME_RETURN_EARLY_OUT;
             }
 
-            TIdx const h = n/2;           // size of sub-matrices
+            TSize const h = n/2;           // size of sub-matrices
 
             TElem const * const A = X;      // A-D matrices embedded in X
             TElem const * const B = X + h;
@@ -183,9 +183,9 @@
             TElem const * const H = G + h;
 
             // Allocate temporary matrices.
-            TIdx const elemCount = h * h;
+            TSize const elemCount = h * h;
             TElem * P[7];
-            for(TIdx i = 0; i < 7; ++i)
+            for(TSize i = 0; i < 7; ++i)
             {
                 P[i] = matmul_arr_alloc_fill_zero(elemCount);
             }
@@ -247,7 +247,7 @@
             // Deallocate temporary matrices.
             matmul_arr_free(U);
             matmul_arr_free(T);
-            for(TIdx i = 0; i < 7; ++i)
+            for(TSize i = 0; i < 7; ++i)
             {
                 matmul_arr_free(P[i]);
             }

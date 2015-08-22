@@ -29,15 +29,15 @@
     //
     //-----------------------------------------------------------------------------
     TReturn matmul_gemm_par_alpaka_gpu_cuda(
-        TIdx const m, TIdx const n, TIdx const k,
+        TSize const m, TSize const n, TSize const k,
         TElem const alpha,
-        TElem const * const MATMUL_RESTRICT A, TIdx const lda,
-        TElem const * const MATMUL_RESTRICT B, TIdx const ldb,
+        TElem const * const MATMUL_RESTRICT A, TSize const lda,
+        TElem const * const MATMUL_RESTRICT B, TSize const ldb,
         TElem const beta,
-        TElem * const MATMUL_RESTRICT C, TIdx const ldc)
+        TElem * const MATMUL_RESTRICT C, TSize const ldc)
     {
         return
-            matmul_gemm_par_alpaka<alpaka::acc::AccGpuCudaRt<alpaka::dim::DimInt<2u>, TIdx>, GemmAlpakaSharedKernel>(
+            matmul_gemm_par_alpaka<alpaka::acc::AccGpuCudaRt<alpaka::dim::DimInt<2u>, TSize>, GemmAlpakaSharedKernel>(
                 m, n, k,
                 alpha,
                 A, lda,
@@ -49,15 +49,15 @@
     //
     //-----------------------------------------------------------------------------
     TReturn matmul_gemm_par_alpaka_gpu_cuda_memcpy(
-        TIdx const m, TIdx const n, TIdx const k,
+        TSize const m, TSize const n, TSize const k,
         TElem const alpha,
-        TElem const * const MATMUL_RESTRICT A, TIdx const lda,
-        TElem const * const MATMUL_RESTRICT B, TIdx const ldb,
+        TElem const * const MATMUL_RESTRICT A, TSize const lda,
+        TElem const * const MATMUL_RESTRICT B, TSize const ldb,
         TElem const beta,
-        TElem * const MATMUL_RESTRICT C, TIdx const ldc)
+        TElem * const MATMUL_RESTRICT C, TSize const ldc)
     {
         return
-            matmul_gemm_par_alpaka_memcpy<alpaka::acc::AccGpuCudaRt<alpaka::dim::DimInt<2u>, TIdx>, GemmAlpakaSharedKernel>(
+            matmul_gemm_par_alpaka_memcpy<alpaka::acc::AccGpuCudaRt<alpaka::dim::DimInt<2u>, TSize>, GemmAlpakaSharedKernel>(
                 m, n, k,
                 alpha,
                 A, lda,

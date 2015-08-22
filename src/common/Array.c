@@ -43,12 +43,12 @@ TElem matmul_gen_rand_val(
 //-----------------------------------------------------------------------------
 void matmul_arr_fill_val(
     TElem * const pArray,
-    TIdx const elemCount,
+    TSize const elemCount,
     TElem const val)
 {
     assert(pArray);
 
-    for(TIdx i = 0; i<elemCount; ++i)
+    for(TSize i = 0; i<elemCount; ++i)
     {
         pArray[i] = val;
     }
@@ -58,7 +58,7 @@ void matmul_arr_fill_val(
 //-----------------------------------------------------------------------------
 void matmul_arr_fill_zero(
     TElem * const pArray,
-    TIdx const elemCount)
+    TSize const elemCount)
 {
     matmul_arr_fill_val(
         pArray,
@@ -70,11 +70,11 @@ void matmul_arr_fill_zero(
 //-----------------------------------------------------------------------------
 void matmul_arr_fill_idx(
     TElem * const pArray,
-    TIdx const elemCount)
+    TSize const elemCount)
 {
     assert(pArray);
 
-    for(TIdx i = 0; i<elemCount; ++i)
+    for(TSize i = 0; i<elemCount; ++i)
     {
         pArray[i] = (TElem)i;
     }
@@ -84,13 +84,13 @@ void matmul_arr_fill_idx(
 //-----------------------------------------------------------------------------
 void matmul_arr_fill_rand(
     TElem * const pArray,
-    TIdx const elemCount,
+    TSize const elemCount,
     TElem const min,
     TElem const max)
 {
     assert(pArray);
 
-    for(TIdx i = 0; i<elemCount; ++i)
+    for(TSize i = 0; i<elemCount; ++i)
     {
         pArray[i] = matmul_gen_rand_val(min, max);
     }
@@ -100,7 +100,7 @@ void matmul_arr_fill_rand(
 //
 //-----------------------------------------------------------------------------
 TElem * matmul_arr_alloc_fill_val(
-    TIdx const elemCount,
+    TSize const elemCount,
     TElem const val)
 {
     TElem * arr = matmul_arr_alloc(elemCount);
@@ -113,7 +113,7 @@ TElem * matmul_arr_alloc_fill_val(
 //
 //-----------------------------------------------------------------------------
 TElem * matmul_arr_alloc_fill_zero(
-    TIdx const elemCount)
+    TSize const elemCount)
 {
     TElem * arr = matmul_arr_alloc(elemCount);
 
@@ -125,7 +125,7 @@ TElem * matmul_arr_alloc_fill_zero(
 //
 //-----------------------------------------------------------------------------
 TElem * matmul_arr_alloc_fill_idx(
-    TIdx const elemCount)
+    TSize const elemCount)
 {
     TElem * arr = matmul_arr_alloc(elemCount);
 
@@ -137,7 +137,7 @@ TElem * matmul_arr_alloc_fill_idx(
 //
 //-----------------------------------------------------------------------------
 TElem * matmul_arr_alloc_fill_rand(
-    TIdx const elemCount,
+    TSize const elemCount,
     TElem const min,
     TElem const max)
 {

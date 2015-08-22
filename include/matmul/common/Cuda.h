@@ -23,7 +23,7 @@
 
 #ifdef MATMUL_BUILD_CUDA_MEMCPY
 
-    #include <matmul/common/Config.h>   // TElem, TIdx, TReturn
+    #include <matmul/common/Config.h>   // TElem, TSize, TReturn
 
     #ifdef __cplusplus
         extern "C"
@@ -45,13 +45,13 @@
             //! \param ldc Specifies the leading dimension of C.
             //-----------------------------------------------------------------------------
             TReturn matmul_gemm_wrap_memcpy_host_cuda(
-                TIdx const m, TIdx const n, TIdx const k,
+                TSize const m, TSize const n, TSize const k,
                 TElem const alpha,
-                TElem const * const MATMUL_RESTRICT A, TIdx const lda,
-                TElem const * const MATMUL_RESTRICT B, TIdx const ldb,
+                TElem const * const MATMUL_RESTRICT A, TSize const lda,
+                TElem const * const MATMUL_RESTRICT B, TSize const ldb,
                 TElem const beta,
-                TElem * const MATMUL_RESTRICT C, TIdx const ldc,
-                TReturn(*pGemm)(TIdx const, TIdx const, TIdx const, TElem const, TElem const * const, TIdx const, TElem const * const, TIdx const, TElem const, TElem * const, TIdx const));
+                TElem * const MATMUL_RESTRICT C, TSize const ldc,
+                TReturn(*pGemm)(TSize const, TSize const, TSize const, TElem const, TElem const * const, TSize const, TElem const * const, TSize const, TElem const, TElem * const, TSize const));
             //-----------------------------------------------------------------------------
             //! (S/D)GEMM matrix-matrix product C = alpha * A * B + beta * C wrapper copying the matrices host->device prior and device->host after the computation.
             //!
@@ -68,13 +68,13 @@
             //! \param ldc Specifies the leading dimension of C.
             //-----------------------------------------------------------------------------
             TReturn matmul_gemm_wrap_memcpy_host_cuda_2d(
-                TIdx const m, TIdx const n, TIdx const k,
+                TSize const m, TSize const n, TSize const k,
                 TElem const alpha,
-                TElem const * const MATMUL_RESTRICT A, TIdx const lda,
-                TElem const * const MATMUL_RESTRICT B, TIdx const ldb,
+                TElem const * const MATMUL_RESTRICT A, TSize const lda,
+                TElem const * const MATMUL_RESTRICT B, TSize const ldb,
                 TElem const beta,
-                TElem * const MATMUL_RESTRICT C, TIdx const ldc,
-                TReturn(*pGemm)(TIdx const, TIdx const, TIdx const, TElem const, TElem const * const, TIdx const, TElem const * const, TIdx const, TElem const, TElem * const, TIdx const));
+                TElem * const MATMUL_RESTRICT C, TSize const ldc,
+                TReturn(*pGemm)(TSize const, TSize const, TSize const, TElem const, TElem const * const, TSize const, TElem const * const, TSize const, TElem const, TElem * const, TSize const));
     #ifdef __cplusplus
         }
     #endif

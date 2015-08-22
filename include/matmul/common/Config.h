@@ -74,7 +74,7 @@
 #include <stddef.h>                 // size_t
 #include <stdint.h>                 // int32_t
 
-typedef MATMUL_INDEX_TYPE TIdx;
+typedef MATMUL_INDEX_TYPE TSize;
 
 //-----------------------------------------------------------------------------
 // Compiler Settings.

@@ -23,7 +23,7 @@
 
 #if defined(MATMUL_BUILD_PAR_PHI_OFF_OMP2_GUIDED) ||  defined(MATMUL_BUILD_PAR_PHI_OFF_OMP2_STATIC) ||  defined(MATMUL_BUILD_PAR_PHI_OFF_OMP3) ||  defined(MATMUL_BUILD_PAR_PHI_OFF_OMP4)
 
-    #include <matmul/common/Config.h>   // TElem, TIdx, TReturn
+    #include <matmul/common/Config.h>   // TElem, TSize, TReturn
 
     #ifdef __cplusplus
         extern "C"
@@ -47,12 +47,12 @@
             //! \param ldc Specifies the leading dimension of C.
             //-----------------------------------------------------------------------------
             TReturn matmul_gemm_par_phi_off_omp2_guided_schedule(
-                TIdx const m, TIdx const n, TIdx const k,
+                TSize const m, TSize const n, TSize const k,
                 TElem const alpha,
-                TElem const * const MATMUL_RESTRICT A, TIdx const lda,
-                TElem const * const MATMUL_RESTRICT B, TIdx const ldb,
+                TElem const * const MATMUL_RESTRICT A, TSize const lda,
+                TElem const * const MATMUL_RESTRICT B, TSize const ldb,
                 TElem const beta,
-                TElem * const MATMUL_RESTRICT C, TIdx const ldc);
+                TElem * const MATMUL_RESTRICT C, TSize const ldc);
         #endif
         #ifdef MATMUL_BUILD_PAR_PHI_OFF_OMP2_STATIC
             //-----------------------------------------------------------------------------
@@ -71,12 +71,12 @@
             //! \param ldc Specifies the leading dimension of C.
             //-----------------------------------------------------------------------------
             TReturn matmul_gemm_par_phi_off_omp2_static_schedule(
-                TIdx const m, TIdx const n, TIdx const k,
+                TSize const m, TSize const n, TSize const k,
                 TElem const alpha,
-                TElem const * const MATMUL_RESTRICT A, TIdx const lda,
-                TElem const * const MATMUL_RESTRICT B, TIdx const ldb,
+                TElem const * const MATMUL_RESTRICT A, TSize const lda,
+                TElem const * const MATMUL_RESTRICT B, TSize const ldb,
                 TElem const beta,
-                TElem * const MATMUL_RESTRICT C, TIdx const ldc);
+                TElem * const MATMUL_RESTRICT C, TSize const ldc);
         #endif
     #endif
     #if _OPENMP >= 200805   // OpenMP 3.0
@@ -97,12 +97,12 @@
             //! \param ldc Specifies the leading dimension of C.
             //-----------------------------------------------------------------------------
             TReturn matmul_gemm_par_phi_off_omp3_static_schedule_collapse(
-                TIdx const m, TIdx const n, TIdx const k,
+                TSize const m, TSize const n, TSize const k,
                 TElem const alpha,
-                TElem const * const MATMUL_RESTRICT A, TIdx const lda,
-                TElem const * const MATMUL_RESTRICT B, TIdx const ldb,
+                TElem const * const MATMUL_RESTRICT A, TSize const lda,
+                TElem const * const MATMUL_RESTRICT B, TSize const ldb,
                 TElem const beta,
-                TElem * const MATMUL_RESTRICT C, TIdx const ldc);
+                TElem * const MATMUL_RESTRICT C, TSize const ldc);
         #endif
     #endif
     #if _OPENMP >= 201307   // OpenMP 4.0
@@ -123,12 +123,12 @@
             //! \param ldc Specifies the leading dimension of C.
             //-----------------------------------------------------------------------------
             TReturn matmul_gemm_par_phi_off_omp4(
-                TIdx const m, TIdx const n, TIdx const k,
+                TSize const m, TSize const n, TSize const k,
                 TElem const alpha,
-                TElem const * const MATMUL_RESTRICT A, TIdx const lda,
-                TElem const * const MATMUL_RESTRICT B, TIdx const ldb,
+                TElem const * const MATMUL_RESTRICT A, TSize const lda,
+                TElem const * const MATMUL_RESTRICT B, TSize const ldb,
                 TElem const beta,
-                TElem * const MATMUL_RESTRICT C, TIdx const ldc);
+                TElem * const MATMUL_RESTRICT C, TSize const ldc);
         #endif
     #endif
     #ifdef __cplusplus

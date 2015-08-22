@@ -33,7 +33,7 @@
 //! \param elemCount The number of elements in the matrix.
 //-----------------------------------------------------------------------------
 TElem * matmul_arr_alloc(
-    TIdx const numBytes);
+    TSize const numBytes);
 
 //-----------------------------------------------------------------------------
 //! \return A array of random values of the given type.

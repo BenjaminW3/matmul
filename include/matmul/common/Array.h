@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include <matmul/common/Config.h>   // TElem, TIdx, TReturn
+#include <matmul/common/Config.h>   // TElem, TSize, TReturn
 
 #ifdef __cplusplus
     extern "C"
@@ -41,7 +41,7 @@ TElem matmul_gen_rand_val(
 //-----------------------------------------------------------------------------
 void matmul_arr_fill_val(
     TElem * const pArray,
-    TIdx const elemCount,
+    TSize const elemCount,
     TElem const val);
 //-----------------------------------------------------------------------------
 //! Fills the array with zeros.
@@ -50,7 +50,7 @@ void matmul_arr_fill_val(
 //-----------------------------------------------------------------------------
 void matmul_arr_fill_zero(
     TElem * const pArray,
-    TIdx const elemCount);
+    TSize const elemCount);
 //-----------------------------------------------------------------------------
 //! Fills the array with the indices as values.
 //! \param pArray The array.
@@ -58,7 +58,7 @@ void matmul_arr_fill_zero(
 //-----------------------------------------------------------------------------
 void matmul_arr_fill_idx(
     TElem * const pArray,
-    TIdx const elemCount);
+    TSize const elemCount);
 //-----------------------------------------------------------------------------
 //! Fills the array with random numbers.
 //! \param pArray The array.
@@ -66,7 +66,7 @@ void matmul_arr_fill_idx(
 //-----------------------------------------------------------------------------
 void matmul_arr_fill_rand(
     TElem * const pArray,
-    TIdx const elemCount,
+    TSize const elemCount,
     TElem const min,
     TElem const max);
 
@@ -75,26 +75,26 @@ void matmul_arr_fill_rand(
 //! \param elemCount The number of elements in the array.
 //-----------------------------------------------------------------------------
 TElem * matmul_arr_alloc_fill_val(
-    TIdx const elemCount,
+    TSize const elemCount,
     TElem const val);
 //-----------------------------------------------------------------------------
 //! \return A array of the given type initialized with zero.
 //! \param elemCount The number of elements in the array.
 //-----------------------------------------------------------------------------
 TElem * matmul_arr_alloc_fill_zero(
-    TIdx const elemCount);
+    TSize const elemCount);
 //-----------------------------------------------------------------------------
 //! \return A array of the given type initialized with the indices as values.
 //! \param elemCount The number of elements in the array.
 //-----------------------------------------------------------------------------
 TElem * matmul_arr_alloc_fill_idx(
-    TIdx const elemCount);
+    TSize const elemCount);
 //-----------------------------------------------------------------------------
 //! \return A array of random values of the given type.
 //! \param elemCount The number of elements in the array.
 //-----------------------------------------------------------------------------
 TElem * matmul_arr_alloc_fill_rand(
-    TIdx const elemCount,
+    TSize const elemCount,
     TElem const min,
     TElem const max);
 #ifdef __cplusplus

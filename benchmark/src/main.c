@@ -34,7 +34,7 @@
 //-----------------------------------------------------------------------------
 typedef struct GemmAlgo
 {
-    TReturn(*pGemm)(TIdx const, TIdx const, TIdx const, TElem const, TElem const * const, TIdx const, TElem const * const, TIdx const, TElem const, TElem * const, TIdx const);
+    TReturn(*pGemm)(TSize const, TSize const, TSize const, TElem const, TElem const * const, TSize const, TElem const * const, TSize const, TElem const, TElem * const, TSize const);
     char const * pszName;
     double const exponentOmega;
 } GemmAlgo;
@@ -51,8 +51,8 @@ typedef struct GemmAlgo
 //-----------------------------------------------------------------------------
 double measureRandomMatMul(
     GemmAlgo const * const algo,
-    TIdx const m, TIdx const n, TIdx const k,
-    TIdx const repeatCount,
+    TSize const m, TSize const n, TSize const k,
+    TSize const repeatCount,
     bool const bRepeatTakeMinimum
  #ifdef MATMUL_BENCHMARK_VERIFY_RESULT
     ,bool * pResultsCorrect
@@ -77,7 +77,7 @@ double measureRandomMatMul(
 #endif
 
     // Allocate and initialize the matrices of the given size.
-    TIdx const elemCount = n * n;
+    TSize const elemCount = n * n;
 #ifdef MATMUL_MPI
     TElem const * /*const*/ A = 0;
     TElem const * /*const*/ B = 0;
@@ -126,9 +126,9 @@ double measureRandomMatMul(
     MATMUL_CUDA_RT_CHECK(cudaMallocPitch((void **)&pBDev, &pitchBytesBDev, widthBytesB, heightBytesB));
     MATMUL_CUDA_RT_CHECK(cudaMemcpy2D(pBDev, pitchBytesBDev, B, n * sizeof(TElem), widthBytesB, heightBytesB, cudaMemcpyHostToDevice));
     MATMUL_CUDA_RT_CHECK(cudaMallocPitch((void **)&pCDev, &pitchBytesCDev, widthBytesC, heightBytesC));
-    TIdx const lda = (TIdx)(pitchBytesADev / sizeof(TElem));
-    TIdx const ldb = (TIdx)(pitchBytesBDev / sizeof(TElem));
-    TIdx const ldc = (TIdx)(pitchBytesCDev / sizeof(TElem));
+    TSize const lda = (TSize)(pitchBytesADev / sizeof(TElem));
+    TSize const ldb = (TSize)(pitchBytesBDev / sizeof(TElem));
+    TSize const ldc = (TSize)(pitchBytesCDev / sizeof(TElem));
 #endif
 
     // Initialize the measurement result.
@@ -139,7 +139,7 @@ double measureRandomMatMul(
     }
 
     // Iterate.
-    for(TIdx i = 0; i < repeatCount; ++i)
+    for(TSize i = 0; i < repeatCount; ++i)
     {
 #ifdef MATMUL_MPI
         if(rank1D == MATMUL_MPI_ROOT)
@@ -306,8 +306,8 @@ double measureRandomMatMul(
 //-----------------------------------------------------------------------------
 typedef struct GemmSizes
 {
-    TIdx sizeCount;
-    TIdx * pSizes;
+    TSize sizeCount;
+    TSize * pSizes;
 } GemmSizes;
 
 //-----------------------------------------------------------------------------
@@ -317,23 +317,23 @@ typedef struct GemmSizes
 //! \param maxN The maximum matrix dimension.
 //-----------------------------------------------------------------------------
 GemmSizes buildSizes(
-    TIdx const minN,
-    TIdx const maxN,
-    TIdx const stepN)
+    TSize const minN,
+    TSize const maxN,
+    TSize const stepN)
 {
     GemmSizes sizes;
     sizes.sizeCount = 0;
     sizes.pSizes = 0;
 
-    TIdx n;
+    TSize n;
     for(n = minN; n <= maxN; n += (stepN == 0) ? n : stepN)
     {
         ++sizes.sizeCount;
     }
 
-    sizes.pSizes = (TIdx *)malloc(sizes.sizeCount * sizeof(TIdx));
+    sizes.pSizes = (TSize *)malloc(sizes.sizeCount * sizeof(TSize));
 
-    TIdx idx = 0;
+    TSize idx = 0;
     for(n = minN; n <= maxN; n += (stepN == 0) ? n : stepN)
     {
         sizes.pSizes[idx] = n;
@@ -357,9 +357,9 @@ GemmSizes buildSizes(
 #endif
 measureRandomMatMuls(
     GemmAlgo const * const pMatMulAlgos,
-    TIdx const algoCount,
+    TSize const algoCount,
     GemmSizes const * const pSizes,
-    TIdx const repeatCount)
+    TSize const repeatCount)
 {
 #ifdef MATMUL_MPI
     int rank1D;
@@ -374,7 +374,7 @@ measureRandomMatMuls(
 #endif
         printf("\nm=n=k");
         // Table heading
-        for(TIdx algoIdx = 0; algoIdx < algoCount; ++algoIdx)
+        for(TSize algoIdx = 0; algoIdx < algoCount; ++algoIdx)
         {
                 printf(" \t%s", pMatMulAlgos[algoIdx].pszName);
         }
@@ -387,9 +387,9 @@ measureRandomMatMuls(
 #endif
     if(pSizes)
     {
-        for(TIdx sizeIdx = 0; sizeIdx < pSizes->sizeCount; ++sizeIdx)
+        for(TSize sizeIdx = 0; sizeIdx < pSizes->sizeCount; ++sizeIdx)
         {
-            TIdx const n = pSizes->pSizes[sizeIdx];
+            TSize const n = pSizes->pSizes[sizeIdx];
 #ifdef MATMUL_MPI
             if(rank1D==MATMUL_MPI_ROOT)
             {
@@ -400,7 +400,7 @@ measureRandomMatMuls(
             }
 #endif
 
-            for(TIdx algoIdx = 0; algoIdx < algoCount; ++algoIdx)
+            for(TSize algoIdx = 0; algoIdx < algoCount; ++algoIdx)
             {
 #ifdef MATMUL_BENCHMARK_VERIFY_RESULT
                 bool resultsCorrectAlgo = true;
@@ -445,10 +445,10 @@ measureRandomMatMuls(
 //! Prints some startup informations.
 //-----------------------------------------------------------------------------
 void main_print_startup(
-    TIdx minN,
-    TIdx maxN,
-    TIdx stepN,
-    TIdx repeatCount)
+    TSize minN,
+    TSize maxN,
+    TSize stepN,
+    TSize repeatCount)
 {
     printf("# matmul benchmark copyright (c) 2013-2015, Benjamin Worpitz");
     printf(" | config:");
@@ -511,10 +511,10 @@ int main(
     // Set the initial seed to make the measurements repeatable.
     srand(42u);
 
-    TIdx minN = 1;
-    TIdx maxN = 1;
-    TIdx stepN = 1;
-    TIdx repeatCount = 1;
+    TSize minN = 1;
+    TSize maxN = 1;
+    TSize stepN = 1;
+    TSize repeatCount = 1;
 
     // Read all arguments.
     if(argc != (4+1))

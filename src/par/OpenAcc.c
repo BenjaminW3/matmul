@@ -31,12 +31,12 @@
     //
     //-----------------------------------------------------------------------------
     TReturn matmul_gemm_par_openacc_kernels(
-        TIdx const m, TIdx const n, TIdx const k,
+        TSize const m, TSize const n, TSize const k,
         TElem const alpha,
-        TElem const * const MATMUL_RESTRICT A, TIdx const lda,
-        TElem const * const MATMUL_RESTRICT B, TIdx const ldb,
+        TElem const * const MATMUL_RESTRICT A, TSize const lda,
+        TElem const * const MATMUL_RESTRICT B, TSize const ldb,
         TElem const beta,
-        TElem * const MATMUL_RESTRICT C, TIdx const ldc)
+        TElem * const MATMUL_RESTRICT C, TSize const ldc)
     {
         if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
         {
@@ -48,14 +48,14 @@
 #pragma acc kernels copyin(A[0:(lda*m)], B[0:(ldb*k)]) copy(C[0:(ldc*m)])
         {
 #pragma acc loop independent gang(MATMUL_OPENACC_GANG_SIZE)
-            for(TIdx i = 0; i < m; ++i)
+            for(TSize i = 0; i < m; ++i)
             {
 #pragma acc loop independent vector(MATMUL_OPENACC_VECTOR_SIZE)
-                for(TIdx j = 0; j < n; ++j)
+                for(TSize j = 0; j < n; ++j)
                 {
                     TElem ctmp = 0;
 #pragma acc loop seq//reduction(+:ctmp) // Reduction here is much slower then sequential execution!
-                    for(TIdx k2 = 0; k2 < k; ++k2)
+                    for(TSize k2 = 0; k2 < k; ++k2)
                     {
                         ctmp += alpha * A[i*lda + k2] * B[k2*ldb +j];
                     }
@@ -72,12 +72,12 @@
     //
     //-----------------------------------------------------------------------------
     TReturn matmul_gemm_par_openacc_parallel(
-        TIdx const m, TIdx const n, TIdx const k,
+        TSize const m, TSize const n, TSize const k,
         TElem const alpha,
-        TElem const * const MATMUL_RESTRICT A, TIdx const lda,
-        TElem const * const MATMUL_RESTRICT B, TIdx const ldb,
+        TElem const * const MATMUL_RESTRICT A, TSize const lda,
+        TElem const * const MATMUL_RESTRICT B, TSize const ldb,
         TElem const beta,
-        TElem * const MATMUL_RESTRICT C, TIdx const ldc)
+        TElem * const MATMUL_RESTRICT C, TSize const ldc)
     {
         if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
         {
@@ -89,14 +89,14 @@
 #pragma acc parallel copyin(A[0:(lda*m)], B[0:(ldb*k)]) copy(C[0:(ldc*m)])
         {
 #pragma acc loop
-            for(TIdx i = 0; i < m; ++i)
+            for(TSize i = 0; i < m; ++i)
             {
 #pragma acc loop
-                for(TIdx j = 0; j < n; ++j)
+                for(TSize j = 0; j < n; ++j)
                 {
                     C[i*ldc + j] *= beta;
 #pragma acc loop seq // Reduction here is much slower then sequential execution!
-                    for(TIdx k2 = 0; k2 < k; ++k2)
+                    for(TSize k2 = 0; k2 < k; ++k2)
                     {
                         C[i*ldc + j] += alpha * A[i*lda + k2] * B[k2*ldb + j];
                     }

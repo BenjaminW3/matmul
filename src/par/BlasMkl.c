@@ -46,12 +46,12 @@
     //
     //-----------------------------------------------------------------------------
     TReturn matmul_gemm_par_blas_mkl(
-        TIdx const m, TIdx const n, TIdx const k,
+        TSize const m, TSize const n, TSize const k,
         TElem const alpha,
-        TElem const * const MATMUL_RESTRICT A, TIdx const lda,
-        TElem const * const MATMUL_RESTRICT B, TIdx const ldb,
+        TElem const * const MATMUL_RESTRICT A, TSize const lda,
+        TElem const * const MATMUL_RESTRICT B, TSize const ldb,
         TElem const beta,
-        TElem * const MATMUL_RESTRICT C, TIdx const ldc)
+        TElem * const MATMUL_RESTRICT C, TSize const ldc)
     {
         if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
         {

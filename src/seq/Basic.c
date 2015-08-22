@@ -29,12 +29,12 @@
     //
     //-----------------------------------------------------------------------------
     TReturn matmul_gemm_seq_basic(
-        TIdx const m, TIdx const n, TIdx const k,
+        TSize const m, TSize const n, TSize const k,
         TElem const alpha,
-        TElem const * const A, TIdx const lda,
-        TElem const * const B, TIdx const ldb,
+        TElem const * const A, TSize const lda,
+        TElem const * const B, TSize const ldb,
         TElem const beta,
-        TElem * const C, TIdx const ldc)
+        TElem * const C, TSize const ldc)
     {
         if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
         {
@@ -43,12 +43,12 @@
 
         MATMUL_TIME_START;
 
-        for(TIdx i = 0; i < m; ++i)
+        for(TSize i = 0; i < m; ++i)
         {
-            for(TIdx j = 0; j < n; ++j)
+            for(TSize j = 0; j < n; ++j)
             {
                 C[i*ldc + j] *= beta;
-                for(TIdx k2 = 0; k2 < k; ++k2)
+                for(TSize k2 = 0; k2 < k; ++k2)
                 {
                     C[i*ldc + j] += alpha * A[i*lda + k2] * B[k2*ldb + j];
                 }

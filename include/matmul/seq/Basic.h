@@ -23,7 +23,7 @@
 
 #ifdef MATMUL_BUILD_SEQ_BASIC
 
-    #include <matmul/common/Config.h>   // TElem, TIdx, TReturn
+    #include <matmul/common/Config.h>   // TElem, TSize, TReturn
 
     #ifdef __cplusplus
         extern "C"
@@ -45,12 +45,12 @@
     //! \param ldc Specifies the leading dimension of C.
     //-----------------------------------------------------------------------------
     TReturn matmul_gemm_seq_basic(
-        TIdx const m, TIdx const n, TIdx const k,
+        TSize const m, TSize const n, TSize const k,
         TElem const alpha,
-        TElem const * const A, TIdx const lda,
-        TElem const * const B, TIdx const ldb,
+        TElem const * const A, TSize const lda,
+        TElem const * const B, TSize const ldb,
         TElem const beta,
-        TElem * const C, TIdx const ldc);
+        TElem * const C, TSize const ldc);
     #ifdef __cplusplus
         }
     #endif

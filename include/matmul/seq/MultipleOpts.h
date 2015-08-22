@@ -23,7 +23,7 @@
 
 #if defined(MATMUL_BUILD_SEQ_MULTIPLE_OPTS) || defined(MATMUL_BUILD_SEQ_MULTIPLE_OPTS_BLOCK)
 
-    #include <matmul/common/Config.h>   // TElem, TIdx, TReturn
+    #include <matmul/common/Config.h>   // TElem, TSize, TReturn
 
     #ifdef __cplusplus
         extern "C"
@@ -46,12 +46,12 @@
         //! \param ldc Specifies the leading dimension of C.
         //-----------------------------------------------------------------------------
         TReturn matmul_gemm_seq_multiple_opts(
-            TIdx const m, TIdx const n, TIdx const k,
+            TSize const m, TSize const n, TSize const k,
             TElem const alpha,
-            TElem const * const MATMUL_RESTRICT A, TIdx const lda,
-            TElem const * const MATMUL_RESTRICT B, TIdx const ldb,
+            TElem const * const MATMUL_RESTRICT A, TSize const lda,
+            TElem const * const MATMUL_RESTRICT B, TSize const ldb,
             TElem const beta,
-            TElem * const MATMUL_RESTRICT C, TIdx const ldc);
+            TElem * const MATMUL_RESTRICT C, TSize const ldc);
     #endif
     #ifdef MATMUL_BUILD_SEQ_MULTIPLE_OPTS_BLOCK
         //-----------------------------------------------------------------------------
@@ -70,12 +70,12 @@
         //! \param ldc Specifies the leading dimension of C.
         //-----------------------------------------------------------------------------
         TReturn matmul_gemm_seq_multiple_opts_block(
-            TIdx const m, TIdx const n, TIdx const k,
+            TSize const m, TSize const n, TSize const k,
             TElem const alpha,
-            TElem const * const MATMUL_RESTRICT A, TIdx const lda,
-            TElem const * const MATMUL_RESTRICT B, TIdx const ldb,
+            TElem const * const MATMUL_RESTRICT A, TSize const lda,
+            TElem const * const MATMUL_RESTRICT B, TSize const ldb,
             TElem const beta,
-            TElem * const MATMUL_RESTRICT C, TIdx const ldc);
+            TElem * const MATMUL_RESTRICT C, TSize const ldc);
     #endif
     #ifdef __cplusplus
         }

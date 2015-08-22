@@ -31,12 +31,12 @@
         //
         //-----------------------------------------------------------------------------
         TReturn matmul_gemm_seq_multiple_opts(
-            TIdx const m, TIdx const n, TIdx const k,
+            TSize const m, TSize const n, TSize const k,
             TElem const alpha,
-            TElem const * const MATMUL_RESTRICT A, TIdx const lda,
-            TElem const * const MATMUL_RESTRICT B, TIdx const ldb,
+            TElem const * const MATMUL_RESTRICT A, TSize const lda,
+            TElem const * const MATMUL_RESTRICT B, TSize const ldb,
             TElem const beta,
-            TElem * const MATMUL_RESTRICT C, TIdx const ldc)
+            TElem * const MATMUL_RESTRICT C, TSize const ldc)
         {
             if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
             {
@@ -46,38 +46,38 @@
             MATMUL_TIME_START;
 
 #ifdef _MSC_VER
-            for(TIdx i = 0; i<m; ++i)
+            for(TSize i = 0; i<m; ++i)
             {
-                for(TIdx j = 0; j<n; ++j)
+                for(TSize j = 0; j<n; ++j)
                 {
                     C[i*ldc + j] *= beta;
                 }
-                TIdx const rowBeginIdxC = i*ldc;
-                TIdx const rowBeginIdxA = i*lda;
+                TSize const rowBeginIdxC = i*ldc;
+                TSize const rowBeginIdxA = i*lda;
 
-                for(TIdx k2 = 0; k2<k; ++k2)
+                for(TSize k2 = 0; k2<k; ++k2)
                 {
-                    TIdx const rowBeginIdxB = k2*ldb;
+                    TSize const rowBeginIdxB = k2*ldb;
                     TElem const a = A[rowBeginIdxA + k2];
 
-                    for(TIdx j = 0; j<n; ++j)
+                    for(TSize j = 0; j<n; ++j)
                     {
-                        TIdx idxC = rowBeginIdxC + j;
+                        TSize idxC = rowBeginIdxC + j;
 
                         C[idxC] += alpha * a * B[rowBeginIdxB + j];
                     }
                 }
             }
 #else
-            for(TIdx i = 0; i < m; ++i)
+            for(TSize i = 0; i < m; ++i)
             {
-                for(TIdx j = 0; j<n; ++j)
+                for(TSize j = 0; j<n; ++j)
                 {
                     C[i*ldc + j] *= beta;
                 }
-                for(TIdx k2 = 0; k2 < k; ++k2)
+                for(TSize k2 = 0; k2 < k; ++k2)
                 {
-                    for(TIdx j = 0; j < n; ++j)
+                    for(TSize j = 0; j < n; ++j)
                     {
                         C[i*ldc + j] += alpha * A[i*lda + k2] * B[k2*ldb + j];
                     }
@@ -94,12 +94,12 @@
         //
         //-----------------------------------------------------------------------------
         TReturn matmul_gemm_seq_multiple_opts_block(
-            TIdx const m, TIdx const n, TIdx const k,
+            TSize const m, TSize const n, TSize const k,
             TElem const alpha,
-            TElem const * const MATMUL_RESTRICT A, TIdx const lda,
-            TElem const * const MATMUL_RESTRICT B, TIdx const ldb,
+            TElem const * const MATMUL_RESTRICT A, TSize const lda,
+            TElem const * const MATMUL_RESTRICT B, TSize const ldb,
             TElem const beta,
-            TElem * const MATMUL_RESTRICT C, TIdx const ldc)
+            TElem * const MATMUL_RESTRICT C, TSize const ldc)
         {
             if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
             {
@@ -108,41 +108,41 @@
 
             MATMUL_TIME_START;
 
-            for(TIdx i = 0; i < m; ++i)
+            for(TSize i = 0; i < m; ++i)
             {
-                for(TIdx j = 0; j < n; ++j)
+                for(TSize j = 0; j < n; ++j)
                 {
                     C[i*ldc + j] *= beta;
                 }
             }
 
-            TIdx const S = MATMUL_SEQ_BLOCK_FACTOR;
+            TSize const S = MATMUL_SEQ_BLOCK_FACTOR;
 
-            //for(TIdx ii = 0; ii<m; ii += S)    // Blocking of outermost loop is not necessary, we only need blocks in 2 dimensions.
+            //for(TSize ii = 0; ii<m; ii += S)    // Blocking of outermost loop is not necessary, we only need blocks in 2 dimensions.
             {
-                //TIdx const iiS = ii+S;
-                for(TIdx kk = 0; kk<k; kk += S)
+                //TSize const iiS = ii+S;
+                for(TSize kk = 0; kk<k; kk += S)
                 {
-                    TIdx const kkS = kk+S;
-                    for(TIdx jj = 0; jj<n; jj += S)
+                    TSize const kkS = kk+S;
+                    for(TSize jj = 0; jj<n; jj += S)
                     {
-                        TIdx const jjS = jj+S;
-                        //TIdx const upperBoundi = (iiS>m ? m : iiS);
-                        //for(TIdx i = ii; i < upperBoundi; ++i)
+                        TSize const jjS = jj+S;
+                        //TSize const upperBoundi = (iiS>m ? m : iiS);
+                        //for(TSize i = ii; i < upperBoundi; ++i)
 
-                        TIdx rowBeginIdxC = 0;
-                        TIdx rowBeginIdxA = 0;
-                        for(TIdx i = 0; i<m; ++i)
+                        TSize rowBeginIdxC = 0;
+                        TSize rowBeginIdxA = 0;
+                        for(TSize i = 0; i<m; ++i)
                         {
-                            TIdx rowBeginIdxB = kk*ldb;
-                            TIdx const upperBoundk = (kkS>k ? k : kkS);
-                            for(TIdx k2 = kk; k2<upperBoundk; ++k2)
+                            TSize rowBeginIdxB = kk*ldb;
+                            TSize const upperBoundk = (kkS>k ? k : kkS);
+                            for(TSize k2 = kk; k2<upperBoundk; ++k2)
                             {
                                 TElem const a = alpha * A[rowBeginIdxA + k2];
-                                TIdx const upperBoundj = (jjS>n ? n : jjS);
-                                for(TIdx j = jj; j<upperBoundj; ++j)
+                                TSize const upperBoundj = (jjS>n ? n : jjS);
+                                for(TSize j = jj; j<upperBoundj; ++j)
                                 {
-                                    TIdx idxC = rowBeginIdxC + j;
+                                    TSize idxC = rowBeginIdxC + j;
                                     C[idxC] += a * B[rowBeginIdxB + j];
                                 }
                                 rowBeginIdxB += ldb;

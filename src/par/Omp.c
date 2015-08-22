@@ -35,12 +35,12 @@
             //
             //-----------------------------------------------------------------------------
             TReturn matmul_gemm_par_omp2_guided_schedule(
-                TIdx const m, TIdx const n, TIdx const k,
+                TSize const m, TSize const n, TSize const k,
                 TElem const alpha,
-                TElem const * const MATMUL_RESTRICT A, TIdx const lda,
-                TElem const * const MATMUL_RESTRICT B, TIdx const ldb,
+                TElem const * const MATMUL_RESTRICT A, TSize const lda,
+                TElem const * const MATMUL_RESTRICT B, TSize const ldb,
                 TElem const beta,
-                TElem * const MATMUL_RESTRICT C, TIdx const ldc)
+                TElem * const MATMUL_RESTRICT C, TSize const ldc)
             {
                 if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
                 {
@@ -62,15 +62,15 @@
                     #pragma omp for schedule(guided)
                     for(i = 0; i < iM; ++i)
                     {
-                        for(TIdx j = 0; j < n; ++j)
+                        for(TSize j = 0; j < n; ++j)
                         {
                             C[i*ldc + j] *= beta;
                         }
-                        for(TIdx k2 = 0; k2 < k; ++k2)
+                        for(TSize k2 = 0; k2 < k; ++k2)
                         {
                             TElem const a = alpha * A[i*lda + k2];
 
-                            for(TIdx j = 0; j < n; ++j)
+                            for(TSize j = 0; j < n; ++j)
                             {
                                 C[i*ldc + j] += a * B[k2*ldb + j];
                             }
@@ -87,12 +87,12 @@
             //
             //-----------------------------------------------------------------------------
             TReturn matmul_gemm_par_omp2_static_schedule(
-                TIdx const m, TIdx const n, TIdx const k,
+                TSize const m, TSize const n, TSize const k,
                 TElem const alpha,
-                TElem const * const MATMUL_RESTRICT A, TIdx const lda,
-                TElem const * const MATMUL_RESTRICT B, TIdx const ldb,
+                TElem const * const MATMUL_RESTRICT A, TSize const lda,
+                TElem const * const MATMUL_RESTRICT B, TSize const ldb,
                 TElem const beta,
-                TElem * const MATMUL_RESTRICT C, TIdx const ldc)
+                TElem * const MATMUL_RESTRICT C, TSize const ldc)
             {
                 if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
                 {
@@ -114,15 +114,15 @@
                     #pragma omp for schedule(static)
                     for(i = 0; i < iM; ++i)
                     {
-                        for(TIdx j = 0; j < n; ++j)
+                        for(TSize j = 0; j < n; ++j)
                         {
                             C[i*ldc + j] *= beta;
                         }
-                        for(TIdx k2 = 0; k2 < k; ++k2)
+                        for(TSize k2 = 0; k2 < k; ++k2)
                         {
                             TElem const a = alpha * A[i*lda + k2];
 
-                            for(TIdx j = 0; j < n; ++j)
+                            for(TSize j = 0; j < n; ++j)
                             {
                                 C[i*ldc + j] += a * B[k2*ldb + j];
                             }
@@ -141,12 +141,12 @@
             //
             //-----------------------------------------------------------------------------
             TReturn matmul_gemm_par_omp3_static_schedule_collapse(
-                TIdx const m, TIdx const n, TIdx const k,
+                TSize const m, TSize const n, TSize const k,
                 TElem const alpha,
-                TElem const * const MATMUL_RESTRICT A,  TIdx const lda,
-                TElem const * const MATMUL_RESTRICT B,  TIdx const ldb,
+                TElem const * const MATMUL_RESTRICT A,  TSize const lda,
+                TElem const * const MATMUL_RESTRICT B,  TSize const ldb,
                 TElem const beta,
-                TElem * const MATMUL_RESTRICT C,  TIdx const ldc)
+                TElem * const MATMUL_RESTRICT C,  TSize const ldc)
             {
                 if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
                 {
@@ -165,9 +165,9 @@
             #endif
 
                     #pragma omp for collapse(2) schedule(static)
-                    for(TIdx i = 0; i < m; ++i)
+                    for(TSize i = 0; i < m; ++i)
                     {
-                        for(TIdx j = 0; j < n; ++j)
+                        for(TSize j = 0; j < n; ++j)
                         {
                             C[i*ldc + j] *= beta;
                         }
@@ -178,11 +178,11 @@
                     // - In ijk order we can only collapse the outer two loops.
                     // Both restrictions are due to the non-atomic write to C (multiple threads could write to the same indices i and j of C)
                     #pragma omp for collapse(2) schedule(static)    // http://software.intel.com/en-us/articles/openmp-loop-collapse-directive
-                    for(TIdx i = 0; i < m; ++i)
+                    for(TSize i = 0; i < m; ++i)
                     {
-                        for(TIdx j = 0; j < n; ++j)
+                        for(TSize j = 0; j < n; ++j)
                         {
-                            for(TIdx k2 = 0; k2 < k; ++k2)
+                            for(TSize k2 = 0; k2 < k; ++k2)
                             {
                                 C[i*ldc + j] += alpha * A[i*lda + k2] * B[k2*ldb + j];
                             }
@@ -201,12 +201,12 @@
             //
             //-----------------------------------------------------------------------------
             TReturn matmul_gemm_par_omp4(
-                TIdx const m, TIdx const n, TIdx const k,
+                TSize const m, TSize const n, TSize const k,
                 TElem const alpha,
-                TElem const * const MATMUL_RESTRICT A,  TIdx const lda,
-                TElem const * const MATMUL_RESTRICT B,  TIdx const ldb,
+                TElem const * const MATMUL_RESTRICT A,  TSize const lda,
+                TElem const * const MATMUL_RESTRICT B,  TSize const ldb,
                 TElem const beta,
-                TElem * const MATMUL_RESTRICT C,  TIdx const ldc)
+                TElem * const MATMUL_RESTRICT C,  TSize const ldc)
             {
                 if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
                 {
@@ -220,18 +220,18 @@
                     #pragma omp teams /*num_teams(...) thread_limit(...)*/
                     {
                         #pragma omp distribute
-                        for(TIdx i = 0; i < m; ++i)
+                        for(TSize i = 0; i < m; ++i)
                         {
                             #pragma omp parallel for  /*num_threads(...)*/ schedule(static)
-                            for(TIdx j = 0; j < n; ++j)
+                            for(TSize j = 0; j < n; ++j)
                             {
                                 C[i*ldc + j] *= beta;
                             }
                             // NOTE: ikj-order not possible due to the non-atomic write to C (multiple threads could write to the same indices i and j of C)
                             #pragma omp parallel for  /*num_threads(...)*/ schedule(static)
-                            for(TIdx j = 0; j < n; ++j)
+                            for(TSize j = 0; j < n; ++j)
                             {
-                                for(TIdx k2 = 0; k2 < k; ++k2)
+                                for(TSize k2 = 0; k2 < k; ++k2)
                                 {
                                     C[i*ldc + j] += alpha * A[i*lda + k2] * B[k2*ldb + j];
                                 }

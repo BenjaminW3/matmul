@@ -60,8 +60,8 @@
 
         int aiGridCoords[3];            // Local coordinates.
 
-        TIdx n;                         // The size of the full matrices is n x n
-        TIdx b;                         // b = (n/q)
+        TSize n;                         // The size of the full matrices is n x n
+        TSize b;                         // b = (n/q)
     } STopologyInfo;
 
     //-----------------------------------------------------------------------------
@@ -70,7 +70,7 @@
     void matmul_gemm_par_mpi_dns_scatter_mat_blocks_2d(
         STopologyInfo const * const MATMUL_RESTRICT info,
         TElem const * const MATMUL_RESTRICT pX,
-        TIdx const ldx,
+        TSize const ldx,
         TElem * const MATMUL_RESTRICT pXSub,
         bool const columnFirst,
         MPI_Comm const mesh)
@@ -78,13 +78,13 @@
         TElem * pXBlocks = 0;
         if(info->iLocalRank1D == MATMUL_MPI_ROOT)
         {
-            TIdx const elemCount =  info->n * info->n;
+            TSize const elemCount =  info->n * info->n;
             pXBlocks = matmul_arr_alloc(elemCount);
 
             matmul_mat_row_major_to_mat_x_block_major(pX, info->n, info->n, ldx, pXBlocks, info->b, columnFirst);
         }
 
-        TIdx const numElementsBlock = info->b * info->b;
+        TSize const numElementsBlock = info->b * info->b;
 
         MPI_Scatter(pXBlocks, (int)numElementsBlock, MATMUL_MPI_ELEMENT_TYPE, pXSub, (int)numElementsBlock, MATMUL_MPI_ELEMENT_TYPE, MATMUL_MPI_ROOT, mesh);
 
@@ -100,9 +100,9 @@
     void matmul_gemm_par_mpi_dns_distribute_mat(
         STopologyInfo const * const MATMUL_RESTRICT info,
         TElem const * const MATMUL_RESTRICT pX,
-        TIdx const ldx,
+        TSize const ldx,
         TElem * const MATMUL_RESTRICT pXSub,
-        TIdx const ringdim,
+        TSize const ringdim,
         bool const columnFirst)
     {
         MPI_Comm mesh, ring;
@@ -129,7 +129,7 @@
                 mesh);
         }
 
-        TIdx const numElementsBlock = info->b * info->b;
+        TSize const numElementsBlock = info->b * info->b;
 
         // Broadcast the matrix into the cube.
         MPI_Bcast(pXSub, (int)numElementsBlock, MATMUL_MPI_ELEMENT_TYPE, MATMUL_MPI_ROOT, ring);
@@ -142,7 +142,7 @@
         STopologyInfo const * const MATMUL_RESTRICT info,
         TElem * const MATMUL_RESTRICT pCSub)
     {
-        TIdx const numElementsBlock = info->b * info->b;
+        TSize const numElementsBlock = info->b * info->b;
 
         // Reduce along k dimension to the i-j plane
         if(info->aiGridCoords[K_DIM] == MATMUL_MPI_ROOT)
@@ -161,7 +161,7 @@
     void matmul_gemm_par_mpi_dns_scatter_c_blocks_2d(
         STopologyInfo const * const MATMUL_RESTRICT info,
         TElem * const MATMUL_RESTRICT C,
-        TIdx const ldc,
+        TSize const ldc,
         TElem * const MATMUL_RESTRICT pCSub)
     {
         if(info->aiGridCoords[K_DIM] == MATMUL_MPI_ROOT)
@@ -183,18 +183,18 @@
         STopologyInfo const * const MATMUL_RESTRICT info,
         TElem * const MATMUL_RESTRICT pCSub,
         TElem * const MATMUL_RESTRICT C,
-        TIdx const ldc)
+        TSize const ldc)
     {
         if(info->aiGridCoords[K_DIM] == MATMUL_MPI_ROOT)
         {
             TElem * pCBlocks = 0;
             if(info->iLocalRank1D == MATMUL_MPI_ROOT)
             {
-                TIdx const elemCount = info->n * info->n;
+                TSize const elemCount = info->n * info->n;
                 pCBlocks = matmul_arr_alloc(elemCount);
             }
 
-            TIdx const numElementsBlock = info->b * info->b;
+            TSize const numElementsBlock = info->b * info->b;
 
             MPI_Gather(pCSub, (int)numElementsBlock, MATMUL_MPI_ELEMENT_TYPE, pCBlocks, (int)numElementsBlock, MATMUL_MPI_ELEMENT_TYPE, MATMUL_MPI_ROOT, info->commMeshIJ);
 
@@ -212,18 +212,18 @@
     void matmul_gemm_par_mpi_dns_local(
         STopologyInfo const * const MATMUL_RESTRICT info,
         TElem const alpha,
-        TElem const * const MATMUL_RESTRICT A, TIdx const lda,
-        TElem const * const MATMUL_RESTRICT B, TIdx const ldb,
+        TElem const * const MATMUL_RESTRICT A, TSize const lda,
+        TElem const * const MATMUL_RESTRICT B, TSize const ldb,
         TElem const beta,
-        TElem * const MATMUL_RESTRICT C, TIdx const ldc,
-        TReturn(*pGemm)(TIdx const, TIdx const, TIdx const, TElem const, TElem const * const, TIdx const, TElem const * const, TIdx const, TElem const, TElem * const, TIdx const))
+        TElem * const MATMUL_RESTRICT C, TSize const ldc,
+        TReturn(*pGemm)(TSize const, TSize const, TSize const, TElem const, TElem const * const, TSize const, TElem const * const, TSize const, TElem const, TElem * const, TSize const))
     {
         assert(info->commMesh3D);
         assert(info->n>0);
         assert(info->b>0);
 
         // Allocate the local matrices
-        TIdx const numElementsBlock = info->b * info->b;
+        TSize const numElementsBlock = info->b * info->b;
         TElem * const ASub = matmul_arr_alloc(numElementsBlock);
         TElem * const BSub = matmul_arr_alloc(numElementsBlock);
         // The elements in the root IJ plane get sub-matrices of the input C.
@@ -245,9 +245,9 @@
         {
             if(alpha != (TElem)1)
             {
-                for(TIdx i = 0; i < info->b; ++i)
+                for(TSize i = 0; i < info->b; ++i)
                 {
-                    for(TIdx j = 0; j < info->b; ++j)
+                    for(TSize j = 0; j < info->b; ++j)
                     {
                         CSub[i*info->b + j] *= beta;
                     }
@@ -276,7 +276,7 @@
     //-----------------------------------------------------------------------------
     bool matmul_gemm_par_mpi_dns_create_topology_info(
         STopologyInfo * const info,
-        TIdx const n)
+        TSize const n)
     {
         info->n = n;
 
@@ -296,7 +296,7 @@
 
         // Set up the sizes for a cartesian 3d mesh topology.
         // The number of processors in each dimension of the 3D-Mesh. Each processor will receive a block of (n/q)*(n/q) elements of A and B.
-        TIdx const q = (TIdx)cbrt((double)iNumProcesses);
+        TSize const q = (TSize)cbrt((double)iNumProcesses);
 
         // Test if it is a cube.
         if(q * q * q != iNumProcesses)
@@ -394,13 +394,13 @@
     //
     //-----------------------------------------------------------------------------
     TReturn matmul_gemm_par_mpi_dns_algo(
-        TIdx const m, TIdx const n, TIdx const k,
+        TSize const m, TSize const n, TSize const k,
         TElem const alpha,
-        TElem const * const MATMUL_RESTRICT A, TIdx const lda,
-        TElem const * const MATMUL_RESTRICT B, TIdx const ldb,
+        TElem const * const MATMUL_RESTRICT A, TSize const lda,
+        TElem const * const MATMUL_RESTRICT B, TSize const ldb,
         TElem const beta,
-        TElem * const MATMUL_RESTRICT C, TIdx const ldc,
-        TReturn(*pGemm)(TIdx const, TIdx const, TIdx const, TElem const, TElem const * const, TIdx const, TElem const * const, TIdx const, TElem const, TElem * const, TIdx const))
+        TElem * const MATMUL_RESTRICT C, TSize const ldc,
+        TReturn(*pGemm)(TSize const, TSize const, TSize const, TElem const, TElem const * const, TSize const, TElem const * const, TSize const, TElem const, TElem * const, TSize const))
     {
         if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
         {
@@ -444,12 +444,12 @@
     //
     //-----------------------------------------------------------------------------
     TReturn matmul_gemm_par_mpi_dns(
-        TIdx const m, TIdx const n, TIdx const k,
+        TSize const m, TSize const n, TSize const k,
         TElem const alpha,
-        TElem const * const MATMUL_RESTRICT A, TIdx const lda,
-        TElem const * const MATMUL_RESTRICT B, TIdx const ldb,
+        TElem const * const MATMUL_RESTRICT A, TSize const lda,
+        TElem const * const MATMUL_RESTRICT B, TSize const ldb,
         TElem const beta,
-        TElem * const MATMUL_RESTRICT C, TIdx const ldc)
+        TElem * const MATMUL_RESTRICT C, TSize const ldc)
     {
         if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
         {

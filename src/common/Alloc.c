@@ -33,7 +33,7 @@
 //
 //-----------------------------------------------------------------------------
 void * matmul_arr_aligned_alloc_internal(
-    TIdx const numBytes)
+    TSize const numBytes)
 {
 #if defined MATMUL_ALIGNED_MALLOC
     // If c11 were supported we could use void *aligned_alloc(size_t alignment, size_t size);
@@ -55,9 +55,9 @@ void * matmul_arr_aligned_alloc_internal(
 //
 //-----------------------------------------------------------------------------
 TElem * matmul_arr_alloc(
-    TIdx const elemCount)
+    TSize const elemCount)
 {
-    TIdx const numBytes = elemCount * sizeof(TElem);
+    TSize const numBytes = elemCount * sizeof(TElem);
 
     return (TElem*) matmul_arr_aligned_alloc_internal(numBytes);
 }

@@ -35,13 +35,13 @@
     //
     //-----------------------------------------------------------------------------
     TReturn matmul_gemm_wrap_memcpy_host_cuda(
-        TIdx const m, TIdx const n, TIdx const k,
+        TSize const m, TSize const n, TSize const k,
         TElem const alpha,
-        TElem const * const MATMUL_RESTRICT A, TIdx const lda,
-        TElem const * const MATMUL_RESTRICT B, TIdx const ldb,
+        TElem const * const MATMUL_RESTRICT A, TSize const lda,
+        TElem const * const MATMUL_RESTRICT B, TSize const ldb,
         TElem const beta,
-        TElem * const MATMUL_RESTRICT C, TIdx const ldc,
-        TReturn(*pGemm)(TIdx const, TIdx const, TIdx const, TElem const, TElem const * const, TIdx const, TElem const * const, TIdx const, TElem const, TElem * const, TIdx const))
+        TElem * const MATMUL_RESTRICT C, TSize const ldc,
+        TReturn(*pGemm)(TSize const, TSize const, TSize const, TElem const, TElem const * const, TSize const, TElem const * const, TSize const, TElem const, TElem * const, TSize const))
     {
         if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
         {
@@ -50,9 +50,9 @@
 
         MATMUL_CUDA_RT_CHECK(cudaSetDevice(0));
 
-        TIdx const bytesA = lda*m*sizeof(TElem);
-        TIdx const bytesB = ldb*k*sizeof(TElem);
-        TIdx const bytesC = ldc*m*sizeof(TElem);
+        TSize const bytesA = lda*m*sizeof(TElem);
+        TSize const bytesB = ldb*k*sizeof(TElem);
+        TSize const bytesC = ldc*m*sizeof(TElem);
 
         TElem *pADev, *pBDev, *pCDev;
         MATMUL_CUDA_RT_CHECK(cudaMalloc((void **)&pADev, bytesA));
@@ -83,13 +83,13 @@
     //
     //-----------------------------------------------------------------------------
     TReturn matmul_gemm_wrap_memcpy_host_cuda_2d(
-        TIdx const m, TIdx const n, TIdx const k,
+        TSize const m, TSize const n, TSize const k,
         TElem const alpha,
-        TElem const * const MATMUL_RESTRICT A, TIdx const lda,
-        TElem const * const MATMUL_RESTRICT B, TIdx const ldb,
+        TElem const * const MATMUL_RESTRICT A, TSize const lda,
+        TElem const * const MATMUL_RESTRICT B, TSize const ldb,
         TElem const beta,
-        TElem * const MATMUL_RESTRICT C, TIdx const ldc,
-        TReturn(*pGemm)(TIdx const, TIdx const, TIdx const, TElem const, TElem const * const, TIdx const, TElem const * const, TIdx const, TElem const, TElem * const, TIdx const))
+        TElem * const MATMUL_RESTRICT C, TSize const ldc,
+        TReturn(*pGemm)(TSize const, TSize const, TSize const, TElem const, TElem const * const, TSize const, TElem const * const, TSize const, TElem const, TElem * const, TSize const))
     {
         if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
         {
@@ -121,10 +121,10 @@
             pGemm(
                 m, n, k,
                 alpha,
-                pADev, static_cast<TIdx>(pitchBytesADev / sizeof(TElem)),
-                pBDev, static_cast<TIdx>(pitchBytesBDev / sizeof(TElem)),
+                pADev, static_cast<TSize>(pitchBytesADev / sizeof(TElem)),
+                pBDev, static_cast<TSize>(pitchBytesBDev / sizeof(TElem)),
                 beta,
-                pCDev, static_cast<TIdx>(pitchBytesCDev / sizeof(TElem)));
+                pCDev, static_cast<TSize>(pitchBytesCDev / sizeof(TElem)));
 
         MATMUL_CUDA_RT_CHECK(cudaMemcpy2D(C, ldc * sizeof(TElem), pCDev, pitchBytesCDev, widthBytesC, heightBytesC, cudaMemcpyDeviceToHost));
 
