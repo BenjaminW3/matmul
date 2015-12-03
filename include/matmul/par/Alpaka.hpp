@@ -386,6 +386,11 @@
         TElem const beta,
         TElem * const MATMUL_RESTRICT C, TSize const ldc)
     {
+        using Dim1 = alpaka::dim::DimInt<1u>;
+        using Dim2 = alpaka::dim::DimInt<2u>;
+        using Dim3 = alpaka::dim::DimInt<3u>;        
+
+        
         if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
         {
             MATMUL_TIME_RETURN_EARLY_OUT;
@@ -399,17 +404,22 @@
         Stream<alpaka::dev::Dev<TAcc>> stream(devAcc);
 
         // Result matrix is MxN. We create one worker per result matrix cell.
-        alpaka::Vec2<TSize> const v2uiExtentsC(
+        alpaka::Vec<Dim2, TSize> const v2uiExtentsC(
             m,
             n);
 
+        alpaka::Vec<Dim2, TSize> const elemExtent(
+            static_cast<TSize>(1),
+            static_cast<TSize>(1));
+
         // Let alpaka calculate good block and grid sizes given our full problem extents.
-        alpaka::workdiv::WorkDivMembers<alpaka::dim::DimInt<2u>, TSize> const workDiv(
+        alpaka::workdiv::WorkDivMembers<Dim2, TSize> const workDiv(
             alpaka::workdiv::getValidWorkDiv<TAcc>(
                 devAcc,
                 v2uiExtentsC,
+                elemExtent,
                 false,
-                alpaka::workdiv::GridBlockExtentsSubDivRestrictions::EqualExtents));
+                alpaka::workdiv::GridBlockExtentSubDivRestrictions::EqualExtent));
 
         // Create an instance of the kernel functor.
         TKernelFnObj kernel;
@@ -458,13 +468,18 @@
         TElem const beta,
         TElem * const MATMUL_RESTRICT C, TSize const ldc)
     {
+
+        using Dim1 = alpaka::dim::DimInt<1u>;
+        using Dim2 = alpaka::dim::DimInt<2u>;
+        using Dim3 = alpaka::dim::DimInt<3u>;
+        
         if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
         {
             MATMUL_TIME_RETURN_EARLY_OUT;
         }
 
         // Get the host device.
-        auto devHost(alpaka::dev::cpu::getDev());
+        auto devHost(alpaka::dev::DevManCpu::getDevByIdx(0u));
 
         // Select a device to execute on.
         alpaka::dev::Dev<TAcc> devAcc(
@@ -473,28 +488,33 @@
         // Get a stream on this device.
         Stream<alpaka::dev::Dev<TAcc>> stream(devAcc);
 
-        alpaka::Vec2<TSize> const v2uiExtentsA(
+        alpaka::Vec<Dim2, TSize> const v2uiExtentsA(
             m,
             k);
 
-        alpaka::Vec2<TSize> const v2uiExtentsB(
+        alpaka::Vec<Dim2, TSize> const v2uiExtentsB(
             k,
             n);
 
         // Result matrix is MxN. We create one worker per result matrix cell.
-        alpaka::Vec2<TSize> const v2uiExtentsC(
+        alpaka::Vec<Dim2, TSize> const v2uiExtentsC(
             m,
             n);
 
+        alpaka::Vec<Dim2, TSize> const elemExtent(
+            static_cast<TSize>(1),
+            static_cast<TSize>(1));
+
+
         // Wrap the Pointers into memory buffer objects.
-        using BufWrapperIn = alpaka::mem::buf::BufPlainPtrWrapper<
+        using BufWrapperIn = alpaka::mem::buf::ViewPlainPtr<
             std::decay<decltype(devHost)>::type,
             TElem const,
             alpaka::dim::DimInt<2u>,
             TSize>;
         BufWrapperIn bufAHost(A, devHost, v2uiExtentsA, lda);
         BufWrapperIn bufBHost(B, devHost, v2uiExtentsB, ldb);
-        using BufWrapperOut = alpaka::mem::buf::BufPlainPtrWrapper<
+        using BufWrapperOut = alpaka::mem::buf::ViewPlainPtr<
             std::decay<decltype(devHost)>::type,
             TElem,
             alpaka::dim::DimInt<2u>,
@@ -512,12 +532,13 @@
         alpaka::mem::view::copy(stream, bufCAcc, bufCHost, v2uiExtentsC);
 
         // Let alpaka calculate good block and grid sizes given our full problem extents.
-        alpaka::workdiv::WorkDivMembers<alpaka::dim::DimInt<2u>, TSize> const workDiv(
+        alpaka::workdiv::WorkDivMembers<Dim2, TSize> const workDiv(
             alpaka::workdiv::getValidWorkDiv<TAcc>(
                 devAcc,
                 v2uiExtentsC,
+                elemExtent,
                 false,
-                alpaka::workdiv::GridBlockExtentsSubDivRestrictions::EqualExtents));
+                alpaka::workdiv::GridBlockExtentSubDivRestrictions::EqualExtent));
 
         // Create an instance of the kernel functor.
         TKernelFnObj kernel;

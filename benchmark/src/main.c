@@ -29,6 +29,9 @@
 #include <float.h>                  // DBL_MAX
 #include <math.h>                   // pow
 
+#define MAX(x, y) (((x) > (y)) ? (x) : (y))
+#define MIN(x, y) (((x) < (y)) ? (x) : (y))
+
 //-----------------------------------------------------------------------------
 //! A struct holding the algorithms to benchmark.
 //-----------------------------------------------------------------------------
@@ -528,7 +531,7 @@ int main(
         minN = atoi(argv[1]);
         maxN = atoi(argv[2]);
         stepN = atoi(argv[3]);
-        repeatCount = atoi(argv[4]);
+        repeatCount = MAX(1, atoi(argv[4]));
     }
 
 #ifdef MATMUL_MPI
