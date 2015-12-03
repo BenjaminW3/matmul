@@ -1,15 +1,22 @@
 //-----------------------------------------------------------------------------
-//! Copyright (c) 2014-2015, Benjamin Worpitz
-//! All rights reserved.
+//! \file
+//! Copyright 2013-2015 Benjamin Worpitz
 //!
-//! Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met :
-//! * Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-//! * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
-//! * Neither the name of the TU Dresden nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
+//! This file is part of matmul.
 //!
-//! THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
-//! IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-//! HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+//! matmul is free software: you can redistribute it and/or modify
+//! it under the terms of the GNU Lesser General Public License as published by
+//! the Free Software Foundation, either version 3 of the License, or
+//! (at your option) any later version.
+//!
+//! matmul is distributed in the hope that it will be useful,
+//! but WITHOUT ANY WARRANTY; without even the implied warranty of
+//! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+//! GNU Lesser General Public License for more details.
+//!
+//! You should have received a copy of the GNU Lesser General Public License
+//! along with matmul.
+//! If not, see <http://www.gnu.org/licenses/>.
 //-----------------------------------------------------------------------------
 
 #ifdef MATMUL_BUILD_PAR_MPI_DNS
@@ -53,8 +60,8 @@
 
         int aiGridCoords[3];            // Local coordinates.
 
-        TIdx n;                         // The size of the full matrices is n x n
-        TIdx b;                         // b = (n/q)
+        TSize n;                         // The size of the full matrices is n x n
+        TSize b;                         // b = (n/q)
     } STopologyInfo;
 
     //-----------------------------------------------------------------------------
@@ -63,23 +70,23 @@
     void matmul_gemm_par_mpi_dns_scatter_mat_blocks_2d(
         STopologyInfo const * const MATMUL_RESTRICT info,
         TElem const * const MATMUL_RESTRICT pX,
-        TIdx const ldx,
+        TSize const ldx,
         TElem * const MATMUL_RESTRICT pXSub,
-        bool const bColumnFirst,
+        bool const columnFirst,
         MPI_Comm const mesh)
     {
         TElem * pXBlocks = 0;
         if(info->iLocalRank1D == MATMUL_MPI_ROOT)
         {
-            TIdx const uiNumElements =  info->n * info->n;
-            pXBlocks = matmul_arr_alloc(uiNumElements);
+            TSize const elemCount =  info->n * info->n;
+            pXBlocks = matmul_arr_alloc(elemCount);
 
-            matmul_mat_row_major_to_mat_x_block_major(pX, info->n, info->n, ldx, pXBlocks, info->b, bColumnFirst);
+            matmul_mat_row_major_to_mat_x_block_major(pX, info->n, info->n, ldx, pXBlocks, info->b, columnFirst);
         }
 
-        TIdx const uiNumElementsBlock = info->b * info->b;
+        TSize const numElementsBlock = info->b * info->b;
 
-        MPI_Scatter(pXBlocks, (int)uiNumElementsBlock, MATMUL_MPI_ELEMENT_TYPE, pXSub, (int)uiNumElementsBlock, MATMUL_MPI_ELEMENT_TYPE, MATMUL_MPI_ROOT, mesh);
+        MPI_Scatter(pXBlocks, (int)numElementsBlock, MATMUL_MPI_ELEMENT_TYPE, pXSub, (int)numElementsBlock, MATMUL_MPI_ELEMENT_TYPE, MATMUL_MPI_ROOT, mesh);
 
         if(info->iLocalRank1D == MATMUL_MPI_ROOT)
         {
@@ -93,10 +100,10 @@
     void matmul_gemm_par_mpi_dns_distribute_mat(
         STopologyInfo const * const MATMUL_RESTRICT info,
         TElem const * const MATMUL_RESTRICT pX,
-        TIdx const ldx,
+        TSize const ldx,
         TElem * const MATMUL_RESTRICT pXSub,
-        TIdx const ringdim,
-        bool const bColumnFirst)
+        TSize const ringdim,
+        bool const columnFirst)
     {
         MPI_Comm mesh, ring;
         if(ringdim == J_DIM)
@@ -118,14 +125,14 @@
                 pX,
                 ldx,
                 pXSub,
-                bColumnFirst,
+                columnFirst,
                 mesh);
         }
 
-        TIdx const uiNumElementsBlock = info->b * info->b;
+        TSize const numElementsBlock = info->b * info->b;
 
         // Broadcast the matrix into the cube.
-        MPI_Bcast(pXSub, (int)uiNumElementsBlock, MATMUL_MPI_ELEMENT_TYPE, MATMUL_MPI_ROOT, ring);
+        MPI_Bcast(pXSub, (int)numElementsBlock, MATMUL_MPI_ELEMENT_TYPE, MATMUL_MPI_ROOT, ring);
     }
 
     //-----------------------------------------------------------------------------
@@ -135,16 +142,16 @@
         STopologyInfo const * const MATMUL_RESTRICT info,
         TElem * const MATMUL_RESTRICT pCSub)
     {
-        TIdx const uiNumElementsBlock = info->b * info->b;
+        TSize const numElementsBlock = info->b * info->b;
 
         // Reduce along k dimension to the i-j plane
         if(info->aiGridCoords[K_DIM] == MATMUL_MPI_ROOT)
         {
-            MPI_Reduce(MPI_IN_PLACE, pCSub, (int)uiNumElementsBlock, MATMUL_MPI_ELEMENT_TYPE, MPI_SUM, MATMUL_MPI_ROOT, info->commRingK);
+            MPI_Reduce(MPI_IN_PLACE, pCSub, (int)numElementsBlock, MATMUL_MPI_ELEMENT_TYPE, MPI_SUM, MATMUL_MPI_ROOT, info->commRingK);
         }
         else
         {
-            MPI_Reduce(pCSub, 0, (int)uiNumElementsBlock, MATMUL_MPI_ELEMENT_TYPE, MPI_SUM, MATMUL_MPI_ROOT, info->commRingK);
+            MPI_Reduce(pCSub, 0, (int)numElementsBlock, MATMUL_MPI_ELEMENT_TYPE, MPI_SUM, MATMUL_MPI_ROOT, info->commRingK);
         }
     }
 
@@ -154,7 +161,7 @@
     void matmul_gemm_par_mpi_dns_scatter_c_blocks_2d(
         STopologyInfo const * const MATMUL_RESTRICT info,
         TElem * const MATMUL_RESTRICT C,
-        TIdx const ldc,
+        TSize const ldc,
         TElem * const MATMUL_RESTRICT pCSub)
     {
         if(info->aiGridCoords[K_DIM] == MATMUL_MPI_ROOT)
@@ -176,20 +183,20 @@
         STopologyInfo const * const MATMUL_RESTRICT info,
         TElem * const MATMUL_RESTRICT pCSub,
         TElem * const MATMUL_RESTRICT C,
-        TIdx const ldc)
+        TSize const ldc)
     {
         if(info->aiGridCoords[K_DIM] == MATMUL_MPI_ROOT)
         {
             TElem * pCBlocks = 0;
             if(info->iLocalRank1D == MATMUL_MPI_ROOT)
             {
-                TIdx const uiNumElements = info->n * info->n;
-                pCBlocks = matmul_arr_alloc(uiNumElements);
+                TSize const elemCount = info->n * info->n;
+                pCBlocks = matmul_arr_alloc(elemCount);
             }
 
-            TIdx const uiNumElementsBlock = info->b * info->b;
+            TSize const numElementsBlock = info->b * info->b;
 
-            MPI_Gather(pCSub, (int)uiNumElementsBlock, MATMUL_MPI_ELEMENT_TYPE, pCBlocks, (int)uiNumElementsBlock, MATMUL_MPI_ELEMENT_TYPE, MATMUL_MPI_ROOT, info->commMeshIJ);
+            MPI_Gather(pCSub, (int)numElementsBlock, MATMUL_MPI_ELEMENT_TYPE, pCBlocks, (int)numElementsBlock, MATMUL_MPI_ELEMENT_TYPE, MATMUL_MPI_ROOT, info->commMeshIJ);
 
             if(info->iLocalRank1D == MATMUL_MPI_ROOT)
             {
@@ -205,25 +212,26 @@
     void matmul_gemm_par_mpi_dns_local(
         STopologyInfo const * const MATMUL_RESTRICT info,
         TElem const alpha,
-        TElem const * const MATMUL_RESTRICT A, TIdx const lda,
-        TElem const * const MATMUL_RESTRICT B, TIdx const ldb,
+        TElem const * const MATMUL_RESTRICT A, TSize const lda,
+        TElem const * const MATMUL_RESTRICT B, TSize const ldb,
         TElem const beta,
-        TElem * const MATMUL_RESTRICT C, TIdx const ldc,
-        void(*pMatMul)(TIdx const, TIdx const, TIdx const, TElem const, TElem const * const, TIdx const, TElem const * const, TIdx const, TElem const, TElem * const, TIdx const))
+        TElem * const MATMUL_RESTRICT C, TSize const ldc,
+        TReturn(*pGemm)(TSize const, TSize const, TSize const, TElem const, TElem const * const, TSize const, TElem const * const, TSize const, TElem const, TElem * const, TSize const))
     {
         assert(info->commMesh3D);
         assert(info->n>0);
         assert(info->b>0);
 
         // Allocate the local matrices
-        TIdx const uiNumElementsBlock = info->b * info->b;
-        TElem * const ASub = matmul_arr_alloc(uiNumElementsBlock);
-        TElem * const BSub = matmul_arr_alloc(uiNumElementsBlock);
-        // The elements in the root IJ plane get sub-matrices of the input C, all others zeros.
+        TSize const numElementsBlock = info->b * info->b;
+        TElem * const ASub = matmul_arr_alloc(numElementsBlock);
+        TElem * const BSub = matmul_arr_alloc(numElementsBlock);
+        // The elements in the root IJ plane get sub-matrices of the input C.
+        // All others are zero. Even though we multiply with beta=0, an uninitialized array is not enough because values could be NaN and 0*NaN=NaN.
         bool const bIJPlane = (info->aiGridCoords[K_DIM] == MATMUL_MPI_ROOT);
         TElem * const CSub = bIJPlane
-                                ? matmul_arr_alloc(uiNumElementsBlock)
-                                : matmul_arr_alloc_fill_zero(uiNumElementsBlock);
+                                ? matmul_arr_alloc(numElementsBlock)
+                                : matmul_arr_alloc_fill_zero(numElementsBlock);
 
         // Scatter C on the i-j plane.
         matmul_gemm_par_mpi_dns_scatter_c_blocks_2d(info, C, ldc, CSub);
@@ -237,9 +245,9 @@
         {
             if(alpha != (TElem)1)
             {
-                for(TIdx i = 0; i < info->b; ++i)
+                for(TSize i = 0; i < info->b; ++i)
                 {
-                    for(TIdx j = 0; j < info->b; ++j)
+                    for(TSize j = 0; j < info->b; ++j)
                     {
                         CSub[i*info->b + j] *= beta;
                     }
@@ -248,7 +256,7 @@
         }
 
         // Do the local matrix multiplication.
-        pMatMul(info->b, info->b, info->b, alpha, ASub, info->b, BSub, info->b, (TElem)1, CSub, info->b);
+        pGemm(info->b, info->b, info->b, alpha, ASub, info->b, BSub, info->b, (TElem)1, CSub, info->b);
 
         // Reduce along k dimension to the i-j plane
         matmul_gemm_par_mpi_dns_reduce_c(info, CSub);
@@ -268,7 +276,7 @@
     //-----------------------------------------------------------------------------
     bool matmul_gemm_par_mpi_dns_create_topology_info(
         STopologyInfo * const info,
-        TIdx const n)
+        TSize const n)
     {
         info->n = n;
 
@@ -288,7 +296,7 @@
 
         // Set up the sizes for a cartesian 3d mesh topology.
         // The number of processors in each dimension of the 3D-Mesh. Each processor will receive a block of (n/q)*(n/q) elements of A and B.
-        TIdx const q = (TIdx)cbrt((double)iNumProcesses);
+        TSize const q = (TSize)cbrt((double)iNumProcesses);
 
         // Test if it is a cube.
         if(q * q * q != iNumProcesses)
@@ -320,11 +328,11 @@
         info->b = n/q;
 
         // Set that the structure is periodical around the given dimension for wraparound connections.
-        int aiPeriods[3] = {1, 1, 1};
+        int aiPeriods[3] = {(int)true, (int)true, (int)true};
         int aiProcesses[3] = {(int)q, (int)q, (int)q};
 
         // Create the cartesian 2d grid topology. Ranks can be reordered.
-        MPI_Cart_create(MATMUL_MPI_COMM, 3, aiProcesses, aiPeriods, 1, &info->commMesh3D);
+        MPI_Cart_create(MATMUL_MPI_COMM, 3, aiProcesses, aiPeriods, (int)true, &info->commMesh3D);
 
         // Get the rank and coordinates with respect to the new 3D grid topology.
         int iLocalRank3D = 0;
@@ -332,39 +340,39 @@
         MPI_Cart_coords(info->commMesh3D, iLocalRank3D, 3, info->aiGridCoords);
 
 #ifdef MATMUL_MPI_ADDITIONAL_DEBUG_OUTPUT
-        printf(" iLocalRank3D=%d, i=%d j=%d k2=%d\n", iLocalRank3D, info->aiGridCoords[2], info->aiGridCoords[1], info->aiGridCoords[0]);
+        printf(" iLocalRank3D=%d, i=%d j=%d k=%d\n", iLocalRank3D, info->aiGridCoords[I_DIM], info->aiGridCoords[J_DIM], info->aiGridCoords[K_DIM]);
 #endif
 
         int dims[3];
 
         // Create the i-k plane.
-        dims[I_DIM] = dims[K_DIM] = 1;
-        dims[J_DIM] = 0;
+        dims[I_DIM] = dims[K_DIM] = (int)true;
+        dims[J_DIM] = (int)false;
         MPI_Cart_sub(info->commMesh3D, dims, &info->commMeshIK);
 
         // Create the j-k plane.
-        dims[J_DIM] = dims[K_DIM] = 1;
-        dims[I_DIM] = 0;
+        dims[J_DIM] = dims[K_DIM] = (int)true;
+        dims[I_DIM] = (int)false;
         MPI_Cart_sub(info->commMesh3D, dims, &info->commMeshJK);
 
         // Create the i-j plane.
-        dims[I_DIM] = dims[J_DIM] = 1;
-        dims[K_DIM] = 0;
+        dims[I_DIM] = dims[J_DIM] = (int)true;
+        dims[K_DIM] = (int)false;
         MPI_Cart_sub(info->commMesh3D, dims, &info->commMeshIJ);
 
         // Create the i ring.
-        dims[J_DIM] = dims[K_DIM] = 0;
-        dims[I_DIM] = 1;
+        dims[J_DIM] = dims[K_DIM] = (int)false;
+        dims[I_DIM] = (int)true;
         MPI_Cart_sub(info->commMesh3D, dims, &info->commRingI);
 
         // Create the j ring.
-        dims[I_DIM] = dims[K_DIM] = 0;
-        dims[J_DIM] = 1;
+        dims[I_DIM] = dims[K_DIM] = (int)false;
+        dims[J_DIM] = (int)true;
         MPI_Cart_sub(info->commMesh3D, dims, &info->commRingJ);
 
         // Create the k rings.
-        dims[I_DIM] = dims[J_DIM] = 0;
-        dims[K_DIM] = 1;
+        dims[I_DIM] = dims[J_DIM] = (int)false;
+        dims[K_DIM] = (int)true;
         MPI_Cart_sub(info->commMesh3D, dims, &info->commRingK);
 
         return true;
@@ -385,66 +393,77 @@
     //-----------------------------------------------------------------------------
     //
     //-----------------------------------------------------------------------------
-    void matmul_gemm_par_mpi_dns_local_algo(
-        TIdx const m, TIdx const n, TIdx const k,
+    TReturn matmul_gemm_par_mpi_dns_algo(
+        TSize const m, TSize const n, TSize const k,
         TElem const alpha,
-        TElem const * const MATMUL_RESTRICT A, TIdx const lda,
-        TElem const * const MATMUL_RESTRICT B, TIdx const ldb,
+        TElem const * const MATMUL_RESTRICT A, TSize const lda,
+        TElem const * const MATMUL_RESTRICT B, TSize const ldb,
         TElem const beta,
-        TElem * const MATMUL_RESTRICT C, TIdx const ldc,
-        void(*pMatMul)(TIdx const, TIdx const, TIdx const, TElem const, TElem const * const, TIdx const, TElem const * const, TIdx const, TElem const, TElem * const, TIdx const))
+        TElem * const MATMUL_RESTRICT C, TSize const ldc,
+        TReturn(*pGemm)(TSize const, TSize const, TSize const, TElem const, TElem const * const, TSize const, TElem const * const, TSize const, TElem const, TElem * const, TSize const))
     {
         if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
         {
-            return;
+            MATMUL_TIME_RETURN_EARLY_OUT;
         }
 
         // \TODO: Implement for non square matrices?
         if((m!=n) || (m!=k))
         {
             printf("[GEMM MPI DNS] Invalid matrix size! The matrices have to be square for the MPI DNS GEMM.\n");
-            return;
+            MATMUL_TIME_RETURN_EARLY_OUT;
         }
 
         // \FIXME: Fix alpha != 1!
         if(alpha!=(TElem)1)
         {
             printf("[GEMM MPI DNS] alpha != 1 currently not implemented.\n");
-            return;
+            MATMUL_TIME_RETURN_EARLY_OUT;
         }
 
         struct STopologyInfo info;
-        if(matmul_gemm_par_mpi_dns_create_topology_info(&info, n))
+        if(!matmul_gemm_par_mpi_dns_create_topology_info(&info, n))
         {
-            matmul_gemm_par_mpi_dns_local(&info, alpha, A, lda, B, ldb, beta, C, ldc, pMatMul);
+            MATMUL_TIME_RETURN_EARLY_OUT;
+        }
+        else
+        {
+            MATMUL_TIME_START;
+
+            matmul_gemm_par_mpi_dns_local(&info, alpha, A, lda, B, ldb, beta, C, ldc, pGemm);
+
+            MATMUL_TIME_END;
 
             matmul_gemm_par_mpi_dns_destroy_topology_info(&info);
+
+            MATMUL_TIME_RETURN;
         }
     }
 
     //-----------------------------------------------------------------------------
     //
     //-----------------------------------------------------------------------------
-    void matmul_gemm_par_mpi_dns(
-        TIdx const m, TIdx const n, TIdx const k,
+    TReturn matmul_gemm_par_mpi_dns(
+        TSize const m, TSize const n, TSize const k,
         TElem const alpha,
-        TElem const * const MATMUL_RESTRICT A, TIdx const lda,
-        TElem const * const MATMUL_RESTRICT B, TIdx const ldb,
+        TElem const * const MATMUL_RESTRICT A, TSize const lda,
+        TElem const * const MATMUL_RESTRICT B, TSize const ldb,
         TElem const beta,
-        TElem * const MATMUL_RESTRICT C, TIdx const ldc)
+        TElem * const MATMUL_RESTRICT C, TSize const ldc)
     {
         if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
         {
-            return;
+            MATMUL_TIME_RETURN_EARLY_OUT;
         }
 
-        matmul_gemm_par_mpi_dns_local_algo(
-            m, n, k,
-            alpha,
-            A, lda,
-            B, ldb,
-            beta,
-            C, ldc,
-            matmul_gemm_seq_multiple_opts);
+        return
+            matmul_gemm_par_mpi_dns_algo(
+                m, n, k,
+                alpha,
+                A, lda,
+                B, ldb,
+                beta,
+                C, ldc,
+                matmul_gemm_seq_multiple_opts);
     }
 #endif

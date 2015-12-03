@@ -1,24 +1,31 @@
 //-----------------------------------------------------------------------------
-//! Copyright (c) 2014-2015, Benjamin Worpitz
-//! All rights reserved.
+//! \file
+//! Copyright 2013-2015 Benjamin Worpitz
 //!
-//! Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met :
-//! * Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-//! * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
-//! * Neither the name of the TU Dresden nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
+//! This file is part of matmul.
 //!
-//! THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
-//! IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-//! HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+//! matmul is free software: you can redistribute it and/or modify
+//! it under the terms of the GNU Lesser General Public License as published by
+//! the Free Software Foundation, either version 3 of the License, or
+//! (at your option) any later version.
+//!
+//! matmul is distributed in the hope that it will be useful,
+//! but WITHOUT ANY WARRANTY; without even the implied warranty of
+//! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+//! GNU Lesser General Public License for more details.
+//!
+//! You should have received a copy of the GNU Lesser General Public License
+//! along with matmul.
+//! If not, see <http://www.gnu.org/licenses/>.
 //-----------------------------------------------------------------------------
 
 #include <matmul/common/Alloc.h>
 
-#include <stdlib.h>        // malloc, free
+#include <stdlib.h>             // malloc, free
 
 #if defined MATMUL_ALIGNED_MALLOC
     #ifndef _MSC_VER
-        #include <malloc.h>    // memalign or valloc are not always declared in stdlib.h.
+        #include <malloc.h>     // memalign or valloc are not always declared in stdlib.h.
     #endif
 #endif
 
@@ -26,21 +33,21 @@
 //
 //-----------------------------------------------------------------------------
 void * matmul_arr_aligned_alloc_internal(
-    TIdx const uiNumBytes)
+    TSize const numBytes)
 {
 #if defined MATMUL_ALIGNED_MALLOC
     // If c11 were supported we could use void *aligned_alloc(size_t alignment, size_t size);
 #if defined _MSC_VER
-    return _aligned_malloc(uiNumBytes, 64);
+    return _aligned_malloc(numBytes, 64);
 #elif defined __linux__
-    return memalign(64, uiNumBytes);
+    return memalign(64, numBytes);
 #elif defined __MACH__      // Mac OS X
-    return malloc(uiNumBytes);    // malloc is always 16 byte aligned on Mac.
+    return malloc(numBytes);    // malloc is always 16 byte aligned on Mac.
 #else
-    return valloc(uiNumBytes);    // other (use valloc for page-aligned memory)
+    return valloc(numBytes);    // other (use valloc for page-aligned memory)
 #endif
 #else
-    return malloc(uiNumBytes);
+    return malloc(numBytes);
 #endif
 }
 
@@ -48,11 +55,11 @@ void * matmul_arr_aligned_alloc_internal(
 //
 //-----------------------------------------------------------------------------
 TElem * matmul_arr_alloc(
-    TIdx const uiNumElements)
+    TSize const elemCount)
 {
-    TIdx const uiNumBytes = uiNumElements * sizeof(TElem);
+    TSize const numBytes = elemCount * sizeof(TElem);
 
-    return (TElem*) matmul_arr_aligned_alloc_internal(uiNumBytes);
+    return (TElem*) matmul_arr_aligned_alloc_internal(numBytes);
 }
 
 //-----------------------------------------------------------------------------

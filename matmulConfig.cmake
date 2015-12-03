@@ -1,17 +1,21 @@
 ################################################################################
 # Copyright 2015 Benjamin Worpitz
 #
-# Permission to use, copy, modify, and/or distribute this software for any
-# purpose with or without fee is hereby granted, provided that the above
-# copyright notice and this permission notice appear in all copies.
+# This file is part of matmul.
 #
-# THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
-# WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
-# MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
-# SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER
-# RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
-# NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE
-# USE OR PERFORMANCE OF THIS SOFTWARE.
+# matmul is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# matmul is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with matmul.
+# If not, see <http://www.gnu.org/licenses/>.
 ################################################################################
 
 ################################################################################
@@ -90,6 +94,11 @@ IF(MATMUL_ALIGNED_MALLOC)
     LIST(APPEND _MATMUL_COMPILE_DEFINITIONS_PUBLIC "MATMUL_ALIGNED_MALLOC")
 ENDIF()
 
+OPTION(MATMUL_RETURN_COMPUTATION_TIME "If this is defined, the functions return the time needed for the computation itself omitting initialization and shutdown (if possible)." ON)
+IF(MATMUL_RETURN_COMPUTATION_TIME)
+    LIST(APPEND _MATMUL_COMPILE_DEFINITIONS_PUBLIC "MATMUL_RETURN_COMPUTATION_TIME")
+ENDIF()
+
 #-------------------------------------------------------------------------------
 # Add definitions and dependencies.
 #-------------------------------------------------------------------------------
@@ -116,10 +125,15 @@ IF(MATMUL_BUILD_SEQ_STRASSEN)
     SET(MATMUL_BUILD_SEQ_MULTIPLE_OPTS ON CACHE BOOL "" FORCE)
     LIST(APPEND _MATMUL_COMPILE_DEFINITIONS_PUBLIC "MATMUL_BUILD_SEQ_MULTIPLE_OPTS")
 ENDIF()
-OPTION(MATMUL_BUILD_PAR_OMP2 "The optimized but not blocked algorithm with OpenMP 2 annotations" OFF)
-IF(MATMUL_BUILD_PAR_OMP2)
+OPTION(MATMUL_BUILD_PAR_OMP2_GUIDED "The optimized but not blocked algorithm with OpenMP 2 annotations" OFF)
+IF(MATMUL_BUILD_PAR_OMP2_GUIDED)
     SET(_MATMUL_BUILD_OMP ON)
-    LIST(APPEND _MATMUL_COMPILE_DEFINITIONS_PUBLIC "MATMUL_BUILD_PAR_OMP2")
+    LIST(APPEND _MATMUL_COMPILE_DEFINITIONS_PUBLIC "MATMUL_BUILD_PAR_OMP2_GUIDED")
+ENDIF()
+OPTION(MATMUL_BUILD_PAR_OMP2_STATIC "The optimized but not blocked algorithm with OpenMP 2 annotations" OFF)
+IF(MATMUL_BUILD_PAR_OMP2_STATIC)
+    SET(_MATMUL_BUILD_OMP ON)
+    LIST(APPEND _MATMUL_COMPILE_DEFINITIONS_PUBLIC "MATMUL_BUILD_PAR_OMP2_STATIC")
 ENDIF()
 OPTION(MATMUL_BUILD_PAR_OMP3 "The optimized but not blocked algorithm with OpenMP 3 annotations" OFF)
 IF(MATMUL_BUILD_PAR_OMP3)
@@ -184,10 +198,15 @@ IF(MATMUL_BUILD_PAR_BLAS_MKL)
     SET(_MATMUL_BUILD_MKL ON)
     LIST(APPEND _MATMUL_COMPILE_DEFINITIONS_PUBLIC "MATMUL_BUILD_PAR_BLAS_MKL")
 ENDIF()
-OPTION(MATMUL_BUILD_PAR_PHI_OFF_OMP2 "Enable the offloading of the GEMM onto the xeon phi using OpenMP 2." OFF)
-IF(MATMUL_BUILD_PAR_PHI_OFF_OMP2)
+OPTION(MATMUL_BUILD_PAR_PHI_OFF_OMP2_GUIDED "Enable the offloading of the GEMM onto the xeon phi using OpenMP 2." OFF)
+IF(MATMUL_BUILD_PAR_PHI_OFF_OMP2_GUIDED)
     SET(_MATMUL_BUILD_OMP ON)
-    LIST(APPEND _MATMUL_COMPILE_DEFINITIONS_PUBLIC "MATMUL_BUILD_PAR_PHI_OFF_OMP2")
+    LIST(APPEND _MATMUL_COMPILE_DEFINITIONS_PUBLIC "MATMUL_BUILD_PAR_PHI_OFF_OMP2_GUIDED")
+ENDIF()
+OPTION(MATMUL_BUILD_PAR_PHI_OFF_OMP2_STATIC "Enable the offloading of the GEMM onto the xeon phi using OpenMP 2." OFF)
+IF(MATMUL_BUILD_PAR_PHI_OFF_OMP2_STATIC)
+    SET(_MATMUL_BUILD_OMP ON)
+    LIST(APPEND _MATMUL_COMPILE_DEFINITIONS_PUBLIC "MATMUL_BUILD_PAR_PHI_OFF_OMP2_STATIC")
 ENDIF()
 OPTION(MATMUL_BUILD_PAR_PHI_OFF_OMP3 "Enable the offloading of the GEMM onto the xeon phi using OpenMP 3." OFF)
 IF(MATMUL_BUILD_PAR_PHI_OFF_OMP3)
@@ -550,6 +569,13 @@ LIST(APPEND _MATMUL_LINK_LIBRARIES_INTERFACE ${_MATMUL_LINK_LIBRARY})
 
 IF(NOT MSVC)
     LIST(APPEND _MATMUL_COMPILE_OPTIONS_C_PRIVATE "-std=c99")
+ENDIF()
+
+# GNU
+# NOTE: -fopt-info-optimized-vec would only print vectorization information
+IF(CMAKE_COMPILER_IS_GNUCXX)
+    LIST(APPEND _MATMUL_COMPILE_OPTIONS_C_PRIVATE "-ftree-vectorizer-verbose=2;-fopt-info-optimized;-fopt-info-missed-vec")
+    LIST(APPEND _MATMUL_COMPILE_OPTIONS_CXX_PRIVATE "-ftree-vectorizer-verbose=2;-fopt-info-optimized;-fopt-info-missed-vec")
 ENDIF()
 
 LIST(APPEND _MATMUL_COMPILE_DEFINITIONS_PUBLIC "MATMUL_DEBUG=${MATMUL_DEBUG}")

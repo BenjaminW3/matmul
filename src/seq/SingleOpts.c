@@ -1,15 +1,22 @@
 //-----------------------------------------------------------------------------
-//! Copyright (c) 2014-2015, Benjamin Worpitz
-//! All rights reserved.
+//! \file
+//! Copyright 2013-2015 Benjamin Worpitz
 //!
-//! Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met :
-//! * Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-//! * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
-//! * Neither the name of the TU Dresden nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
+//! This file is part of matmul.
 //!
-//! THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
-//! IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-//! HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+//! matmul is free software: you can redistribute it and/or modify
+//! it under the terms of the GNU Lesser General Public License as published by
+//! the Free Software Foundation, either version 3 of the License, or
+//! (at your option) any later version.
+//!
+//! matmul is distributed in the hope that it will be useful,
+//! but WITHOUT ANY WARRANTY; without even the implied warranty of
+//! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+//! GNU Lesser General Public License for more details.
+//!
+//! You should have received a copy of the GNU Lesser General Public License
+//! along with matmul.
+//! If not, see <http://www.gnu.org/licenses/>.
 //-----------------------------------------------------------------------------
 
 #ifdef MATMUL_BUILD_SEQ_SINGLE_OPTS
@@ -22,97 +29,115 @@
     // Use explicit pointer access instead of index access that requires multiplication.
     // This prohibits vectorization by the compiler because the pointers are not marked with MATMUL_RESTRICT.
     //-----------------------------------------------------------------------------
-    void matmul_gemm_seq_index_pointer(
-        TIdx const m, TIdx const n, TIdx const k,
+    TReturn matmul_gemm_seq_index_pointer(
+        TSize const m, TSize const n, TSize const k,
         TElem const alpha,
-        TElem const * const A, TIdx const lda,
-        TElem const * const B, TIdx const ldb,
+        TElem const * const A, TSize const lda,
+        TElem const * const B, TSize const ldb,
         TElem const beta,
-        TElem * const C, TIdx const ldc)
+        TElem * const C, TSize const ldc)
     {
+        double const timeStart = getTimeSec();
+
         if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
         {
-            return;
+            MATMUL_TIME_RETURN_EARLY_OUT;
         }
+
+        MATMUL_TIME_START;
 
         TElem * pCRow = C;
         TElem const * pARow = A;
 
-        for(TIdx i = 0; i < m; ++i, pARow += lda, pCRow += ldc)
+        for(TSize i = 0; i < m; ++i, pARow += lda, pCRow += ldc)
         {
             TElem * pC = pCRow;
             TElem const * pBCol = B;
 
-            for(TIdx j = 0; j < n; ++j, ++pC, ++pBCol)
+            for(TSize j = 0; j < n; ++j, ++pC, ++pBCol)
             {
                 (*pC) *= beta;
 
                 TElem const * pA = pARow;
                 TElem const * pB = pBCol;
 
-                for(TIdx k2 = 0; k2 < k; ++k2, ++pA, pB += ldb)
+                for(TSize k2 = 0; k2 < k; ++k2, ++pA, pB += ldb)
                 {
                     (*pC) += alpha * (*pA) * (*pB);
                 }
             }
         }
+
+        MATMUL_TIME_END;
+        MATMUL_TIME_RETURN;
     }
 
     //-----------------------------------------------------------------------------
     //
     //-----------------------------------------------------------------------------
-    void matmul_gemm_seq_restrict(
-        TIdx const m, TIdx const n, TIdx const k,
+    TReturn matmul_gemm_seq_restrict(
+        TSize const m, TSize const n, TSize const k,
         TElem const alpha,
-        TElem const * const MATMUL_RESTRICT A, TIdx const lda,
-        TElem const * const MATMUL_RESTRICT B, TIdx const ldb,
+        TElem const * const MATMUL_RESTRICT A, TSize const lda,
+        TElem const * const MATMUL_RESTRICT B, TSize const ldb,
         TElem const beta,
-        TElem * const MATMUL_RESTRICT C, TIdx const ldc)
+        TElem * const MATMUL_RESTRICT C, TSize const ldc)
     {
+        double const timeStart = getTimeSec();
+
         if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
         {
-            return;
+            MATMUL_TIME_RETURN_EARLY_OUT;
         }
 
-        for(TIdx i = 0; i < m; ++i)
+        MATMUL_TIME_START;
+
+        for(TSize i = 0; i < m; ++i)
         {
-            for(TIdx j = 0; j < n; ++j)
+            for(TSize j = 0; j < n; ++j)
             {
                 C[i*ldc + j] *= beta;
 
-                for(TIdx k2 = 0; k2 < k; ++k2)
+                for(TSize k2 = 0; k2 < k; ++k2)
                 {
                     C[i*ldc + j] += alpha * A[i*lda + k2] * B[k2*ldb + j];
                 }
             }
         }
+
+        MATMUL_TIME_END;
+        MATMUL_TIME_RETURN;
     }
 
     //-----------------------------------------------------------------------------
     //
     //-----------------------------------------------------------------------------
-    void matmul_gemm_seq_loop_reorder(
-        TIdx const m, TIdx const n, TIdx const k,
+    TReturn matmul_gemm_seq_loop_reorder(
+        TSize const m, TSize const n, TSize const k,
         TElem const alpha,
-        TElem const * const A, TIdx const lda,
-        TElem const * const B, TIdx const ldb,
+        TElem const * const A, TSize const lda,
+        TElem const * const B, TSize const ldb,
         TElem const beta,
-        TElem * const C, TIdx const ldc)
+        TElem * const C, TSize const ldc)
     {
+        double const timeStart = getTimeSec();
+
         if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
         {
-            return;
+            MATMUL_TIME_RETURN_EARLY_OUT;
         }
 
-        for(TIdx i = 0; i < m; ++i)
+        MATMUL_TIME_START;
+
+        for(TSize i = 0; i < m; ++i)
         {
-            for(TIdx j = 0; j < n; ++j)
+            for(TSize j = 0; j < n; ++j)
             {
                 C[i*ldc + j] *= beta;
             }
-            for(TIdx k2 = 0; k2 < k; ++k2)
+            for(TSize k2 = 0; k2 < k; ++k2)
             {
-                for(TIdx j = 0; j < n; ++j)
+                for(TSize j = 0; j < n; ++j)
                 {
                     // Cache efficiency inside the innermost loop:
                     // In the original loop order C[i*ldc + j] is in the cache and A[i*lda + k2 + 1] is likely to be in the cache. There would be a strided access to B so every access is likely a cache miss.
@@ -122,66 +147,80 @@
                 }
             }
         }
+
+        MATMUL_TIME_END;
+        MATMUL_TIME_RETURN;
     }
 
     //-----------------------------------------------------------------------------
     //
     //-----------------------------------------------------------------------------
-    void matmul_gemm_seq_index_precalculate(
-        TIdx const m, TIdx const n, TIdx const k,
+    TReturn matmul_gemm_seq_index_precalculate(
+        TSize const m, TSize const n, TSize const k,
         TElem const alpha,
-        TElem const * const A, TIdx const lda,
-        TElem const * const B, TIdx const ldb,
+        TElem const * const A, TSize const lda,
+        TElem const * const B, TSize const ldb,
         TElem const beta,
-        TElem * const C, TIdx const ldc)
+        TElem * const C, TSize const ldc)
     {
+        double const timeStart = getTimeSec();
+
         if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
         {
-            return;
+            MATMUL_TIME_RETURN_EARLY_OUT;
         }
 
-        for(TIdx i = 0; i < m; ++i)
-        {
-            TIdx const uiRowBeginIdxA = i*lda;
-            TIdx const uiRowBeginIdxC = i*ldc;
+        MATMUL_TIME_START;
 
-            for(TIdx j = 0; j < n; ++j)
+        for(TSize i = 0; i < m; ++i)
+        {
+            TSize const rowBeginIdxA = i*lda;
+            TSize const rowBeginIdxC = i*ldc;
+
+            for(TSize j = 0; j < n; ++j)
             {
                 C[i*ldc + j] *= beta;
 
-                TIdx const uiIdxC = uiRowBeginIdxC + j;
+                TSize const idxC = rowBeginIdxC + j;
 
-                for(TIdx k2 = 0; k2 < k; ++k2)
+                for(TSize k2 = 0; k2 < k; ++k2)
                 {
-                    C[uiIdxC] += alpha * A[uiRowBeginIdxA + k2] * B[k2*ldb + j];
+                    C[idxC] += alpha * A[rowBeginIdxA + k2] * B[k2*ldb + j];
                 }
             }
         }
+
+        MATMUL_TIME_END;
+        MATMUL_TIME_RETURN;
     }
 
     //-----------------------------------------------------------------------------
     //
     //-----------------------------------------------------------------------------
-    void matmul_gemm_seq_loop_unroll_4(
-        TIdx const m, TIdx const n, TIdx const k,
+    TReturn matmul_gemm_seq_loop_unroll_4(
+        TSize const m, TSize const n, TSize const k,
         TElem const alpha,
-        TElem const * const A, TIdx const lda,
-        TElem const * const B, TIdx const ldb,
+        TElem const * const A, TSize const lda,
+        TElem const * const B, TSize const ldb,
         TElem const beta,
-        TElem * const C, TIdx const ldc)
+        TElem * const C, TSize const ldc)
     {
+        double const timeStart = getTimeSec();
+
         if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
         {
-            return;
+            MATMUL_TIME_RETURN_EARLY_OUT;
         }
 
-        for(TIdx i = 0; i < m; ++i)
+        MATMUL_TIME_START;
+
+        for(TSize i = 0; i < m; ++i)
         {
-            for(TIdx j = 0; j < n; ++j)
+            for(TSize j = 0; j < n; ++j)
             {
                 C[i*ldc + j] *= beta;
 
-                TIdx k2;
+                TSize k2;
                 for(k2 = 0; k2+3 < k; k2 += 4)
                 {
                     // Do not add the A[i,k2]*B[k2,j] results up before assigning to C[i,j] because this changes the numerical result.
@@ -196,31 +235,38 @@
                 }
             }
         }
+
+        MATMUL_TIME_END;
+        MATMUL_TIME_RETURN;
     }
 
     //-----------------------------------------------------------------------------
     //
     //-----------------------------------------------------------------------------
-    void matmul_gemm_seq_loop_unroll_8(
-        TIdx const m, TIdx const n, TIdx const k,
+    TReturn matmul_gemm_seq_loop_unroll_8(
+        TSize const m, TSize const n, TSize const k,
         TElem const alpha,
-        TElem const * const A, TIdx const lda,
-        TElem const * const B, TIdx const ldb,
+        TElem const * const A, TSize const lda,
+        TElem const * const B, TSize const ldb,
         TElem const beta,
-        TElem * const C, TIdx const ldc)
+        TElem * const C, TSize const ldc)
     {
+        double const timeStart = getTimeSec();
+
         if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
         {
-            return;
+            MATMUL_TIME_RETURN_EARLY_OUT;
         }
 
-        for(TIdx i = 0; i < m; ++i)
+        MATMUL_TIME_START;
+
+        for(TSize i = 0; i < m; ++i)
         {
-            for(TIdx j = 0; j < n; ++j)
+            for(TSize j = 0; j < n; ++j)
             {
                 C[i*ldc + j] *= beta;
 
-                TIdx k2;
+                TSize k2;
                 for(k2 = 0; k2+7 < k; k2 += 8)
                 {
                     // Do not add the A[i,k2]*B[k2,j] results up before assigning to C[i,j] because this changes the numerical result.
@@ -239,31 +285,38 @@
                 }
             }
         }
+
+        MATMUL_TIME_END;
+        MATMUL_TIME_RETURN;
     }
 
     //-----------------------------------------------------------------------------
     //
     //-----------------------------------------------------------------------------
-    void matmul_gemm_seq_loop_unroll_16(
-        TIdx const m, TIdx const n, TIdx const k,
+    TReturn matmul_gemm_seq_loop_unroll_16(
+        TSize const m, TSize const n, TSize const k,
         TElem const alpha,
-        TElem const * const A, TIdx const lda,
-        TElem const * const B, TIdx const ldb,
+        TElem const * const A, TSize const lda,
+        TElem const * const B, TSize const ldb,
         TElem const beta,
-        TElem * const C, TIdx const ldc)
+        TElem * const C, TSize const ldc)
     {
+        double const timeStart = getTimeSec();
+
         if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
         {
-            return;
+            MATMUL_TIME_RETURN_EARLY_OUT;
         }
 
-        for(TIdx i = 0; i < m; ++i)
+        MATMUL_TIME_START;
+
+        for(TSize i = 0; i < m; ++i)
         {
-            for(TIdx j = 0; j < n; ++j)
+            for(TSize j = 0; j < n; ++j)
             {
                 C[i*ldc + j] *= beta;
 
-                TIdx k2 = 0;
+                TSize k2 = 0;
                 for(; k2+15 < k; k2 += 16)
                 {
                     // Do not add the A[i,k2]*B[k2,j] results up before assigning to C[i,j] because this changes the numerical result.
@@ -290,51 +343,56 @@
                 }
             }
         }
+
+        MATMUL_TIME_END;
+        MATMUL_TIME_RETURN;
     }
 
     //-----------------------------------------------------------------------------
     //
     //-----------------------------------------------------------------------------
-    void matmul_gemm_seq_block(
-        TIdx const m, TIdx const n, TIdx const k,
+    TReturn matmul_gemm_seq_block(
+        TSize const m, TSize const n, TSize const k,
         TElem const alpha,
-        TElem const * const A, TIdx const lda,
-        TElem const * const B, TIdx const ldb,
+        TElem const * const A, TSize const lda,
+        TElem const * const B, TSize const ldb,
         TElem const beta,
-        TElem * const C, TIdx const ldc)
+        TElem * const C, TSize const ldc)
     {
         if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
         {
-            return;
+            MATMUL_TIME_RETURN_EARLY_OUT;
         }
 
-        for(TIdx i = 0; i < m; ++i)
+        MATMUL_TIME_START;
+
+        for(TSize i = 0; i < m; ++i)
         {
-            for(TIdx j = 0; j < n; ++j)
+            for(TSize j = 0; j < n; ++j)
             {
                 C[i*ldc + j] *= beta;
             }
         }
 
-        TIdx const S = MATMUL_SEQ_BLOCK_FACTOR;
+        TSize const S = MATMUL_SEQ_BLOCK_FACTOR;
 
-        for(TIdx ii = 0; ii<m; ii += S)
+        for(TSize ii = 0; ii<m; ii += S)
         {
-            TIdx const iiS = ii+S;
-            for(TIdx jj = 0; jj<n; jj += S)
+            TSize const iiS = ii+S;
+            for(TSize jj = 0; jj<n; jj += S)
             {
-                TIdx const jjS = jj+S;
-                for(TIdx kk = 0; kk<k; kk += S)
+                TSize const jjS = jj+S;
+                for(TSize kk = 0; kk<k; kk += S)
                 {
-                    TIdx const kkS = kk+S;
-                    TIdx const uiUpperBoundi = (iiS>m ? m : iiS);
-                    for(TIdx i = ii; i<uiUpperBoundi; ++i)
+                    TSize const kkS = kk+S;
+                    TSize const upperBoundi = (iiS>m ? m : iiS);
+                    for(TSize i = ii; i<upperBoundi; ++i)
                     {
-                        TIdx const uiUpperBoundj = (jjS>n ? n : jjS);
-                        for(TIdx j = jj; j<uiUpperBoundj; ++j)
+                        TSize const upperBoundj = (jjS>n ? n : jjS);
+                        for(TSize j = jj; j<upperBoundj; ++j)
                         {
-                            TIdx const uiUpperBoundk = (kkS>k ? k : kkS);
-                            for(TIdx k2 = kk; k2<uiUpperBoundk; ++k2)
+                            TSize const upperBoundk = (kkS>k ? k : kkS);
+                            for(TSize k2 = kk; k2<upperBoundk; ++k2)
                             {
                                 C[i*ldc + j] += alpha * A[i*lda + k2] * B[k2*ldb + j];
                             }
@@ -343,5 +401,8 @@
                 }
             }
         }
+
+        MATMUL_TIME_END;
+        MATMUL_TIME_RETURN;
     }
 #endif

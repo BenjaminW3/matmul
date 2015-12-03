@@ -1,15 +1,22 @@
 //-----------------------------------------------------------------------------
-//! Copyright (c) 2014-2015, Benjamin Worpitz
-//! All rights reserved.
+//! \file
+//! Copyright 2013-2015 Benjamin Worpitz
 //!
-//! Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met :
-//! * Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-//! * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
-//! * Neither the name of the TU Dresden nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
+//! This file is part of matmul.
 //!
-//! THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
-//! IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-//! HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+//! matmul is free software: you can redistribute it and/or modify
+//! it under the terms of the GNU Lesser General Public License as published by
+//! the Free Software Foundation, either version 3 of the License, or
+//! (at your option) any later version.
+//!
+//! matmul is distributed in the hope that it will be useful,
+//! but WITHOUT ANY WARRANTY; without even the implied warranty of
+//! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+//! GNU Lesser General Public License for more details.
+//!
+//! You should have received a copy of the GNU Lesser General Public License
+//! along with matmul.
+//! If not, see <http://www.gnu.org/licenses/>.
 //-----------------------------------------------------------------------------
 
 #include <matmul/common/Array.h>
@@ -36,12 +43,12 @@ TElem matmul_gen_rand_val(
 //-----------------------------------------------------------------------------
 void matmul_arr_fill_val(
     TElem * const pArray,
-    TIdx const uiNumElements,
+    TSize const elemCount,
     TElem const val)
 {
     assert(pArray);
 
-    for(TIdx i = 0; i<uiNumElements; ++i)
+    for(TSize i = 0; i<elemCount; ++i)
     {
         pArray[i] = val;
     }
@@ -51,11 +58,11 @@ void matmul_arr_fill_val(
 //-----------------------------------------------------------------------------
 void matmul_arr_fill_zero(
     TElem * const pArray,
-    TIdx const uiNumElements)
+    TSize const elemCount)
 {
     matmul_arr_fill_val(
         pArray,
-        uiNumElements,
+        elemCount,
         (TElem)0);
 }
 //-----------------------------------------------------------------------------
@@ -63,11 +70,11 @@ void matmul_arr_fill_zero(
 //-----------------------------------------------------------------------------
 void matmul_arr_fill_idx(
     TElem * const pArray,
-    TIdx const uiNumElements)
+    TSize const elemCount)
 {
     assert(pArray);
 
-    for(TIdx i = 0; i<uiNumElements; ++i)
+    for(TSize i = 0; i<elemCount; ++i)
     {
         pArray[i] = (TElem)i;
     }
@@ -77,13 +84,13 @@ void matmul_arr_fill_idx(
 //-----------------------------------------------------------------------------
 void matmul_arr_fill_rand(
     TElem * const pArray,
-    TIdx const uiNumElements,
+    TSize const elemCount,
     TElem const min,
     TElem const max)
 {
     assert(pArray);
 
-    for(TIdx i = 0; i<uiNumElements; ++i)
+    for(TSize i = 0; i<elemCount; ++i)
     {
         pArray[i] = matmul_gen_rand_val(min, max);
     }
@@ -93,12 +100,12 @@ void matmul_arr_fill_rand(
 //
 //-----------------------------------------------------------------------------
 TElem * matmul_arr_alloc_fill_val(
-    TIdx const uiNumElements,
+    TSize const elemCount,
     TElem const val)
 {
-    TElem * arr = matmul_arr_alloc(uiNumElements);
+    TElem * arr = matmul_arr_alloc(elemCount);
 
-    matmul_arr_fill_val(arr, uiNumElements, val);
+    matmul_arr_fill_val(arr, elemCount, val);
 
     return arr;
 }
@@ -106,11 +113,11 @@ TElem * matmul_arr_alloc_fill_val(
 //
 //-----------------------------------------------------------------------------
 TElem * matmul_arr_alloc_fill_zero(
-    TIdx const uiNumElements)
+    TSize const elemCount)
 {
-    TElem * arr = matmul_arr_alloc(uiNumElements);
+    TElem * arr = matmul_arr_alloc(elemCount);
 
-    matmul_arr_fill_zero(arr, uiNumElements);
+    matmul_arr_fill_zero(arr, elemCount);
 
     return arr;
 }
@@ -118,11 +125,11 @@ TElem * matmul_arr_alloc_fill_zero(
 //
 //-----------------------------------------------------------------------------
 TElem * matmul_arr_alloc_fill_idx(
-    TIdx const uiNumElements)
+    TSize const elemCount)
 {
-    TElem * arr = matmul_arr_alloc(uiNumElements);
+    TElem * arr = matmul_arr_alloc(elemCount);
 
-    matmul_arr_fill_idx(arr, uiNumElements);
+    matmul_arr_fill_idx(arr, elemCount);
 
     return arr;
 }
@@ -130,13 +137,13 @@ TElem * matmul_arr_alloc_fill_idx(
 //
 //-----------------------------------------------------------------------------
 TElem * matmul_arr_alloc_fill_rand(
-    TIdx const uiNumElements,
+    TSize const elemCount,
     TElem const min,
     TElem const max)
 {
-    TElem * arr = matmul_arr_alloc(uiNumElements);
+    TElem * arr = matmul_arr_alloc(elemCount);
 
-    matmul_arr_fill_rand(arr, uiNumElements, min, max);
+    matmul_arr_fill_rand(arr, elemCount, min, max);
 
     return arr;
 }

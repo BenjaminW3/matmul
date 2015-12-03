@@ -1,15 +1,22 @@
 //-----------------------------------------------------------------------------
-//! Copyright (c) 2014-2015, Benjamin Worpitz
-//! All rights reserved.
+//! \file
+//! Copyright 2013-2015 Benjamin Worpitz
 //!
-//! Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met :
-//! * Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-//! * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
-//! * Neither the name of the TU Dresden nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
+//! This file is part of matmul.
 //!
-//! THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
-//! IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-//! HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+//! matmul is free software: you can redistribute it and/or modify
+//! it under the terms of the GNU Lesser General Public License as published by
+//! the Free Software Foundation, either version 3 of the License, or
+//! (at your option) any later version.
+//!
+//! matmul is distributed in the hope that it will be useful,
+//! but WITHOUT ANY WARRANTY; without even the implied warranty of
+//! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+//! GNU Lesser General Public License for more details.
+//!
+//! You should have received a copy of the GNU Lesser General Public License
+//! along with matmul.
+//! If not, see <http://www.gnu.org/licenses/>.
 //-----------------------------------------------------------------------------
 
 #ifdef MATMUL_BUILD_SEQ_STRASSEN
@@ -33,26 +40,26 @@
     //
     //-----------------------------------------------------------------------------
     void matmul_mat_add_pitch_seq(
-        TIdx const m, TIdx const n,
-        TElem const * const MATMUL_RESTRICT A, TIdx const lda,
-        TElem const * const MATMUL_RESTRICT B, TIdx const ldb,
-        TElem * const MATMUL_RESTRICT C, TIdx const ldc)
+        TSize const m, TSize const n,
+        TElem const * const MATMUL_RESTRICT A, TSize const lda,
+        TElem const * const MATMUL_RESTRICT B, TSize const ldb,
+        TElem * const MATMUL_RESTRICT C, TSize const ldc)
     {
-#ifdef MATMUL_MSVC
-        for(TIdx i = 0; i < m; ++i)
+#ifdef _MSC_VER
+        for(TSize i = 0; i < m; ++i)
         {
-            TIdx const uiRowBeginIdxA = i*lda;
-            TIdx const uiRowBeginIdxB = i*ldb;
-            TIdx const uiRowBeginIdxC = i*ldc;
-            for(TIdx j = 0; j < n; ++j)
+            TSize const rowBeginIdxA = i*lda;
+            TSize const rowBeginIdxB = i*ldb;
+            TSize const rowBeginIdxC = i*ldc;
+            for(TSize j = 0; j < n; ++j)
             {
-                C[uiRowBeginIdxC + j] = A[uiRowBeginIdxA + j] + B[uiRowBeginIdxB + j];
+                C[rowBeginIdxC + j] = A[rowBeginIdxA + j] + B[rowBeginIdxB + j];
             }
         }
 #else
-        for(TIdx i = 0; i < m; ++i)
+        for(TSize i = 0; i < m; ++i)
         {
-            for(TIdx j = 0; j < n; ++j)
+            for(TSize j = 0; j < n; ++j)
             {
                 C[i*ldc + j] = A[i*lda + j] + B[i*ldb + j];
             }
@@ -63,24 +70,24 @@
     //
     //-----------------------------------------------------------------------------
     void matmul_mat_add2_pitch_seq(
-        TIdx const m, TIdx const n,
-        TElem const * const MATMUL_RESTRICT A, TIdx const lda,
-        TElem * const MATMUL_RESTRICT C, TIdx const ldc)
+        TSize const m, TSize const n,
+        TElem const * const MATMUL_RESTRICT A, TSize const lda,
+        TElem * const MATMUL_RESTRICT C, TSize const ldc)
     {
-#ifdef MATMUL_MSVC
-        for(TIdx i = 0; i < m; ++i)
+#ifdef _MSC_VER
+        for(TSize i = 0; i < m; ++i)
         {
-            TIdx const uiRowBeginIdxA = i*lda;
-            TIdx const uiRowBeginIdxC = i*ldc;
-            for(TIdx j = 0; j < n; ++j)
+            TSize const rowBeginIdxA = i*lda;
+            TSize const rowBeginIdxC = i*ldc;
+            for(TSize j = 0; j < n; ++j)
             {
-                C[uiRowBeginIdxC + j] += A[uiRowBeginIdxA + j];
+                C[rowBeginIdxC + j] += A[rowBeginIdxA + j];
             }
         }
 #else
-        for(TIdx i = 0; i < m; ++i)
+        for(TSize i = 0; i < m; ++i)
         {
-            for(TIdx j = 0; j < n; ++j)
+            for(TSize j = 0; j < n; ++j)
             {
                 C[i*ldc + j] += A[i*lda + j];
             }
@@ -91,26 +98,26 @@
     //
     //-----------------------------------------------------------------------------
     void matmul_mat_sub_pitch_seq(
-        TIdx const m, TIdx const n,
-        TElem const * const MATMUL_RESTRICT A, TIdx const lda,
-        TElem const * const MATMUL_RESTRICT B, TIdx const ldb,
-        TElem * const MATMUL_RESTRICT C, TIdx const ldc)
+        TSize const m, TSize const n,
+        TElem const * const MATMUL_RESTRICT A, TSize const lda,
+        TElem const * const MATMUL_RESTRICT B, TSize const ldb,
+        TElem * const MATMUL_RESTRICT C, TSize const ldc)
     {
-#ifdef MATMUL_MSVC
-        for(TIdx i = 0; i < m; ++i)
+#ifdef _MSC_VER
+        for(TSize i = 0; i < m; ++i)
         {
-            TIdx const uiRowBeginIdxA = i*lda;
-            TIdx const uiRowBeginIdxB = i*ldb;
-            TIdx const uiRowBeginIdxC = i*ldc;
-            for(TIdx j = 0; j < n; ++j)
+            TSize const rowBeginIdxA = i*lda;
+            TSize const rowBeginIdxB = i*ldb;
+            TSize const rowBeginIdxC = i*ldc;
+            for(TSize j = 0; j < n; ++j)
             {
-                C[uiRowBeginIdxC + j] = A[uiRowBeginIdxA + j] - B[uiRowBeginIdxB + j];
+                C[rowBeginIdxC + j] = A[rowBeginIdxA + j] - B[rowBeginIdxB + j];
             }
         }
 #else
-        for(TIdx i = 0; i < m; ++i)
+        for(TSize i = 0; i < m; ++i)
         {
-            for(TIdx j = 0; j < n; ++j)
+            for(TSize j = 0; j < n; ++j)
             {
                 C[i*ldc + j] = A[i*lda + j] - B[i*ldb + j];
             }
@@ -121,25 +128,27 @@
     //-----------------------------------------------------------------------------
     //
     //-----------------------------------------------------------------------------
-    void matmul_gemm_seq_strassen(
-        TIdx const m, TIdx const n, TIdx const k,
+    TReturn matmul_gemm_seq_strassen(
+        TSize const m, TSize const n, TSize const k,
         TElem const alpha,
-        TElem const * const MATMUL_RESTRICT X, TIdx const lda,
-        TElem const * const MATMUL_RESTRICT Y, TIdx const ldb,
+        TElem const * const MATMUL_RESTRICT X, TSize const lda,
+        TElem const * const MATMUL_RESTRICT Y, TSize const ldb,
         TElem const beta,
-        TElem * const MATMUL_RESTRICT Z, TIdx const ldc)
+        TElem * const MATMUL_RESTRICT Z, TSize const ldc)
     {
         if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
         {
-            return;
+            MATMUL_TIME_RETURN_EARLY_OUT;
         }
+
+        MATMUL_TIME_START;
 
         // Apply beta multiplication to C.
         if(beta != (TElem)1)
         {
-            for(TIdx i = 0; i < m; ++i)
+            for(TSize i = 0; i < m; ++i)
             {
-                for(TIdx j = 0; j < n; ++j)
+                for(TSize j = 0; j < n; ++j)
                 {
                     Z[i*ldc + j] *= beta;
                 }
@@ -158,10 +167,10 @@
             if(m!=n || m!=k)
             {
                 printf("[GEMM Strassen] Invalid matrix size! The matrices have to be square for the Strassen GEMM.\n");
-                return;
+                MATMUL_TIME_RETURN_EARLY_OUT;
             }
 
-            TIdx const h = n/2;           // size of sub-matrices
+            TSize const h = n/2;           // size of sub-matrices
 
             TElem const * const A = X;      // A-D matrices embedded in X
             TElem const * const B = X + h;
@@ -174,14 +183,14 @@
             TElem const * const H = G + h;
 
             // Allocate temporary matrices.
-            TIdx const uiNumElements = h * h;
+            TSize const elemCount = h * h;
             TElem * P[7];
-            for(TIdx i = 0; i < 7; ++i)
+            for(TSize i = 0; i < 7; ++i)
             {
-                P[i] = matmul_arr_alloc_fill_zero(uiNumElements);
+                P[i] = matmul_arr_alloc_fill_zero(elemCount);
             }
-            TElem * const T = matmul_arr_alloc(uiNumElements);
-            TElem * const U = matmul_arr_alloc(uiNumElements);
+            TElem * const T = matmul_arr_alloc(elemCount);
+            TElem * const U = matmul_arr_alloc(elemCount);
 
             // P0 = A*(F - H);
             matmul_mat_sub_pitch_seq(h, h, F, ldb, H, ldb, T, h);
@@ -238,10 +247,13 @@
             // Deallocate temporary matrices.
             matmul_arr_free(U);
             matmul_arr_free(T);
-            for(TIdx i = 0; i < 7; ++i)
+            for(TSize i = 0; i < 7; ++i)
             {
                 matmul_arr_free(P[i]);
             }
         }
+
+        MATMUL_TIME_END;
+        MATMUL_TIME_RETURN;
     }
 #endif

@@ -1,29 +1,36 @@
+//-----------------------------------------------------------------------------
+//! \file
+//! Copyright 2013-2015 Benjamin Worpitz
+//!
+//! This file is part of matmul.
+//!
+//! matmul is free software: you can redistribute it and/or modify
+//! it under the terms of the GNU Lesser General Public License as published by
+//! the Free Software Foundation, either version 3 of the License, or
+//! (at your option) any later version.
+//!
+//! matmul is distributed in the hope that it will be useful,
+//! but WITHOUT ANY WARRANTY; without even the implied warranty of
+//! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+//! GNU Lesser General Public License for more details.
+//!
+//! You should have received a copy of the GNU Lesser General Public License
+//! along with matmul.
+//! If not, see <http://www.gnu.org/licenses/>.
+//-----------------------------------------------------------------------------
+
 #pragma once
 
-//-----------------------------------------------------------------------------
-//! Copyright (c) 2014-2015, Benjamin Worpitz
-//! All rights reserved.
-//!
-//! Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met :
-//! * Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-//! * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
-//! * Neither the name of the TU Dresden nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
-//!
-//! THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
-//! IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-//! HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//-----------------------------------------------------------------------------
+#if defined(MATMUL_BUILD_PAR_OMP2_GUIDED) || defined(MATMUL_BUILD_PAR_OMP2_STATIC) || defined(MATMUL_BUILD_PAR_OMP3) || defined(MATMUL_BUILD_PAR_OMP4)
 
-#if defined(MATMUL_BUILD_PAR_OMP2) || defined(MATMUL_BUILD_PAR_OMP3) || defined(MATMUL_BUILD_PAR_OMP4)
-
-    #include <matmul/common/Config.h>   // TElem, TIdx
+    #include <matmul/common/Config.h>   // TElem, TSize, TReturn
 
     #ifdef __cplusplus
         extern "C"
         {
     #endif
-    #ifdef MATMUL_BUILD_PAR_OMP2
-        #if _OPENMP >= 200203   // OpenMP 2.0
+    #if _OPENMP >= 200203   // OpenMP 2.0
+        #ifdef MATMUL_BUILD_PAR_OMP2_GUIDED
             //-----------------------------------------------------------------------------
             //! (S/D)GEMM matrix-matrix product C = alpha * A * B + beta * C using OpenMP 2.0 parallel for guided schedule.
             //!
@@ -39,13 +46,15 @@
             //! \param C Array, size ldc-by-n. The leading m-by-n part of the array must contain the matrix C.
             //! \param ldc Specifies the leading dimension of C.
             //-----------------------------------------------------------------------------
-            void matmul_gemm_par_omp2_guided_schedule(
-                TIdx const m, TIdx const n, TIdx const k,
+            TReturn matmul_gemm_par_omp2_guided_schedule(
+                TSize const m, TSize const n, TSize const k,
                 TElem const alpha,
-                TElem const * const MATMUL_RESTRICT A, TIdx const lda,
-                TElem const * const MATMUL_RESTRICT B, TIdx const ldb,
+                TElem const * const MATMUL_RESTRICT A, TSize const lda,
+                TElem const * const MATMUL_RESTRICT B, TSize const ldb,
                 TElem const beta,
-                TElem * const MATMUL_RESTRICT C, TIdx const ldc);
+                TElem * const MATMUL_RESTRICT C, TSize const ldc);
+        #endif
+        #ifdef MATMUL_BUILD_PAR_OMP2_STATIC
             //-----------------------------------------------------------------------------
             //! (S/D)GEMM matrix-matrix product C = alpha * A * B + beta * C using OpenMP 2.0 parallel for static schedule.
             //!
@@ -61,17 +70,17 @@
             //! \param C Array, size ldc-by-n. The leading m-by-n part of the array must contain the matrix C.
             //! \param ldc Specifies the leading dimension of C.
             //-----------------------------------------------------------------------------
-            void matmul_gemm_par_omp2_static_schedule(
-                TIdx const m, TIdx const n, TIdx const k,
+            TReturn matmul_gemm_par_omp2_static_schedule(
+                TSize const m, TSize const n, TSize const k,
                 TElem const alpha,
-                TElem const * const MATMUL_RESTRICT A, TIdx const lda,
-                TElem const * const MATMUL_RESTRICT B, TIdx const ldb,
+                TElem const * const MATMUL_RESTRICT A, TSize const lda,
+                TElem const * const MATMUL_RESTRICT B, TSize const ldb,
                 TElem const beta,
-                TElem * const MATMUL_RESTRICT C, TIdx const ldc);
+                TElem * const MATMUL_RESTRICT C, TSize const ldc);
         #endif
     #endif
-    #ifdef MATMUL_BUILD_PAR_OMP3
-        #if _OPENMP >= 200805   // OpenMP 3.0
+    #if _OPENMP >= 200805   // OpenMP 3.0
+        #ifdef MATMUL_BUILD_PAR_OMP3
             //-----------------------------------------------------------------------------
             //! (S/D)GEMM matrix-matrix product C = alpha * A * B + beta * C using OpenMP 3.0 parallel for collapse static schedule.
             //!
@@ -87,17 +96,17 @@
             //! \param C Array, size ldc-by-n. The leading m-by-n part of the array must contain the matrix C.
             //! \param ldc Specifies the leading dimension of C.
             //-----------------------------------------------------------------------------
-            void matmul_gemm_par_omp3_static_schedule_collapse(
-                TIdx const m, TIdx const n, TIdx const k,
+            TReturn matmul_gemm_par_omp3_static_schedule_collapse(
+                TSize const m, TSize const n, TSize const k,
                 TElem const alpha,
-                TElem const * const MATMUL_RESTRICT A,  TIdx const lda,
-                TElem const * const MATMUL_RESTRICT B,  TIdx const ldb,
+                TElem const * const MATMUL_RESTRICT A,  TSize const lda,
+                TElem const * const MATMUL_RESTRICT B,  TSize const ldb,
                 TElem const beta,
-                TElem * const MATMUL_RESTRICT C,  TIdx const ldc);
+                TElem * const MATMUL_RESTRICT C,  TSize const ldc);
         #endif
     #endif
-    #ifdef MATMUL_BUILD_PAR_OMP4
-        #if _OPENMP >= 201307   // OpenMP 4.0
+    #if _OPENMP >= 201307   // OpenMP 4.0
+        #ifdef MATMUL_BUILD_PAR_OMP4
             //-----------------------------------------------------------------------------
             //! (S/D)GEMM matrix-matrix product C = alpha * A * B + beta * C using OpenMP 4.0 teams distribute parallel for static schedule.
             //!
@@ -113,13 +122,13 @@
             //! \param C Array, size ldc-by-n. The leading m-by-n part of the array must contain the matrix C.
             //! \param ldc Specifies the leading dimension of C.
             //-----------------------------------------------------------------------------
-            void matmul_gemm_par_omp4(
-                TIdx const m, TIdx const n, TIdx const k,
+            TReturn matmul_gemm_par_omp4(
+                TSize const m, TSize const n, TSize const k,
                 TElem const alpha,
-                TElem const * const MATMUL_RESTRICT A,  TIdx const lda,
-                TElem const * const MATMUL_RESTRICT B,  TIdx const ldb,
+                TElem const * const MATMUL_RESTRICT A,  TSize const lda,
+                TElem const * const MATMUL_RESTRICT B,  TSize const ldb,
                 TElem const beta,
-                TElem * const MATMUL_RESTRICT C,  TIdx const ldc);
+                TElem * const MATMUL_RESTRICT C,  TSize const ldc);
         #endif
     #endif
     #ifdef __cplusplus

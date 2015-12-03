@@ -1,18 +1,25 @@
-#pragma once
+//-----------------------------------------------------------------------------
+//! \file
+//! Copyright 2013-2015 Benjamin Worpitz
+//!
+//! This file is part of matmul.
+//!
+//! matmul is free software: you can redistribute it and/or modify
+//! it under the terms of the GNU Lesser General Public License as published by
+//! the Free Software Foundation, either version 3 of the License, or
+//! (at your option) any later version.
+//!
+//! matmul is distributed in the hope that it will be useful,
+//! but WITHOUT ANY WARRANTY; without even the implied warranty of
+//! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+//! GNU Lesser General Public License for more details.
+//!
+//! You should have received a copy of the GNU Lesser General Public License
+//! along with matmul.
+//! If not, see <http://www.gnu.org/licenses/>.
+//-----------------------------------------------------------------------------
 
-//-----------------------------------------------------------------------------
-//! Copyright (c) 2014-2015, Benjamin Worpitz
-//! All rights reserved.
-//!
-//! Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met :
-//! * Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-//! * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
-//! * Neither the name of the TU Dresden nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
-//!
-//! THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
-//! IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-//! HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//-----------------------------------------------------------------------------
+#pragma once
 
 //-----------------------------------------------------------------------------
 // If MPI tests are to be build, set some additional definitions.
@@ -25,6 +32,26 @@
     #include <mpi.h>
     #define MATMUL_MPI_COMM MPI_COMM_WORLD
     #define MATMUL_MPI_ROOT 0
+#endif
+
+//-----------------------------------------------------------------------------
+// Return type.
+//-----------------------------------------------------------------------------
+#ifdef MATMUL_RETURN_COMPUTATION_TIME
+    #include <matmul/common/Time.h>
+    typedef double TReturn;
+    #define MATMUL_TIME_START double const matmulTimeStart = getTimeSec()
+    #define MATMUL_TIME_END double const matmulTimeEnd = getTimeSec(); double const matmulTimeDiff = matmulTimeEnd - matmulTimeStart
+    #define MATMUL_TIME_STORE double const matmulTimeDiff =
+    #define MATMUL_TIME_RETURN return matmulTimeDiff
+    #define MATMUL_TIME_RETURN_EARLY_OUT return 0.0
+#else
+    typedef void TReturn;
+    #define MATMUL_TIME_START
+    #define MATMUL_TIME_END
+    #define MATMUL_TIME_STORE
+    #define MATMUL_TIME_RETURN
+    #define MATMUL_TIME_RETURN_EARLY_OUT return;
 #endif
 
 //-----------------------------------------------------------------------------
@@ -47,14 +74,17 @@
 #include <stddef.h>                 // size_t
 #include <stdint.h>                 // int32_t
 
-typedef MATMUL_INDEX_TYPE TIdx;
+typedef MATMUL_INDEX_TYPE TSize;
 
 //-----------------------------------------------------------------------------
 // Compiler Settings.
 //-----------------------------------------------------------------------------
 #if defined __INTEL_COMPILER                    // ICC additionally defines _MSC_VER if used in VS so this has to come first
-    #define MATMUL_ICC
-    #define MATMUL_RESTRICT restrict
+    #ifdef __cplusplus
+        #define MATMUL_RESTRICT __restrict
+    #else
+        #define MATMUL_RESTRICT restrict
+    #endif
     #if defined(_MSC_VER) && _MSC_VER<=1800
         #define MATMUL_PRINTF_SIZE_T "Iu"
     #else
@@ -62,7 +92,6 @@ typedef MATMUL_INDEX_TYPE TIdx;
     #endif
 
 #elif defined __clang__
-    #define MATMUL_CLANG
     #ifdef __cplusplus
         #define MATMUL_RESTRICT __restrict__
     #else
@@ -75,7 +104,6 @@ typedef MATMUL_INDEX_TYPE TIdx;
     #endif
 
 #elif defined __GNUC__
-    #define MATMUL_GCC
     #ifdef __cplusplus
         #define MATMUL_RESTRICT __restrict__
     #else
@@ -84,7 +112,6 @@ typedef MATMUL_INDEX_TYPE TIdx;
     #define MATMUL_PRINTF_SIZE_T "zu"
 
 #elif defined _MSC_VER
-    #define MATMUL_MSVC
     #define MATMUL_RESTRICT __restrict          // Visual C++ 2013 and below do not define C99 restrict keyword under its supposed name. (And its not fully standard conformant)
     #if _MSC_VER<=1800
         #define MATMUL_PRINTF_SIZE_T "Iu"       // Visual C++ 2013 and below do not support C99 printf specifiers.
