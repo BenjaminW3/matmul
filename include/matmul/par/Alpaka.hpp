@@ -386,10 +386,7 @@
         TElem const beta,
         TElem * const MATMUL_RESTRICT C, TSize const ldc)
     {
-        using Dim1 = alpaka::dim::DimInt<1u>;
         using Dim2 = alpaka::dim::DimInt<2u>;
-        using Dim3 = alpaka::dim::DimInt<3u>;        
-
         
         if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
         {
@@ -468,10 +465,7 @@
         TElem const beta,
         TElem * const MATMUL_RESTRICT C, TSize const ldc)
     {
-
-        using Dim1 = alpaka::dim::DimInt<1u>;
         using Dim2 = alpaka::dim::DimInt<2u>;
-        using Dim3 = alpaka::dim::DimInt<3u>;
         
         if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
         {
