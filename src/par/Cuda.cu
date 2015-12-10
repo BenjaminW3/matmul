@@ -111,7 +111,7 @@
 
             if(insideC)
             {
-	        TSize const CIdx1d(gridThreadIdxY*ldc + gridThreadIdxX);
+                TSize const CIdx1d(gridThreadIdxY*ldc + gridThreadIdxX);
                 C[CIdx1d] = alpha * dotProduct + beta * C[CIdx1d];
             }
         }
@@ -407,7 +407,7 @@
 
             if(insideC)
             {
-	        TSize const CIdx1d(gridThreadIdxY*ldc + gridThreadIdxX);
+                TSize const CIdx1d(gridThreadIdxY*ldc + gridThreadIdxX);
                 C[CIdx1d] = alpha * dotProduct + beta * C[CIdx1d];
             }
         }
