@@ -72,7 +72,7 @@
             TElem dotProduct(0);
 
             // Loop over all blocks of A and B that are required to compute the C block.
-            auto const blockMulCount(
+            TSize const blockMulCount(
                 static_cast<TSize>(
                     ceil(
                         static_cast<float>(k)/static_cast<float>(blockThreadsExtent))));
@@ -111,7 +111,7 @@
 
             if(insideC)
             {
-                auto const CIdx1d(gridThreadIdxY*ldc + gridThreadIdxX);
+                TSize const CIdx1d(gridThreadIdxY*ldc + gridThreadIdxX);
                 C[CIdx1d] = alpha * dotProduct + beta * C[CIdx1d];
             }
         }
@@ -210,7 +210,7 @@
             __shared__ TElem pBlockSharedA[MATMUL_CUDA_FIXED_BLOCK_SIZE*MATMUL_CUDA_FIXED_BLOCK_SIZE];
             __shared__ TElem pBlockSharedB[MATMUL_CUDA_FIXED_BLOCK_SIZE*MATMUL_CUDA_FIXED_BLOCK_SIZE];
 
-            auto const sharedBlockIdx1d(blockThreadIdxY*blockThreadsExtentX + blockThreadIdxX);
+            TSize const sharedBlockIdx1d(blockThreadIdxY*blockThreadsExtentX + blockThreadIdxX);
 
             // If the element corresponding to the current thread is outside of the respective matrix.
             bool const insideA = (gridThreadIdxY < m);
@@ -220,7 +220,7 @@
             TElem dotProduct(0);
 
             // Loop over all blocks of A and B that are required to compute the C block.
-            auto const blockMulCount(
+            TSize const blockMulCount(
                 static_cast<TSize>(
                     ceil(
                         static_cast<float>(k)/static_cast<float>(blockThreadsExtent))));
@@ -259,7 +259,7 @@
 
             if(insideC)
             {
-                auto const CIdx1d(gridThreadIdxY*ldc + gridThreadIdxX);
+                TSize const CIdx1d(gridThreadIdxY*ldc + gridThreadIdxX);
                 C[CIdx1d] = alpha * dotProduct + beta * C[CIdx1d];
             }
         }
@@ -356,9 +356,9 @@
 
             // Shared memory used to store the current blocks of A and B.
             extern __shared__ TElem pBlockSharedA[];
-            auto * const pBlockSharedB(pBlockSharedA + blockThreadsExtentX*blockThreadsExtentY);
+            TElem * const pBlockSharedB(pBlockSharedA + blockThreadsExtentX*blockThreadsExtentY);
 
-            auto const sharedBlockIdx1d(blockThreadIdxY*blockThreadsExtentX + blockThreadIdxX);
+            TSize const sharedBlockIdx1d(blockThreadIdxY*blockThreadsExtentX + blockThreadIdxX);
 
             // If the element corresponding to the current thread is outside of the respective matrix.
             bool const insideA = (gridThreadIdxY < m);
@@ -368,7 +368,7 @@
             TElem dotProduct(0);
 
             // Loop over all blocks of A and B that are required to compute the C block.
-            auto const blockMulCount(
+            TSize const blockMulCount(
                 static_cast<TSize>(
                     ceil(
                         static_cast<float>(k)/static_cast<float>(blockThreadsExtent))));
@@ -407,7 +407,7 @@
 
             if(insideC)
             {
-                auto const CIdx1d(gridThreadIdxY*ldc + gridThreadIdxX);
+                TSize const CIdx1d(gridThreadIdxY*ldc + gridThreadIdxX);
                 C[CIdx1d] = alpha * dotProduct + beta * C[CIdx1d];
             }
         }
@@ -598,7 +598,7 @@
 
             // Restrict it to its minimum component.
             // For example (512, 256) will get (256, 256).
-            auto minBlockThreadExtent(blockThreadExtents[0]);
+            TSize minBlockThreadExtent(blockThreadExtents[0]);
             for(TSize i(1); i<2; ++i)
             {
                 minBlockThreadExtent = std::min(minBlockThreadExtent, blockThreadExtents[i]);
@@ -617,7 +617,7 @@
 
                 // For equal block thread extent this is easily the nth root of cudaDevProp.maxThreadsPerBlock.
                 double const fNthRoot(std::pow(cudaDevProp.maxThreadsPerBlock, 1.0 / 2.0));
-                auto const nthRoot(static_cast<TSize>(fNthRoot));
+                TSize const nthRoot(static_cast<TSize>(fNthRoot));
                 for(TSize i(0); i<2; ++i)
                 {
                     blockThreadExtents[i] = nthRoot;
