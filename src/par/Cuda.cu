@@ -55,10 +55,10 @@
             TSize const blockThreadIdxY = threadIdx.y;
 
             // The block threads extents.
-            TSize const blockThreadsExtentX = blockDim.x;
-            TSize const blockThreadsExtentY = blockDim.y;
-            //assert(blockThreadsExtentX == blockThreadsExtentY);
-            TSize const & blockThreadsExtent = blockThreadsExtentX;
+            TSize const blockThreadExtentX = blockDim.x;
+            TSize const blockThreadExtentY = blockDim.y;
+            //assert(blockThreadExtentX == blockThreadExtentY);
+            TSize const & blockThreadExtent = blockThreadExtentX;
 
             // Shared memory used to store the current blocks of A and B.
             __shared__ TElem pBlockSharedA[MATMUL_CUDA_FIXED_BLOCK_SIZE][MATMUL_CUDA_FIXED_BLOCK_SIZE];
@@ -75,20 +75,20 @@
             TSize const blockMulCount(
                 static_cast<TSize>(
                     ceil(
-                        static_cast<float>(k)/static_cast<float>(blockThreadsExtent))));
+                        static_cast<float>(k)/static_cast<float>(blockThreadExtent))));
             for(TSize k2=0; k2<blockMulCount; ++k2)
             {
                 // Copy the current blocks of A and B into shared memory in parallel.
                 // If the element of the current thread is outside of the matrix, zero is written into the shared memory.
                 // This is possible because zero is a result neutral extension of the matrices regarding the dot product.
-                TSize const AIdxX(k2*blockThreadsExtentX + blockThreadIdxX);
+                TSize const AIdxX(k2*blockThreadExtentX + blockThreadIdxX);
                 TSize const AIdx1d(gridThreadIdxY*lda + AIdxX);
                 pBlockSharedA[blockThreadIdxY][blockThreadIdxX] =
                     ((!insideA) || (AIdxX>=k))
                     ? static_cast<TElem>(0)
                     : A[AIdx1d];
 
-                TSize const BIdxY(k2*blockThreadsExtentY + blockThreadIdxY);
+                TSize const BIdxY(k2*blockThreadExtentY + blockThreadIdxY);
                 TSize const BIdx1d(BIdxY*ldb + gridThreadIdxX);
                 pBlockSharedB[blockThreadIdxY][blockThreadIdxX] =
                     ((!insideB) || (BIdxY>=k))
@@ -99,7 +99,7 @@
                 __syncthreads();
 
                 // Compute the dot products within shared memory.
-                for(TSize k3 = 0; k3<blockThreadsExtent; ++k3)
+                for(TSize k3 = 0; k3<blockThreadExtent; ++k3)
                 {
                     dotProduct += pBlockSharedA[blockThreadIdxY][k3]
                         * pBlockSharedB[k3][blockThreadIdxX];
@@ -201,16 +201,16 @@
             TSize const blockThreadIdxY = threadIdx.y;
 
             // The block threads extents.
-            TSize const blockThreadsExtentX = blockDim.x;
-            TSize const blockThreadsExtentY = blockDim.y;
-            //assert(blockThreadsExtentX == blockThreadsExtentY);
-            TSize const & blockThreadsExtent = blockThreadsExtentX;
+            TSize const blockThreadExtentX = blockDim.x;
+            TSize const blockThreadExtentY = blockDim.y;
+            //assert(blockThreadExtentX == blockThreadExtentY);
+            TSize const & blockThreadExtent = blockThreadExtentX;
 
             // Shared memory used to store the current blocks of A and B.
             __shared__ TElem pBlockSharedA[MATMUL_CUDA_FIXED_BLOCK_SIZE*MATMUL_CUDA_FIXED_BLOCK_SIZE];
             __shared__ TElem pBlockSharedB[MATMUL_CUDA_FIXED_BLOCK_SIZE*MATMUL_CUDA_FIXED_BLOCK_SIZE];
 
-            TSize const sharedBlockIdx1d(blockThreadIdxY*blockThreadsExtentX + blockThreadIdxX);
+            TSize const sharedBlockIdx1d(blockThreadIdxY*blockThreadExtentX + blockThreadIdxX);
 
             // If the element corresponding to the current thread is outside of the respective matrix.
             bool const insideA = (gridThreadIdxY < m);
@@ -223,20 +223,20 @@
             TSize const blockMulCount(
                 static_cast<TSize>(
                     ceil(
-                        static_cast<float>(k)/static_cast<float>(blockThreadsExtent))));
+                        static_cast<float>(k)/static_cast<float>(blockThreadExtent))));
             for(TSize k2=0; k2<blockMulCount; ++k2)
             {
                 // Copy the current blocks of A and B into shared memory in parallel.
                 // If the element of the current thread is outside of the matrix, zero is written into the shared memory.
                 // This is possible because zero is a result neutral extension of the matrices regarding the dot product.
-                TSize const AIdxX(k2*blockThreadsExtentX + blockThreadIdxX);
+                TSize const AIdxX(k2*blockThreadExtentX + blockThreadIdxX);
                 TSize const AIdx1d(gridThreadIdxY*lda + AIdxX);
                 pBlockSharedA[sharedBlockIdx1d] =
                     ((!insideA) || (AIdxX>=k))
                     ? static_cast<TElem>(0)
                     : A[AIdx1d];
 
-                TSize const BIdxY(k2*blockThreadsExtentY + blockThreadIdxY);
+                TSize const BIdxY(k2*blockThreadExtentY + blockThreadIdxY);
                 TSize const BIdx1d(BIdxY*ldb + gridThreadIdxX);
                 pBlockSharedB[sharedBlockIdx1d] =
                     ((!insideB) || (BIdxY>=k))
@@ -247,10 +247,10 @@
                 __syncthreads();
 
                 // Compute the dot products within shared memory.
-                for(TSize k3 = 0; k3<blockThreadsExtent; ++k3)
+                for(TSize k3 = 0; k3<blockThreadExtent; ++k3)
                 {
-                    dotProduct += pBlockSharedA[blockThreadIdxY*blockThreadsExtentX + k3]
-                        * pBlockSharedB[k3*blockThreadsExtentY + blockThreadIdxX];
+                    dotProduct += pBlockSharedA[blockThreadIdxY*blockThreadExtentX + k3]
+                        * pBlockSharedB[k3*blockThreadExtentY + blockThreadIdxX];
                 }
 
                 // Synchronize to make sure that the preceding computation is done before loading the next blocks of A and B.
@@ -349,16 +349,16 @@
             TSize const blockThreadIdxY = threadIdx.y;
 
             // The block threads extents.
-            TSize const blockThreadsExtentX = blockDim.x;
-            TSize const blockThreadsExtentY = blockDim.y;
-            //assert(blockThreadsExtentX == blockThreadsExtentY);
-            TSize const & blockThreadsExtent = blockThreadsExtentX;
+            TSize const blockThreadExtentX = blockDim.x;
+            TSize const blockThreadExtentY = blockDim.y;
+            //assert(blockThreadExtentX == blockThreadExtentY);
+            TSize const & blockThreadExtent = blockThreadExtentX;
 
             // Shared memory used to store the current blocks of A and B.
             extern __shared__ TElem pBlockSharedA[];
-            TElem * const pBlockSharedB(pBlockSharedA + blockThreadsExtentX*blockThreadsExtentY);
+            TElem * const pBlockSharedB(pBlockSharedA + blockThreadExtentX*blockThreadExtentY);
 
-            TSize const sharedBlockIdx1d(blockThreadIdxY*blockThreadsExtentX + blockThreadIdxX);
+            TSize const sharedBlockIdx1d(blockThreadIdxY*blockThreadExtentX + blockThreadIdxX);
 
             // If the element corresponding to the current thread is outside of the respective matrix.
             bool const insideA = (gridThreadIdxY < m);
@@ -371,20 +371,20 @@
             TSize const blockMulCount(
                 static_cast<TSize>(
                     ceil(
-                        static_cast<float>(k)/static_cast<float>(blockThreadsExtent))));
+                        static_cast<float>(k)/static_cast<float>(blockThreadExtent))));
             for(TSize k2=0; k2<blockMulCount; ++k2)
             {
                 // Copy the current blocks of A and B into shared memory in parallel.
                 // If the element of the current thread is outside of the matrix, zero is written into the shared memory.
                 // This is possible because zero is a result neutral extension of the matrices regarding the dot product.
-                TSize const AIdxX(k2*blockThreadsExtentX + blockThreadIdxX);
+                TSize const AIdxX(k2*blockThreadExtentX + blockThreadIdxX);
                 TSize const AIdx1d(gridThreadIdxY*lda + AIdxX);
                 pBlockSharedA[sharedBlockIdx1d] =
                     ((!insideA) || (AIdxX>=k))
                     ? static_cast<TElem>(0)
                     : A[AIdx1d];
 
-                TSize const BIdxY(k2*blockThreadsExtentY + blockThreadIdxY);
+                TSize const BIdxY(k2*blockThreadExtentY + blockThreadIdxY);
                 TSize const BIdx1d(BIdxY*ldb + gridThreadIdxX);
                 pBlockSharedB[sharedBlockIdx1d] =
                     ((!insideB) || (BIdxY>=k))
@@ -395,10 +395,10 @@
                 __syncthreads();
 
                 // Compute the dot products within shared memory.
-                for(TSize k3 = 0; k3<blockThreadsExtent; ++k3)
+                for(TSize k3 = 0; k3<blockThreadExtent; ++k3)
                 {
-                    dotProduct += pBlockSharedA[blockThreadIdxY*blockThreadsExtentX + k3]
-                        * pBlockSharedB[k3*blockThreadsExtentY + blockThreadIdxX];
+                    dotProduct += pBlockSharedA[blockThreadIdxY*blockThreadExtentX + k3]
+                        * pBlockSharedB[k3*blockThreadExtentY + blockThreadIdxX];
                 }
 
                 // Synchronize to make sure that the preceding computation is done before loading the next blocks of A and B.
@@ -497,16 +497,16 @@
             TSize const blockThreadIdxY = threadIdx.y;
 
             // The block threads extents.
-            TSize const blockThreadsExtentX = blockDim.x;
-            TSize const blockThreadsExtentY = blockDim.y;
-            //assert(blockThreadsExtentX == blockThreadsExtentY);
-            TSize const & blockThreadsExtent = blockThreadsExtentX;
+            TSize const blockThreadExtentX = blockDim.x;
+            TSize const blockThreadExtentY = blockDim.y;
+            //assert(blockThreadExtentX == blockThreadExtentY);
+            TSize const & blockThreadExtent1d = blockThreadExtentX;
 
             // Shared memory used to store the current blocks of A and B.
             extern __shared__ TElem pBlockSharedA[];
-            TElem * const pBlockSharedB(pBlockSharedA + blockThreadsExtentX*blockThreadsExtentY);
+            TElem * const pBlockSharedB(pBlockSharedA + blockThreadExtentX*blockThreadExtentY);
 
-            TSize const sharedBlockIdx1d(blockThreadIdxY*blockThreadsExtentX + blockThreadIdxX);
+            TSize const sharedBlockIdx1d(blockThreadIdxY*blockThreadExtentX + blockThreadIdxX);
 
             // If the element corresponding to the current thread is outside of the respective matrix.
             bool const insideA = (gridThreadIdxY < m);
@@ -519,20 +519,20 @@
             TSize const blockMulCount(
                 static_cast<TSize>(
                     ceil(
-                        static_cast<float>(k) / static_cast<float>(blockThreadsExtent))));
+                        static_cast<float>(k) / static_cast<float>(blockThreadExtent1d))));
             for(TSize k2(0); k2<blockMulCount; ++k2)
             {
                 // Copy the current blocks of A and B into shared memory in parallel.
                 // If the element of the current thread is outside of the matrix, zero is written into the shared memory.
                 // This is possible because zero is a result neutral extension of the matrices regarding the dot product.
-                TSize const AIdxX(k2*blockThreadsExtentX + blockThreadIdxX);
+                TSize const AIdxX(k2*blockThreadExtentX + blockThreadIdxX);
                 TSize const AIdx1d(gridThreadIdxY*lda + AIdxX);
                 pBlockSharedA[sharedBlockIdx1d] =
                     ((!insideA) || (AIdxX >= k))
                     ? static_cast<TElem>(0)
                     : A[AIdx1d];
 
-                TSize const BIdxY(k2*blockThreadsExtentY + blockThreadIdxY);
+                TSize const BIdxY(k2*blockThreadExtentY + blockThreadIdxY);
                 TSize const BIdx1d(BIdxY*ldb + gridThreadIdxX);
                 pBlockSharedB[sharedBlockIdx1d] =
                     ((!insideB) || (BIdxY >= k))
@@ -543,10 +543,10 @@
                 __syncthreads();
 
                 // Compute the dot products within shared memory.
-                for(TSize k3(0); k3<blockThreadsExtent; ++k3)
+                for(TSize k3(0); k3<blockThreadExtent1d; ++k3)
                 {
-                    dotProduct += pBlockSharedA[blockThreadIdxY*blockThreadsExtentX + k3]
-                        * pBlockSharedB[k3*blockThreadsExtentY + blockThreadIdxX];
+                    dotProduct += pBlockSharedA[blockThreadIdxY*blockThreadExtentX + k3]
+                        * pBlockSharedB[k3*blockThreadExtentY + blockThreadIdxX];
                 }
 
                 // Synchronize to make sure that the preceding computation is done before loading the next blocks of A and B.
@@ -585,34 +585,34 @@
                 &cudaDevProp,
                 0));
 
-            TSize gridThreadExtents[] = {m, n};
-            TSize blockThreadExtents[] = {cudaDevProp.maxThreadsDim[0], cudaDevProp.maxThreadsDim[1]};
+            TSize gridThreadExtent[] = {m, n};
+            TSize blockThreadExtent[] = {cudaDevProp.maxThreadsDim[0], cudaDevProp.maxThreadsDim[1]};
 
-            // Restrict the max block thread extents with the grid thread extents.
-            // This removes dimensions not required in the given grid thread extents.
+            // Restrict the max block thread extent with the grid thread extent.
+            // This removes dimensions not required in the given grid thread extent.
             // This has to be done before the maxThreadsPerBlock clipping to get the maximum correctly.
             for(TSize i(0); i<2; ++i)
             {
-                blockThreadExtents[i] = std::min(blockThreadExtents[i], gridThreadExtents[i]);
+                blockThreadExtent[i] = std::min(blockThreadExtent[i], gridThreadExtent[i]);
             }
 
             // Restrict it to its minimum component.
             // For example (512, 256) will get (256, 256).
-            TSize minBlockThreadExtent(blockThreadExtents[0]);
+            TSize minBlockThreadExtent(blockThreadExtent[0]);
             for(TSize i(1); i<2; ++i)
             {
-                minBlockThreadExtent = std::min(minBlockThreadExtent, blockThreadExtents[i]);
+                minBlockThreadExtent = std::min(minBlockThreadExtent, blockThreadExtent[i]);
             }
             for(TSize i(0); i<2; ++i)
             {
-                blockThreadExtents[i] = minBlockThreadExtent;
+                blockThreadExtent[i] = minBlockThreadExtent;
             }
 
-            // Adjust blockThreadExtents if its product is too large.
-            if ((blockThreadExtents[0] * blockThreadExtents[1]) > cudaDevProp.maxThreadsPerBlock)
+            // Adjust blockThreadExtent if its product is too large.
+            if ((blockThreadExtent[0] * blockThreadExtent[1]) > cudaDevProp.maxThreadsPerBlock)
             {
                 // Satisfy the following equation:
-                // udaDevProp.maxThreadsPerBlock >= blockThreadExtents[0]*blockThreadExtents[1]
+                // udaDevProp.maxThreadsPerBlock >= blockThreadExtent[0]*blockThreadExtent[1]
                 // For example 1024 >= 512 * 512
 
                 // For equal block thread extent this is easily the nth root of cudaDevProp.maxThreadsPerBlock.
@@ -620,29 +620,29 @@
                 TSize const nthRoot(static_cast<TSize>(fNthRoot));
                 for(TSize i(0); i<2; ++i)
                 {
-                    blockThreadExtents[i] = nthRoot;
+                    blockThreadExtent[i] = nthRoot;
                 }
             }
 
-            // Set the grid block extents (rounded to the next integer not less then the quotient.
-            TSize gridBlockExtents[] = {1, 1};
+            // Set the grid block extent (rounded to the next integer not less then the quotient.
+            TSize gridBlockExtent[] = {1, 1};
             for(TSize i(0); i<2; ++i)
             {
-                gridBlockExtents[i] =
+                gridBlockExtent[i] =
                     static_cast<TSize>(
-                        std::ceil(static_cast<double>(gridThreadExtents[i])
-                            / static_cast<double>(blockThreadExtents[i])));
+                        std::ceil(static_cast<double>(gridThreadExtent[i])
+                            / static_cast<double>(blockThreadExtent[i])));
             }
 
-            dim3 const dimBlock(blockThreadExtents[0], blockThreadExtents[1]);
-            dim3 const dimGrid(gridBlockExtents[0], gridBlockExtents[1]);
+            dim3 const dimBlock(blockThreadExtent[0], blockThreadExtent[1]);
+            dim3 const dimGrid(gridBlockExtent[0], gridBlockExtent[1]);
 
             MATMUL_TIME_START;
 
             matmul_gemm_par_cuda_dyn_block_size_1d_extern_shared_kernel<<<
                 dimGrid,
                 dimBlock,
-                2u*sizeof(TElem)*blockThreadExtents[0] * blockThreadExtents[1],
+                2u*sizeof(TElem)*blockThreadExtent[0] * blockThreadExtent[1],
                 stream>>>(
                     m, n, k,
                     alpha,

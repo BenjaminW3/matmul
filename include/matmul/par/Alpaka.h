@@ -52,6 +52,50 @@
             TElem const * const MATMUL_RESTRICT B, TSize const ldb,
             TElem const beta,
             TElem * const MATMUL_RESTRICT C, TSize const ldc);
+        //-----------------------------------------------------------------------------
+        //! (S/D)GEMM matrix-matrix product C = alpha * A * B + beta * C using alpaka`s serial accelerator back-end.
+        //!
+        //! \param m Specifies the number of rows of the matrix A and of the matrix C.
+        //! \param n Specifies the number of columns of the matrix B and the number of columns of the matrix C.
+        //! \param k Specifies the number of columns of the matrix A and the number of rows of the matrix B.
+        //! \param alpha Scalar value used to scale the product of matrices A and B.
+        //! \param A Array, size lda-by-k. The leading m-by-k part of the array must contain the matrix A.
+        //! \param lda Specifies the leading dimension of A.
+        //! \param B Array, size ldb-by-n. The leading k-by-n part of the array must contain the matrix B.
+        //! \param ldb Specifies the leading dimension of B.
+        //! \param beta Scalar value used to scale matrix C.
+        //! \param C Array, size ldc-by-n. The leading m-by-n part of the array must contain the matrix C.
+        //! \param ldc Specifies the leading dimension of C.
+        //-----------------------------------------------------------------------------
+        TReturn matmul_gemm_seq_alpaka_cpu_b_seq_t_seq_no_shared(
+            TSize const m, TSize const n, TSize const k,
+            TElem const alpha,
+            TElem const * const MATMUL_RESTRICT A, TSize const lda,
+            TElem const * const MATMUL_RESTRICT B, TSize const ldb,
+            TElem const beta,
+            TElem * const MATMUL_RESTRICT C, TSize const ldc);
+        //-----------------------------------------------------------------------------
+        //! (S/D)GEMM matrix-matrix product C = alpha * A * B + beta * C using alpaka`s serial accelerator back-end.
+        //!
+        //! \param m Specifies the number of rows of the matrix A and of the matrix C.
+        //! \param n Specifies the number of columns of the matrix B and the number of columns of the matrix C.
+        //! \param k Specifies the number of columns of the matrix A and the number of rows of the matrix B.
+        //! \param alpha Scalar value used to scale the product of matrices A and B.
+        //! \param A Array, size lda-by-k. The leading m-by-k part of the array must contain the matrix A.
+        //! \param lda Specifies the leading dimension of A.
+        //! \param B Array, size ldb-by-n. The leading k-by-n part of the array must contain the matrix B.
+        //! \param ldb Specifies the leading dimension of B.
+        //! \param beta Scalar value used to scale matrix C.
+        //! \param C Array, size ldc-by-n. The leading m-by-n part of the array must contain the matrix C.
+        //! \param ldc Specifies the leading dimension of C.
+        //-----------------------------------------------------------------------------
+        TReturn matmul_gemm_seq_alpaka_cpu_b_seq_t_seq_no_shared_transposed_b(
+            TSize const m, TSize const n, TSize const k,
+            TElem const alpha,
+            TElem const * const MATMUL_RESTRICT A, TSize const lda,
+            TElem const * const MATMUL_RESTRICT B, TSize const ldb,
+            TElem const beta,
+            TElem * const MATMUL_RESTRICT C, TSize const ldc);
     #endif
     #ifdef MATMUL_BUILD_PAR_ALPAKA_ACC_CPU_B_OMP2_T_SEQ
         //-----------------------------------------------------------------------------
@@ -70,6 +114,50 @@
         //! \param ldc Specifies the leading dimension of C.
         //-----------------------------------------------------------------------------
         TReturn matmul_gemm_par_alpaka_cpu_b_omp2_t_seq(
+            TSize const m, TSize const n, TSize const k,
+            TElem const alpha,
+            TElem const * const MATMUL_RESTRICT A, TSize const lda,
+            TElem const * const MATMUL_RESTRICT B, TSize const ldb,
+            TElem const beta,
+            TElem * const MATMUL_RESTRICT C, TSize const ldc);
+        //-----------------------------------------------------------------------------
+        //! (S/D)GEMM matrix-matrix product C = alpha * A * B + beta * C using alpaka`s OpenMP 2.0 block accelerator back-end.
+        //!
+        //! \param m Specifies the number of rows of the matrix A and of the matrix C.
+        //! \param n Specifies the number of columns of the matrix B and the number of columns of the matrix C.
+        //! \param k Specifies the number of columns of the matrix A and the number of rows of the matrix B.
+        //! \param alpha Scalar value used to scale the product of matrices A and B.
+        //! \param A Array, size lda-by-k. The leading m-by-k part of the array must contain the matrix A.
+        //! \param lda Specifies the leading dimension of A.
+        //! \param B Array, size ldb-by-n. The leading k-by-n part of the array must contain the matrix B.
+        //! \param ldb Specifies the leading dimension of B.
+        //! \param beta Scalar value used to scale matrix C.
+        //! \param C Array, size ldc-by-n. The leading m-by-n part of the array must contain the matrix C.
+        //! \param ldc Specifies the leading dimension of C.
+        //-----------------------------------------------------------------------------
+        TReturn matmul_gemm_par_alpaka_cpu_b_omp2_t_seq_no_shared(
+            TSize const m, TSize const n, TSize const k,
+            TElem const alpha,
+            TElem const * const MATMUL_RESTRICT A, TSize const lda,
+            TElem const * const MATMUL_RESTRICT B, TSize const ldb,
+            TElem const beta,
+            TElem * const MATMUL_RESTRICT C, TSize const ldc);
+        //-----------------------------------------------------------------------------
+        //! (S/D)GEMM matrix-matrix product C = alpha * A * B + beta * C using alpaka`s OpenMP 2.0 block accelerator back-end.
+        //!
+        //! \param m Specifies the number of rows of the matrix A and of the matrix C.
+        //! \param n Specifies the number of columns of the matrix B and the number of columns of the matrix C.
+        //! \param k Specifies the number of columns of the matrix A and the number of rows of the matrix B.
+        //! \param alpha Scalar value used to scale the product of matrices A and B.
+        //! \param A Array, size lda-by-k. The leading m-by-k part of the array must contain the matrix A.
+        //! \param lda Specifies the leading dimension of A.
+        //! \param B Array, size ldb-by-n. The leading k-by-n part of the array must contain the matrix B.
+        //! \param ldb Specifies the leading dimension of B.
+        //! \param beta Scalar value used to scale matrix C.
+        //! \param C Array, size ldc-by-n. The leading m-by-n part of the array must contain the matrix C.
+        //! \param ldc Specifies the leading dimension of C.
+        //-----------------------------------------------------------------------------
+        TReturn matmul_gemm_par_alpaka_cpu_b_omp2_t_seq_no_shared_transposed_b(
             TSize const m, TSize const n, TSize const k,
             TElem const alpha,
             TElem const * const MATMUL_RESTRICT A, TSize const lda,
@@ -190,6 +278,28 @@
         //! \param ldc Specifies the leading dimension of C.
         //-----------------------------------------------------------------------------
         TReturn matmul_gemm_par_alpaka_gpu_cuda(
+            TSize const m, TSize const n, TSize const k,
+            TElem const alpha,
+            TElem const * const MATMUL_RESTRICT A, TSize const lda,
+            TElem const * const MATMUL_RESTRICT B, TSize const ldb,
+            TElem const beta,
+            TElem * const MATMUL_RESTRICT C, TSize const ldc);
+        //-----------------------------------------------------------------------------
+        //! (S/D)GEMM matrix-matrix product C = alpha * A * B + beta * C using alpaka`s CUDA accelerator back-end.
+        //!
+        //! \param m Specifies the number of rows of the matrix A and of the matrix C.
+        //! \param n Specifies the number of columns of the matrix B and the number of columns of the matrix C.
+        //! \param k Specifies the number of columns of the matrix A and the number of rows of the matrix B.
+        //! \param alpha Scalar value used to scale the product of matrices A and B.
+        //! \param A Array, size lda-by-k. The leading m-by-k part of the array must contain the matrix A.
+        //! \param lda Specifies the leading dimension of A.
+        //! \param B Array, size ldb-by-n. The leading k-by-n part of the array must contain the matrix B.
+        //! \param ldb Specifies the leading dimension of B.
+        //! \param beta Scalar value used to scale matrix C.
+        //! \param C Array, size ldc-by-n. The leading m-by-n part of the array must contain the matrix C.
+        //! \param ldc Specifies the leading dimension of C.
+        //-----------------------------------------------------------------------------
+        TReturn matmul_gemm_par_alpaka_gpu_cuda_no_shared(
             TSize const m, TSize const n, TSize const k,
             TElem const alpha,
             TElem const * const MATMUL_RESTRICT A, TSize const lda,

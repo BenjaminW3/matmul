@@ -629,6 +629,8 @@ int main(
     #endif
     #ifdef MATMUL_BENCHMARK_PAR_ALPAKA_ACC_CPU_B_OMP2_T_SEQ
         {matmul_gemm_par_alpaka_cpu_b_omp2_t_seq, "gemm_par_alpaka_cpu_b_omp2_t_seq", 3.0},
+        {matmul_gemm_par_alpaka_cpu_b_omp2_t_seq_no_shared, "gemm_par_alpaka_cpu_b_omp2_t_seq_no_shared", 3.0},
+        {matmul_gemm_par_alpaka_cpu_b_omp2_t_seq_no_shared_transposed_b, "gemm_par_alpaka_cpu_b_omp2_t_seq_no_shared_transposed_b", 3.0},
     #endif
     #ifdef MATMUL_BENCHMARK_PAR_ALPAKA_ACC_CPU_B_SEQ_T_OMP2
         {matmul_gemm_par_alpaka_cpu_b_seq_t_omp2, "gemm_par_alpaka_cpu_b_seq_t_omp2", 3.0},
@@ -644,6 +646,8 @@ int main(
     #endif
     #ifdef MATMUL_BENCHMARK_PAR_ALPAKA_ACC_CPU_B_SEQ_T_SEQ
         {matmul_gemm_seq_alpaka_cpu_b_seq_t_seq, "gemm_seq_alpaka_cpu_b_seq_t_seq", 3.0},
+        {matmul_gemm_seq_alpaka_cpu_b_seq_t_seq_no_shared, "gemm_seq_alpaka_cpu_b_seq_t_seq_no_shared", 3.0},
+        {matmul_gemm_seq_alpaka_cpu_b_seq_t_seq_no_shared_transposed_b, "gemm_seq_alpaka_cpu_b_seq_t_seq_no_shared_transposed_b", 3.0},
     #endif
     #ifdef MATMUL_BENCHMARK_PAR_ALPAKA_ACC_GPU_CUDA_MEMCPY
         {matmul_gemm_par_alpaka_gpu_cuda_memcpy, "gemm_par_alpaka_gpu_cuda_memcpy", 3.0},
@@ -668,6 +672,7 @@ int main(
 
     #ifdef MATMUL_BENCHMARK_PAR_ALPAKA_ACC_GPU_CUDA
         {matmul_gemm_par_alpaka_gpu_cuda, "gemm_par_alpaka_gpu_cuda", 3.0},
+        {matmul_gemm_par_alpaka_gpu_cuda_no_shared, "matmul_gemm_par_alpaka_gpu_cuda_no_shared", 3.0},
     #endif
     #ifdef MATMUL_BENCHMARK_PAR_CUDA_FIXED_BLOCK_SIZE
         {matmul_gemm_par_cuda_fixed_block_size_2d_static_shared, "gemm_par_cuda_fixed_block_size_2d_static_shared", 3.0},

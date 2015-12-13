@@ -43,7 +43,57 @@
             }
 
             return
+                matmul_gemm_par_alpaka<alpaka::acc::AccCpuSerial<alpaka::dim::DimInt<2u>, TSize>, GemmAlpakaSharedKernel>(
+                    m, n, k,
+                    alpha,
+                    A, lda,
+                    B, ldb,
+                    beta,
+                    C, ldc);
+        }
+        //-----------------------------------------------------------------------------
+        //
+        //-----------------------------------------------------------------------------
+        TReturn matmul_gemm_seq_alpaka_cpu_b_seq_t_seq_no_shared(
+            TSize const m, TSize const n, TSize const k,
+            TElem const alpha,
+            TElem const * const MATMUL_RESTRICT A, TSize const lda,
+            TElem const * const MATMUL_RESTRICT B, TSize const ldb,
+            TElem const beta,
+            TElem * const MATMUL_RESTRICT C, TSize const ldc)
+        {
+            if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
+            {
+                MATMUL_TIME_RETURN_EARLY_OUT;
+            }
+
+            return
                 matmul_gemm_par_alpaka<alpaka::acc::AccCpuSerial<alpaka::dim::DimInt<2u>, TSize>, GemmAlpakaNoShared2Kernel>(
+                    m, n, k,
+                    alpha,
+                    A, lda,
+                    B, ldb,
+                    beta,
+                    C, ldc);
+        }
+        //-----------------------------------------------------------------------------
+        //
+        //-----------------------------------------------------------------------------
+        TReturn matmul_gemm_seq_alpaka_cpu_b_seq_t_seq_no_shared_transposed_b(
+            TSize const m, TSize const n, TSize const k,
+            TElem const alpha,
+            TElem const * const MATMUL_RESTRICT A, TSize const lda,
+            TElem const * const MATMUL_RESTRICT B, TSize const ldb,
+            TElem const beta,
+            TElem * const MATMUL_RESTRICT C, TSize const ldc)
+        {
+            if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
+            {
+                MATMUL_TIME_RETURN_EARLY_OUT;
+            }
+
+            return
+                matmul_gemm_par_alpaka_transpose_b<alpaka::acc::AccCpuSerial<alpaka::dim::DimInt<2u>, TSize>, GemmAlpakaNoSharedTransposedBKernel>(
                     m, n, k,
                     alpha,
                     A, lda,
@@ -70,7 +120,57 @@
             }
 
             return
+                matmul_gemm_par_alpaka<alpaka::acc::AccCpuOmp2Blocks<alpaka::dim::DimInt<2u>, TSize>, GemmAlpakaSharedKernel>(
+                    m, n, k,
+                    alpha,
+                    A, lda,
+                    B, ldb,
+                    beta,
+                    C, ldc);
+        }
+        //-----------------------------------------------------------------------------
+        //
+        //-----------------------------------------------------------------------------
+        TReturn matmul_gemm_par_alpaka_cpu_b_omp2_t_seq_no_shared(
+            TSize const m, TSize const n, TSize const k,
+            TElem const alpha,
+            TElem const * const MATMUL_RESTRICT A, TSize const lda,
+            TElem const * const MATMUL_RESTRICT B, TSize const ldb,
+            TElem const beta,
+            TElem * const MATMUL_RESTRICT C, TSize const ldc)
+        {
+            if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
+            {
+                MATMUL_TIME_RETURN_EARLY_OUT;
+            }
+
+            return
                 matmul_gemm_par_alpaka<alpaka::acc::AccCpuOmp2Blocks<alpaka::dim::DimInt<2u>, TSize>, GemmAlpakaNoShared2Kernel>(
+                    m, n, k,
+                    alpha,
+                    A, lda,
+                    B, ldb,
+                    beta,
+                    C, ldc);
+        }
+        //-----------------------------------------------------------------------------
+        //
+        //-----------------------------------------------------------------------------
+        TReturn matmul_gemm_par_alpaka_cpu_b_omp2_t_seq_no_shared_transposed_b(
+            TSize const m, TSize const n, TSize const k,
+            TElem const alpha,
+            TElem const * const MATMUL_RESTRICT A, TSize const lda,
+            TElem const * const MATMUL_RESTRICT B, TSize const ldb,
+            TElem const beta,
+            TElem * const MATMUL_RESTRICT C, TSize const ldc)
+        {
+            if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
+            {
+                MATMUL_TIME_RETURN_EARLY_OUT;
+            }
+
+            return
+                matmul_gemm_par_alpaka_transpose_b<alpaka::acc::AccCpuOmp2Blocks<alpaka::dim::DimInt<2u>, TSize>, GemmAlpakaNoSharedTransposedBKernel>(
                     m, n, k,
                     alpha,
                     A, lda,
@@ -97,7 +197,7 @@
             }
 
             return
-                matmul_gemm_par_alpaka<alpaka::acc::AccCpuOmp2Threads<alpaka::dim::DimInt<2u>, TSize>, GemmAlpakaNoShared2Kernel>(
+                matmul_gemm_par_alpaka<alpaka::acc::AccCpuOmp2Threads<alpaka::dim::DimInt<2u>, TSize>, GemmAlpakaSharedKernel>(
                     m, n, k,
                     alpha,
                     A, lda,
@@ -124,7 +224,7 @@
             }
 
             return
-                matmul_gemm_par_alpaka<alpaka::acc::AccCpuOmp4<alpaka::dim::DimInt<2u>, TSize>, GemmAlpakaNoShared2Kernel>(
+                matmul_gemm_par_alpaka<alpaka::acc::AccCpuOmp4<alpaka::dim::DimInt<2u>, TSize>, GemmAlpakaSharedKernel>(
                     m, n, k,
                     alpha,
                     A, lda,
@@ -151,7 +251,7 @@
             }
 
             return
-                matmul_gemm_par_alpaka<alpaka::acc::AccCpuThreads<alpaka::dim::DimInt<2u>, TSize>, GemmAlpakaNoShared2Kernel>(
+                matmul_gemm_par_alpaka<alpaka::acc::AccCpuThreads<alpaka::dim::DimInt<2u>, TSize>, GemmAlpakaSharedKernel>(
                     m, n, k,
                     alpha,
                     A, lda,
@@ -178,7 +278,7 @@
             }
 
             return
-                matmul_gemm_par_alpaka<alpaka::acc::AccCpuFibers<alpaka::dim::DimInt<2u>, TSize>, GemmAlpakaNoShared2Kernel>(
+                matmul_gemm_par_alpaka<alpaka::acc::AccCpuFibers<alpaka::dim::DimInt<2u>, TSize>, GemmAlpakaSharedKernel>(
                     m, n, k,
                     alpha,
                     A, lda,

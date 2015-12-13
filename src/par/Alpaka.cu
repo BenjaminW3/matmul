@@ -48,6 +48,26 @@
     //-----------------------------------------------------------------------------
     //
     //-----------------------------------------------------------------------------
+    TReturn matmul_gemm_par_alpaka_gpu_cuda_no_shared(
+        TSize const m, TSize const n, TSize const k,
+        TElem const alpha,
+        TElem const * const MATMUL_RESTRICT A, TSize const lda,
+        TElem const * const MATMUL_RESTRICT B, TSize const ldb,
+        TElem const beta,
+        TElem * const MATMUL_RESTRICT C, TSize const ldc)
+    {
+        return
+            matmul_gemm_par_alpaka<alpaka::acc::AccGpuCudaRt<alpaka::dim::DimInt<2u>, TSize>, GemmAlpakaNoShared2Kernel>(
+                m, n, k,
+                alpha,
+                A, lda,
+                B, ldb,
+                beta,
+                C, ldc);
+    }
+    //-----------------------------------------------------------------------------
+    //
+    //-----------------------------------------------------------------------------
     TReturn matmul_gemm_par_alpaka_gpu_cuda_memcpy(
         TSize const m, TSize const n, TSize const k,
         TElem const alpha,
