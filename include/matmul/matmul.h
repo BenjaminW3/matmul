@@ -26,6 +26,7 @@
 #include <matmul/seq/MultipleOpts.h>
 #include <matmul/seq/Strassen.h>
 #include <matmul/par/Alpaka.h>
+#include <matmul/par/AlpakaOmpNative.h>
 #include <matmul/par/BlasCublas.h>
 #include <matmul/par/BlasMkl.h>
 #include <matmul/par/Cuda.h>

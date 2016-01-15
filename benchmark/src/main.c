@@ -1,6 +1,6 @@
 //-----------------------------------------------------------------------------
 //! \file
-//! Copyright 2013-2015 Benjamin Worpitz
+//! Copyright 2013-2015 Benjamin Worpitz, Rene Widera
 //!
 //! This file is part of matmul.
 //!
@@ -628,25 +628,60 @@ int main(
         {matmul_gemm_par_openacc_parallel, "gemm_par_openacc_parallel", 3.0},
     #endif
     #ifdef MATMUL_BENCHMARK_PAR_ALPAKA_ACC_CPU_B_OMP2_T_SEQ
-        {matmul_gemm_par_alpaka_cpu_b_omp2_t_seq, "gemm_par_alpaka_cpu_b_omp2_t_seq", 3.0},
+        #ifdef MATMUL_BENCHMARK_ALPAKA_CUDASDK_KERNEL
+            {matmul_gemm_par_alpaka_cpu_b_omp2_t_seq, "gemm_par_alpaka_cpu_b_omp2_t_seq", 3.0},
+        #endif
+        #ifdef MATMUL_BENCHMARK_ALPAKA_OMPNATIVE_KERNEL
+            {matmul_gemm_par_alpaka_cpu_b_omp2_t_seq_ompNative, "gemm_par_alpaka_cpu_b_omp2_t_seq_ompNative", 3.0},
+        #endif
     #endif
     #ifdef MATMUL_BENCHMARK_PAR_ALPAKA_ACC_CPU_B_SEQ_T_OMP2
-        {matmul_gemm_par_alpaka_cpu_b_seq_t_omp2, "gemm_par_alpaka_cpu_b_seq_t_omp2", 3.0},
+        #ifdef MATMUL_BENCHMARK_ALPAKA_CUDASDK_KERNEL
+            {matmul_gemm_par_alpaka_cpu_b_seq_t_omp2, "gemm_par_alpaka_cpu_b_seq_t_omp2", 3.0},
+        #endif
+        #ifdef MATMUL_BENCHMARK_ALPAKA_OMPNATIVE_KERNEL
+            {matmul_gemm_par_alpaka_cpu_b_seq_t_omp2_ompNative, "gemm_par_alpaka_cpu_b_seq_t_omp2_ompNative", 3.0},
+        #endif
     #endif
     #ifdef MATMUL_BENCHMARK_PAR_ALPAKA_ACC_CPU_BT_OMP4
-        {matmul_gemm_par_alpaka_cpu_bt_omp4, "gemm_par_alpaka_cpu_bt_omp4", 3.0},
+        #ifdef MATMUL_BENCHMARK_ALPAKA_CUDASDK_KERNEL
+            {matmul_gemm_par_alpaka_cpu_bt_omp4, "gemm_par_alpaka_cpu_bt_omp4", 3.0},
+        #endif
+        #ifdef MATMUL_BENCHMARK_ALPAKA_OMPNATIVE_KERNEL
+            {matmul_gemm_par_alpaka_cpu_bt_omp4_ompNative, "gemm_par_alpaka_cpu_bt_omp4_ompNative", 3.0},
+        #endif
     #endif
     #ifdef MATMUL_BENCHMARK_PAR_ALPAKA_ACC_CPU_B_SEQ_T_THREADS
-        {matmul_gemm_par_alpaka_cpu_b_seq_t_threads, "gemm_par_alpaka_cpu_b_seq_t_threads", 3.0},
+        #ifdef MATMUL_BENCHMARK_ALPAKA_CUDASDK_KERNEL
+            {matmul_gemm_par_alpaka_cpu_b_seq_t_threads, "gemm_par_alpaka_cpu_b_seq_t_threads", 3.0},
+        #endif
+        #ifdef MATMUL_BENCHMARK_ALPAKA_OMPNATIVE_KERNEL
+            {matmul_gemm_par_alpaka_cpu_b_seq_t_threads_ompNative, "gemm_par_alpaka_cpu_b_seq_t_threads_ompNative", 3.0},
+        #endif
     #endif
     #ifdef MATMUL_BENCHMARK_PAR_ALPAKA_ACC_CPU_B_SEQ_T_FIBERS
-        {matmul_gemm_seq_alpaka_cpu_b_seq_t_fibers, "gemm_seq_alpaka_cpu_b_seq_t_fibers", 3.0},
+        #ifdef MATMUL_BENCHMARK_ALPAKA_CUDASDK_KERNEL
+            {matmul_gemm_seq_alpaka_cpu_b_seq_t_fibers, "gemm_seq_alpaka_cpu_b_seq_t_fibers", 3.0},
+        #endif
+        #ifdef MATMUL_BENCHMARK_ALPAKA_OMPNATIVE_KERNEL
+            {matmul_gemm_seq_alpaka_cpu_b_seq_t_fibers_ompNative, "gemm_seq_alpaka_cpu_b_seq_t_fibers_ompNative", 3.0},
+        #endif
     #endif
     #ifdef MATMUL_BENCHMARK_PAR_ALPAKA_ACC_CPU_B_SEQ_T_SEQ
-        {matmul_gemm_seq_alpaka_cpu_b_seq_t_seq, "gemm_seq_alpaka_cpu_b_seq_t_seq", 3.0},
+        #ifdef MATMUL_BENCHMARK_ALPAKA_CUDASDK_KERNEL
+            {matmul_gemm_seq_alpaka_cpu_b_seq_t_seq, "gemm_seq_alpaka_cpu_b_seq_t_seq", 3.0},
+        #endif
+        #ifdef MATMUL_BENCHMARK_ALPAKA_OMPNATIVE_KERNEL
+            {matmul_gemm_seq_alpaka_cpu_b_seq_t_seq_ompNative, "gemm_seq_alpaka_cpu_b_seq_t_seq_ompNative", 3.0},
+        #endif
     #endif
     #ifdef MATMUL_BENCHMARK_PAR_ALPAKA_ACC_GPU_CUDA_MEMCPY
-        {matmul_gemm_par_alpaka_gpu_cuda_memcpy, "gemm_par_alpaka_gpu_cuda_memcpy", 3.0},
+        #ifdef MATMUL_BENCHMARK_ALPAKA_CUDASDK_KERNEL
+            {matmul_gemm_par_alpaka_gpu_cuda_memcpy, "gemm_par_alpaka_gpu_cuda_memcpy", 3.0},
+        #endif
+        #ifdef MATMUL_BENCHMARK_ALPAKA_OMPNATIVE_KERNEL
+            {matmul_gemm_par_alpaka_gpu_cuda_memcpy_ompNative, "gemm_par_alpaka_gpu_cuda_memcpy_ompNative", 3.0},
+        #endif
     #endif
     #ifdef MATMUL_BENCHMARK_PAR_CUDA_MEMCPY_FIXED_BLOCK_SIZE
         {matmul_gemm_par_cuda_memcpy_fixed_block_size_2d_static_shared, "gemm_par_cuda_memcpy_fixed_block_size_2d_static_shared", 3.0},
@@ -667,7 +702,12 @@ int main(
     #endif
 
     #ifdef MATMUL_BENCHMARK_PAR_ALPAKA_ACC_GPU_CUDA
-        {matmul_gemm_par_alpaka_gpu_cuda, "gemm_par_alpaka_gpu_cuda", 3.0},
+        #ifdef MATMUL_BENCHMARK_ALPAKA_CUDASDK_KERNEL
+            {matmul_gemm_par_alpaka_gpu_cuda, "gemm_par_alpaka_gpu_cuda", 3.0},
+        #endif
+        #ifdef MATMUL_BENCHMARK_ALPAKA_OMPNATIVE_KERNEL
+            {matmul_gemm_par_alpaka_gpu_cuda_ompNative, "gemm_par_alpaka_gpu_cuda_ompNative", 3.0},
+        #endif
     #endif
     #ifdef MATMUL_BENCHMARK_PAR_CUDA_FIXED_BLOCK_SIZE
         {matmul_gemm_par_cuda_fixed_block_size_2d_static_shared, "gemm_par_cuda_fixed_block_size_2d_static_shared", 3.0},
