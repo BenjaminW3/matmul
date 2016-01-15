@@ -387,7 +387,7 @@
         TElem * const MATMUL_RESTRICT C, TSize const ldc)
     {
         using Dim2 = alpaka::dim::DimInt<2u>;
-        
+
         if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
         {
             MATMUL_TIME_RETURN_EARLY_OUT;
@@ -466,7 +466,7 @@
         TElem * const MATMUL_RESTRICT C, TSize const ldc)
     {
         using Dim2 = alpaka::dim::DimInt<2u>;
-        
+
         if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
         {
             MATMUL_TIME_RETURN_EARLY_OUT;
@@ -506,14 +506,14 @@
             TElem const,
             alpaka::dim::DimInt<2u>,
             TSize>;
-        BufWrapperIn bufAHost(A, devHost, v2uiExtentsA, lda);
-        BufWrapperIn bufBHost(B, devHost, v2uiExtentsB, ldb);
+        BufWrapperIn bufAHost(A, devHost, v2uiExtentsA, lda * sizeof(TElem));
+        BufWrapperIn bufBHost(B, devHost, v2uiExtentsB, ldb * sizeof(TElem));
         using BufWrapperOut = alpaka::mem::buf::ViewPlainPtr<
             std::decay<decltype(devHost)>::type,
             TElem,
             alpaka::dim::DimInt<2u>,
             TSize>;
-        BufWrapperOut bufCHost(C, devHost, v2uiExtentsC, ldc);
+        BufWrapperOut bufCHost(C, devHost, v2uiExtentsC, ldc * sizeof(TElem));
 
         // Allocate the buffers on the accelerator and copy Host -> Acc.
         // TODO: Test if interleaved is better then alloc first, copy later.
@@ -524,6 +524,10 @@
         alpaka::mem::view::copy(stream, bufBAcc, bufBHost, v2uiExtentsB);
         auto bufCAcc(alpaka::mem::buf::alloc<TElem, TSize>(devAcc, v2uiExtentsC));
         alpaka::mem::view::copy(stream, bufCAcc, bufCHost, v2uiExtentsC);
+
+#ifdef MATMUL_RETURN_COMPUTATION_TIME
+        alpaka::wait::wait(stream);
+#endif
 
         // Let alpaka calculate good block and grid sizes given our full problem extents.
         alpaka::workdiv::WorkDivMembers<Dim2, TSize> const workDiv(
@@ -547,13 +551,13 @@
             n,
             k,
             alpha,
-            reinterpret_cast<TElem const *>(A),
-            lda,
-            reinterpret_cast<TElem const *>(B),
-            ldb,
+            reinterpret_cast<TElem const *>(alpaka::mem::view::getPtrNative(bufAAcc)),
+            alpaka::mem::view::getPitchBytes<1>(bufAAcc)/sizeof(TElem),
+            reinterpret_cast<TElem const *>(alpaka::mem::view::getPtrNative(bufBAcc)),
+            alpaka::mem::view::getPitchBytes<1>(bufBAcc)/sizeof(TElem),
             beta,
-            reinterpret_cast<TElem *>(C),
-            ldc));
+            reinterpret_cast<TElem *>(alpaka::mem::view::getPtrNative(bufCAcc)),
+            alpaka::mem::view::getPitchBytes<1>(bufCAcc)/sizeof(TElem)));
 
         MATMUL_TIME_START;
 
