@@ -501,14 +501,14 @@
 
 
         // Wrap the Pointers into memory buffer objects.
-        using BufWrapperIn = alpaka::mem::buf::ViewPlainPtr<
+        using BufWrapperIn = alpaka::mem::view::ViewPlainPtr<
             std::decay<decltype(devHost)>::type,
             TElem const,
             alpaka::dim::DimInt<2u>,
             TSize>;
         BufWrapperIn bufAHost(A, devHost, v2uiExtentsA, lda * sizeof(TElem));
         BufWrapperIn bufBHost(B, devHost, v2uiExtentsB, ldb * sizeof(TElem));
-        using BufWrapperOut = alpaka::mem::buf::ViewPlainPtr<
+        using BufWrapperOut = alpaka::mem::view::ViewPlainPtr<
             std::decay<decltype(devHost)>::type,
             TElem,
             alpaka::dim::DimInt<2u>,
