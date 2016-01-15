@@ -387,7 +387,7 @@
         TElem * const MATMUL_RESTRICT C, TSize const ldc)
     {
         using Dim2 = alpaka::dim::DimInt<2u>;
-        
+
         if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
         {
             MATMUL_TIME_RETURN_EARLY_OUT;
@@ -466,7 +466,7 @@
         TElem * const MATMUL_RESTRICT C, TSize const ldc)
     {
         using Dim2 = alpaka::dim::DimInt<2u>;
-        
+
         if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
         {
             MATMUL_TIME_RETURN_EARLY_OUT;
@@ -501,14 +501,14 @@
 
 
         // Wrap the Pointers into memory buffer objects.
-        using BufWrapperIn = alpaka::mem::buf::ViewPlainPtr<
+        using BufWrapperIn = alpaka::mem::view::ViewPlainPtr<
             std::decay<decltype(devHost)>::type,
             TElem const,
             alpaka::dim::DimInt<2u>,
             TSize>;
         BufWrapperIn bufAHost(A, devHost, v2uiExtentsA, lda);
         BufWrapperIn bufBHost(B, devHost, v2uiExtentsB, ldb);
-        using BufWrapperOut = alpaka::mem::buf::ViewPlainPtr<
+        using BufWrapperOut = alpaka::mem::view::ViewPlainPtr<
             std::decay<decltype(devHost)>::type,
             TElem,
             alpaka::dim::DimInt<2u>,
