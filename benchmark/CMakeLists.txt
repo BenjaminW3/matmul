@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2015 Benjamin Worpitz
+# Copyright 2014-2015 Benjamin Worpitz, Rene Widera
 #
 # This file is part of matmul.
 #
@@ -83,6 +83,15 @@ UNSET(_MATMUL_BENCHMARK_LINK_FLAGS)
 #-------------------------------------------------------------------------------
 # Options.
 #-------------------------------------------------------------------------------
+
+SET(MATMUL_BENCHMARK_ALPAKA_CUDASDK_KERNEL ON CACHE BOOL "Use the CUDA SDK kernel if alapka is used")
+IF(MATMUL_BENCHMARK_ALPAKA_CUDASDK_KERNEL)
+    LIST(APPEND _MATMUL_BENCHMARK_COMPILE_DEFINITIONS "MATMUL_BENCHMARK_ALPAKA_CUDASDK_KERNEL")
+ENDIF()
+SET(MATMUL_BENCHMARK_ALPAKA_OMPNATIVE_KERNEL ON CACHE BOOL "Use the OpenMP2 kernel if alapka is used")
+IF(MATMUL_BENCHMARK_ALPAKA_OMPNATIVE_KERNEL)
+    LIST(APPEND _MATMUL_BENCHMARK_COMPILE_DEFINITIONS "MATMUL_BENCHMARK_ALPAKA_OMPNATIVE_KERNEL")
+ENDIF()
 
 SET(MATMUL_BENCHMARK_SEQ_BASIC OFF CACHE BOOL "Enable the basic sequential GEMM")
 IF(MATMUL_BENCHMARK_SEQ_BASIC)
