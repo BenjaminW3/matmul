@@ -573,10 +573,10 @@ ENDIF()
 
 # GNU
 # NOTE: -fopt-info-optimized-vec would only print vectorization information
-IF(CMAKE_COMPILER_IS_GNUCXX)
-    LIST(APPEND _MATMUL_COMPILE_OPTIONS_C_PRIVATE "-ftree-vectorizer-verbose=2;-fopt-info-optimized;-fopt-info-missed-vec")
-    LIST(APPEND _MATMUL_COMPILE_OPTIONS_CXX_PRIVATE "-ftree-vectorizer-verbose=2;-fopt-info-optimized;-fopt-info-missed-vec")
-ENDIF()
+#IF(CMAKE_COMPILER_IS_GNUCXX)
+#    LIST(APPEND _MATMUL_COMPILE_OPTIONS_C_PRIVATE "-ftree-vectorizer-verbose=2;-fopt-info-optimized;-fopt-info-missed-vec")
+#    LIST(APPEND _MATMUL_COMPILE_OPTIONS_CXX_PRIVATE "-ftree-vectorizer-verbose=2;-fopt-info-optimized;-fopt-info-missed-vec")
+#ENDIF()
 
 LIST(APPEND _MATMUL_COMPILE_DEFINITIONS_PUBLIC "MATMUL_DEBUG=${MATMUL_DEBUG}")
 
