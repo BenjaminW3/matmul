@@ -67,7 +67,7 @@ double measureRandomMatMul(
 
 #ifdef MATMUL_BENCHMARK_VERIFY_RESULT
     // The threshold difference from where the value is considered to be a real error.
-    TElem const errorThreshold = (TElem)(((TElem)2) * MATMUL_EPSILON * ((TElem)m) * ((TElem)n) * ((TElem)k) * maxVal);
+    TElem const errorThreshold = (TElem)(((TElem)10) * MATMUL_EPSILON * ((TElem)m) * ((TElem)n) * ((TElem)k) * maxVal);
 #endif
 
     // Generate random alpha and beta.
