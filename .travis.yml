@@ -296,7 +296,7 @@ install:
           travis_retry wget ${MATMUL_CUDA_PKG_FILE_PATH}
           && sudo dpkg -i ${MATMUL_CUDA_PKG_FILE_NAME}
           && sudo apt-get -y update
-          && sudo apt-get -y install cuda-core-${MATMUL_CUDA_VERSION} cuda-cudart-${MATMUL_CUDA_VERSION} cuda-cudart-dev-${MATMUL_CUDA_VERSION} cuda-curand-${MATMUL_CUDA_VERSION} cuda-curand-dev-${MATMUL_CUDA_VERSION}
+          && sudo apt-get -y install cuda-core-${MATMUL_CUDA_VERSION} cuda-cudart-${MATMUL_CUDA_VERSION} cuda-cudart-dev-${MATMUL_CUDA_VERSION} cuda-curand-${MATMUL_CUDA_VERSION} cuda-curand-dev-${MATMUL_CUDA_VERSION} cuda-cublas-${MATMUL_CUDA_VERSION} cuda-cublas-dev-${MATMUL_CUDA_VERSION}
           && sudo ln -s /usr/local/cuda-${MATMUL_CUDA_VERSION} /usr/local/cuda
           && export PATH=/usr/local/cuda-${MATMUL_CUDA_VERSION}/bin:$PATH
           && export LD_LIBRARY_PATH=/usr/local/cuda-${MATMUL_CUDA_VERSION}/lib64:$LD_LIBRARY_PATH
