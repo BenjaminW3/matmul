@@ -72,7 +72,7 @@
             TSize const & blockThreadsExtent(blockThreadsExtentX);
 
             // Shared memory used to store the current blocks of A and B.
-            TElem * const pBlockSharedA(acc.template getBlockSharedExternMem<TElem>());
+            TElem * const pBlockSharedA(alpaka::block::shared::dyn::getMem<TElem>(acc));
             TElem * const pBlockSharedB(pBlockSharedA + blockThreadsExtentX*blockThreadsExtentY);
 
             TSize const sharedBlockIdx1d(blockThreadIdxY*blockThreadsExtentX + blockThreadIdxX);
@@ -143,7 +143,7 @@
                 //#############################################################################
                 template<
                     typename TAcc>
-                struct BlockSharedExternMemSizeBytes<
+                struct BlockSharedMemDynSizeBytes<
                     GemmAlpakaSharedKernel,
                     TAcc>
                 {
@@ -152,8 +152,9 @@
                     //-----------------------------------------------------------------------------
                     template<
                         typename TElem>
-                    ALPAKA_FN_HOST static auto getBlockSharedExternMemSizeBytes(
-                        alpaka::Vec<alpaka::dim::Dim<TAcc>, size::Size<TAcc>> const & vblockThreadsExtents,
+                    ALPAKA_FN_HOST static auto getBlockSharedMemDynSizeBytes(
+                        alpaka::Vec<alpaka::dim::Dim<TAcc>, size::Size<TAcc>> const & blockThreadExtent,
+                        alpaka::Vec<alpaka::dim::Dim<TAcc>, size::Size<TAcc>> const & threadElemExtent,
                         TSize const & m,
                         TSize const & n,
                         TSize const & k,
@@ -184,7 +185,7 @@
                         boost::ignore_unused(ldc);
 
                         // Reserve the buffer for the two blocks of A and B.
-                        return 2u * vblockThreadsExtents.prod() * sizeof(TElem);
+                        return 2u * blockThreadExtent.prod() * threadElemExtent.prod() * sizeof(TElem);
                     }
                 };
             }
@@ -525,10 +526,6 @@
         auto bufCAcc(alpaka::mem::buf::alloc<TElem, TSize>(devAcc, v2uiExtentsC));
         alpaka::mem::view::copy(stream, bufCAcc, bufCHost, v2uiExtentsC);
 
-#ifdef MATMUL_RETURN_COMPUTATION_TIME
-        alpaka::wait::wait(stream);
-#endif
-
         // Let alpaka calculate good block and grid sizes given our full problem extents.
         alpaka::workdiv::WorkDivMembers<Dim2, TSize> const workDiv(
             alpaka::workdiv::getValidWorkDiv<TAcc>(
@@ -559,6 +556,9 @@
             reinterpret_cast<TElem *>(alpaka::mem::view::getPtrNative(bufCAcc)),
             alpaka::mem::view::getPitchBytes<1>(bufCAcc)/sizeof(TElem)));
 
+#ifdef MATMUL_RETURN_COMPUTATION_TIME
+        alpaka::wait::wait(stream);
+#endif
         MATMUL_TIME_START;
 
         // Execute the kernel.

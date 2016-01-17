@@ -32,6 +32,9 @@
     #include <type_traits>          // std::is_same
 
 
+    //#############################################################################
+    //! An alpaka kernel implementing the default OpenMP parallelization scheme.
+    //#############################################################################
     class GemmAlpakaOmpNative
     {
     public:
@@ -283,10 +286,6 @@
         auto bufCAcc(alpaka::mem::buf::alloc<TElem, TSize>(devAcc, v2uiExtentsC));
         alpaka::mem::view::copy(stream, bufCAcc, bufCHost, v2uiExtentsC);
 
-#ifdef MATMUL_RETURN_COMPUTATION_TIME
-        alpaka::wait::wait(stream);
-#endif
-
         alpaka::Vec<Dim1, TSize> const M(m);
         // Let alpaka calculate good block and grid sizes given our full problem extents.
         alpaka::workdiv::WorkDivMembers<Dim1, TSize> const workDiv(
@@ -317,7 +316,9 @@
             reinterpret_cast<TElem *>(alpaka::mem::view::getPtrNative(bufCAcc)),
             alpaka::mem::view::getPitchBytes<1>(bufCAcc)/sizeof(TElem)));
 
+#ifdef MATMUL_RETURN_COMPUTATION_TIME
         alpaka::wait::wait(stream);
+#endif
         MATMUL_TIME_START;
 
         // Execute the kernel.

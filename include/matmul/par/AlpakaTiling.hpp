@@ -131,7 +131,9 @@
         }
     };
 
-
+    //#############################################################################
+    //! An alpaka kernel implementing an adaptive tiling scheme.
+    //#############################################################################
     class GemmAlpakaTiling
     {
     public:
@@ -176,7 +178,7 @@
             );
 
             //Shared alpakaHelperory used to store the current blocks of A and B.
-            TElem * const sharedBasePointer(acc.template getBlockSharedExternMem<TElem>());
+            TElem * const sharedBasePointer(alpaka::block::shared::dyn::getMem<TElem>(acc));
             TElem * const sharedBasePointerB(sharedBasePointer + workSize[0] * workSize[1]);
             Matrix sharedMatA(
                 sharedBasePointer,
@@ -331,7 +333,7 @@
                 //#############################################################################
                 template<
                     typename TAcc>
-                struct BlockSharedExternMemSizeBytes<
+                struct BlockSharedMemDynSizeBytes<
                     GemmAlpakaTiling,
                     TAcc>
                 {
@@ -344,8 +346,9 @@
                         typename MatB,
                         typename MatC
                     >
-                    ALPAKA_FN_HOST static auto getBlockSharedExternMemSizeBytes(
-                        alpaka::Vec<alpaka::dim::Dim<TAcc>, size::Size<TAcc>> const & vblockThreadsExtents,
+                    ALPAKA_FN_HOST static auto getBlockSharedMemDynSizeBytes(
+                        alpaka::Vec<alpaka::dim::Dim<TAcc>, size::Size<TAcc>> const & blockThreadExtent,
+                        alpaka::Vec<alpaka::dim::Dim<TAcc>, size::Size<TAcc>> const & threadElemExtent,
                         TSize const & m,
                         TSize const & n,
                         TSize const & k,
@@ -376,7 +379,7 @@
                         boost::ignore_unused(ldc);
 
                         // Reserve the buffer for the two blocks of A and B.
-                        return 2u * vblockThreadsExtents.prod() * sizeof(TElem);
+                        return 2u * blockThreadExtent.prod() * threadElemExtent.prod() * sizeof(TElem);
                     }
                 };
 
@@ -446,12 +449,8 @@
         TElem const beta,
         TElem * const MATMUL_RESTRICT C, TSize const ldc)
     {
-        using Dim1 = alpaka::dim::DimInt<1u>;
         using Dim2 = alpaka::dim::DimInt<2u>;
-        using Dim3 = alpaka::dim::DimInt<3u>;
-
         using Vec2 = alpaka::Vec<Dim2, TSize>;
-
 
         if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
         {
@@ -521,8 +520,6 @@
         );
 
         // Create the executor.
-        // NOTE: We remove the __restrict__ because alpaka calls std::ref on the arguments and std::ref errors.
-        // This is most probably undefined. MSVC compiles it without any warning.
         auto const exec(alpaka::exec::create<TAcc>(
             workDiv,
             kernel,
@@ -565,10 +562,7 @@
         TElem * const MATMUL_RESTRICT C, TSize const ldc)
     {
 
-        using Dim1 = alpaka::dim::DimInt<1u>;
         using Dim2 = alpaka::dim::DimInt<2u>;
-        using Dim3 = alpaka::dim::DimInt<3u>;
-
         using Vec2 = alpaka::Vec<Dim2, TSize>;
 
         if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
@@ -630,10 +624,6 @@
         auto bufCAcc(alpaka::mem::buf::alloc<TElem, TSize>(devAcc, v2uiExtentsC));
         alpaka::mem::view::copy(stream, bufCAcc, bufCHost, v2uiExtentsC);
 
-#ifdef MATMUL_RETURN_COMPUTATION_TIME
-        alpaka::wait::wait(stream);
-#endif
-
         // Let alpaka calculate good block and grid sizes given our full problem extents.
         alpaka::workdiv::WorkDivMembers<Dim2, TSize> const workDiv(
             alpaka::workdiv::getValidWorkDiv<TAcc>(
@@ -680,8 +670,6 @@
         TKernelFnObj kernel;
 
         // Create the executor.
-        // NOTE: We remove the __restrict__ because alpaka calls std::ref on the arguments and std::ref errors.
-        // This is most probably undefined. MSVC compiles it without any warning.
         auto const exec(alpaka::exec::create<TAcc>(
             workDiv,
             kernel,
@@ -697,7 +685,10 @@
             matC,
             ldc));
 
+
+#ifdef MATMUL_RETURN_COMPUTATION_TIME
         alpaka::wait::wait(stream);
+#endif
         MATMUL_TIME_START;
 
         // Execute the kernel.
