@@ -216,7 +216,7 @@
 #endif*/
         };
 
-#if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) && defined(__CUDACC__)
+#if defined(ALPAKA_ACC_GPU_CUDA_ENABLED)
         //#############################################################################
         //! The stream type trait specialization for the CUDA device.
         //#############################################################################

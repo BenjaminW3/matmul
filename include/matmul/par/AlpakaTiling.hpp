@@ -42,7 +42,7 @@
         using type = alpaka::dim::DimInt<1u>;
     };
 
-#ifdef MATMUL_BUILD_PAR_ALPAKA_ACC_GPU_CUDA
+#ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
     template<
         typename... T_Args
     >
@@ -56,7 +56,7 @@
     };
 #endif
 
-#ifdef MATMUL_BUILD_PAR_ALPAKA_ACC_CPU_B_SEQ_T_OMP2
+#ifdef ALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLED
     template<
         typename... T_Args
     >
@@ -70,7 +70,7 @@
     };
 #endif
 
-#ifdef  MATMUL_BUILD_PAR_ALPAKA_ACC_CPU_B_OMP2_T_SEQ
+#ifdef  ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLED
     template<
         typename... T_Args
     >
@@ -84,7 +84,7 @@
     };
 #endif
 
-#ifdef MATMUL_BUILD_PAR_ALPAKA_ACC_CPU_BT_OMP4
+#ifdef ALPAKA_ACC_CPU_BT_OMP4_ENABLED
     template<
         typename... T_Args
     >
@@ -412,7 +412,7 @@
 #endif
         };
 
-#if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) && defined(__CUDACC__)
+#if defined(ALPAKA_ACC_GPU_CUDA_ENABLED)
         //#############################################################################
         //! The stream type trait specialization for the CUDA device.
         //#############################################################################

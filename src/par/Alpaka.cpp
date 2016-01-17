@@ -21,6 +21,14 @@
 
 #if defined(MATMUL_BUILD_PAR_ALPAKA_ACC_CPU_B_SEQ_T_SEQ) || defined(MATMUL_BUILD_PAR_ALPAKA_ACC_CPU_B_OMP2_T_SEQ) || defined(MATMUL_BUILD_PAR_ALPAKA_ACC_CPU_B_SEQ_T_OMP2) || defined(MATMUL_BUILD_PAR_ALPAKA_ACC_CPU_BT_OMP4) || defined(MATMUL_BUILD_PAR_ALPAKA_ACC_CPU_B_SEQ_T_THREADS) || defined(MATMUL_BUILD_PAR_ALPAKA_ACC_CPU_B_SEQ_T_FIBERS)
 
+    #ifdef MATMUL_BUILD_PAR_ALPAKA_ACC_GPU_CUDA
+        // If we do not undefine here, we would get the error:
+        // #error If ALPAKA_ACC_GPU_CUDA_ENABLED is set, the compiler has to support CUDA!
+        // because the cpp files are compiled with the host compiler.
+        #undef MATMUL_BUILD_PAR_ALPAKA_ACC_GPU_CUDA
+        #undef ALPAKA_ACC_GPU_CUDA_ENABLED
+    #endif
+
     #include <matmul/par/Alpaka.h>
 
     #include <matmul/par/Alpaka.hpp>
