@@ -54,21 +54,18 @@
         {
             auto const gridThreadIdx(alpaka::idx::getIdx<alpaka::Grid, alpaka::Threads>(acc));
             TSize const i(gridThreadIdx[0u]);
-            /*TSize const gThreadIdX(gridThreadIdx[1u]);
-            TSize const i = gThreadIdY * alpaka::workdiv::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc)[1] + gThreadIdX;
-             * */
 
             if(i>=n) return;
 
-            for(TSize j = 0; j < n; ++j)
+            for(TSize j(0); j < n; ++j)
             {
                 C[i*ldc + j] *= beta;
             }
-            for(TSize k2 = 0; k2 < k; ++k2)
+            for(TSize k2(0); k2 < k; ++k2)
             {
                 TElem const a = alpha * A[i*lda + k2];
 
-                for(TSize j = 0; j < n; ++j)
+                for(TSize j(0); j < n; ++j)
                 {
                     C[i*ldc + j] += a * B[k2*ldb + j];
                 }
@@ -139,8 +136,8 @@
     {
         using Dim1 = alpaka::dim::DimInt<1u>;
         using Dim2 = alpaka::dim::DimInt<2u>;
-        using Dim3 = alpaka::dim::DimInt<3u>;
 
+        using Vec1 = alpaka::Vec<Dim1, TSize>;
         using Vec2 = alpaka::Vec<Dim2, TSize>;
 
 
@@ -150,18 +147,18 @@
         }
 
         // Select a device to execute on.
-        alpaka::dev::Dev<TAcc> devAcc(
+        auto devAcc(
             alpaka::dev::DevMan<TAcc>::getDevByIdx(0));
 
         // Get a stream on this device.
         Stream<alpaka::dev::Dev<TAcc>> stream(devAcc);
 
         /* parallelize over the rows of the C matrix */
-        alpaka::Vec<Dim1, TSize> const v1uiHeightC(
+        Vec1 const v1uiHeightC(
             m
         );
 
-        alpaka::Vec<Dim1, TSize> const elemExtent(
+        Vec1 const elemExtent(
             static_cast<TSize>(1)
         );
 
@@ -223,6 +220,8 @@
 
         using Dim1 = alpaka::dim::DimInt<1u>;
         using Dim2 = alpaka::dim::DimInt<2u>;
+        using Vec1 = alpaka::Vec<Dim1, TSize>;
+        using Vec2 = alpaka::Vec<Dim2, TSize>;
 
         if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
         {
@@ -233,48 +232,56 @@
         auto devHost(alpaka::dev::DevManCpu::getDevByIdx(0u));
 
         // Select a device to execute on.
-        alpaka::dev::Dev<TAcc> devAcc(
+        auto devAcc(
             alpaka::dev::DevMan<TAcc>::getDevByIdx(0));
 
         // Get a stream on this device.
         Stream<alpaka::dev::Dev<TAcc>> stream(devAcc);
 
-        alpaka::Vec<Dim2, TSize> const v2uiExtentsA(
+        Vec2 const v2uiExtentsA(
             m,
             k);
 
-        alpaka::Vec<Dim2, TSize> const v2uiExtentsB(
+        Vec2 const v2uiExtentsB(
             k,
             n);
 
         // Result matrix is MxN. We create one worker per result matrix cell.
-        alpaka::Vec<Dim2, TSize> const v2uiExtentsC(
+        Vec2 const v2uiExtentsC(
             m,
             n);
 
         /* parallelize over the rows of the C matrix */
-        alpaka::Vec<Dim1, TSize> const v1uiHeightC(
+        Vec1 const v1uiHeightC(
             m
         );
 
-        alpaka::Vec<Dim1, TSize> const elemExtent(
+        Vec1 const elemExtent(
             static_cast<TSize>(1)
         );
 
         // Wrap the Pointers into memory buffer objects.
+        using DevHost = std::decay<decltype(devHost)>::type;
         using BufWrapperIn = alpaka::mem::view::ViewPlainPtr<
-            std::decay<decltype(devHost)>::type,
+            DevHost,
             TElem const,
-            alpaka::dim::DimInt<2u>,
+            Dim2,
             TSize>;
-        BufWrapperIn bufAHost(A, devHost, v2uiExtentsA, lda * sizeof(TElem));
-        BufWrapperIn bufBHost(B, devHost, v2uiExtentsB, ldb * sizeof(TElem));
+        constexpr TSize elemSize(static_cast<TSize>(sizeof(TElem)));
+        TSize const pitchBytesXAHost = lda * elemSize;
+        Vec2 const pitchBytesAHost(k * pitchBytesXAHost, pitchBytesXAHost);
+        BufWrapperIn bufAHost(A, devHost, v2uiExtentsA, pitchBytesAHost);
+        TSize const pitchBytesXBHost = ldb * elemSize;
+        Vec2 const pitchBytesBHost(n * pitchBytesXBHost, pitchBytesXBHost);
+        BufWrapperIn bufBHost(B, devHost, v2uiExtentsB, pitchBytesBHost);
         using BufWrapperOut = alpaka::mem::view::ViewPlainPtr<
-            std::decay<decltype(devHost)>::type,
+            DevHost,
             TElem,
-            alpaka::dim::DimInt<2u>,
+            Dim2,
             TSize>;
-        BufWrapperOut bufCHost(C, devHost, v2uiExtentsC, ldc * sizeof(TElem));
+        TSize const pitchBytesXCHost = ldc * elemSize;
+        Vec2 const pitchBytesCHost(n * pitchBytesXCHost, pitchBytesXCHost);
+        BufWrapperOut bufCHost(C, devHost, v2uiExtentsC, pitchBytesCHost);
 
         // Allocate the buffers on the accelerator and copy Host -> Acc.
         // TODO: Test if interleaved is better then alloc first, copy later.
@@ -298,6 +305,7 @@
 
         // Create an instance of the kernel functor.
         TKernelFnObj kernel;
+
         // Create the executor.
         // NOTE: We remove the __restrict__ because alpaka calls std::ref on the arguments and std::ref errors.
         // This is most probably undefined. MSVC compiles it without any warning.
@@ -309,12 +317,12 @@
             k,
             alpha,
             reinterpret_cast<TElem const *>(alpaka::mem::view::getPtrNative(bufAAcc)),
-            alpaka::mem::view::getPitchBytes<1>(bufAAcc)/sizeof(TElem),
+            alpaka::mem::view::getPitchBytes<1>(bufAAcc) / elemSize,
             reinterpret_cast<TElem const *>(alpaka::mem::view::getPtrNative(bufBAcc)),
-            alpaka::mem::view::getPitchBytes<1>(bufBAcc)/sizeof(TElem),
+            alpaka::mem::view::getPitchBytes<1>(bufBAcc) / elemSize,
             beta,
             reinterpret_cast<TElem *>(alpaka::mem::view::getPtrNative(bufCAcc)),
-            alpaka::mem::view::getPitchBytes<1>(bufCAcc)/sizeof(TElem)));
+            alpaka::mem::view::getPitchBytes<1>(bufCAcc) / elemSize));
 
 #ifdef MATMUL_RETURN_COMPUTATION_TIME
         alpaka::wait::wait(stream);

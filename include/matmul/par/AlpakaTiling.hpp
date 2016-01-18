@@ -33,7 +33,6 @@
     #include <math.h>               // ceil
     #include <type_traits>          // std::is_same
 
-
     template<
         typename T_Acc
     >
@@ -98,11 +97,17 @@
     };
 #endif
 
+    //#############################################################################
+    //!
+    //#############################################################################
     template<
         typename T_Size
     >
     struct ElementMatMul
     {
+        ElementMatMul()
+        {}
+
         template<
             typename MatA,
             typename MatB,
@@ -148,10 +153,10 @@
             TAcc const & acc,
             TSize const & m, TSize const & n, TSize const & k,
             TElem const & alpha,
-            MatA const & matA, TSize const & lda,
-            MatB const & matB, TSize const & ldb,
+            MatA const & matA,
+            MatB const & matB,
             TElem const & beta,
-            MatC matC, TSize const & ldc) const
+            MatC matC) const
         -> void
         {
             using Dim2 = alpaka::dim::DimInt<2u>;
@@ -170,7 +175,7 @@
             auto const gridBlockIdx(alpaka::idx::getIdx<alpaka::Grid, alpaka::Blocks>(acc));
             auto const blockThreadIdx(alpaka::idx::getIdx<alpaka::Block, alpaka::Threads>(acc));
 
-            constexpr auto numWorkElemsPerDim = VecSize::value;
+            constexpr auto numWorkElemsPerDim = static_cast<TSize>(VecSize::value);
 
             Vec2 const workSize(
                 numThreads[ 0 ] * numWorkElemsPerDim,
@@ -196,11 +201,13 @@
             >;
 
             MVecNN matDot;
-
-            for( size_t j = 0; j < VecSize::value; ++j )
-                for( size_t i = 0; i < VecSize::value; ++i ){
+            for(TSize j(0); j < static_cast<TSize>(VecSize::value); ++j)
+            {
+                for(TSize i(0); i < static_cast<TSize>(VecSize::value); ++i)
+                {
                     matDot[ Vec2(j,i) ] = 0;
                 }
+            }
 
             // Loop over all blocks of A and B that are required to compute the C block.
             TSize const nBlocks(
@@ -265,7 +272,7 @@
 
 
                 // move over line in A workSize
-                for( TSize k3 = 0; k3 < workSize[ 0 ]; k3 +=numWorkElemsPerDim )
+                for(TSize k3(0); k3 < workSize[ 0 ]; k3 += numWorkElemsPerDim)
                 {
 
                     Vec2 const globalIdx_A(
@@ -303,9 +310,9 @@
 
             }
 
-            for( TSize i(0); i < numWorkElemsPerDim; ++i )
+            for(TSize i(0); i < numWorkElemsPerDim; ++i)
             {
-                for( TSize j(0); j < numWorkElemsPerDim; ++j )
+                for(TSize j(0); j < numWorkElemsPerDim; ++j)
                 {
                     Vec2 const offsetC(
                         offsetInA_y + currentThreadInA_y + i,
@@ -354,12 +361,9 @@
                         TSize const & k,
                         TElem const & alpha,
                         MatA const & matA,
-                        TSize const & lda,
                         MatB const & matB,
-                        TSize const & ldb,
                         TElem const & beta,
-                        MatC matC,
-                        TSize const & ldc)
+                        MatC matC)
                     -> size::Size<TAcc>
                     {
                         static_assert(
@@ -371,12 +375,9 @@
                         boost::ignore_unused(k);
                         boost::ignore_unused(alpha);
                         boost::ignore_unused(matA);
-                        boost::ignore_unused(lda);
                         boost::ignore_unused(matB);
-                        boost::ignore_unused(ldb);
                         boost::ignore_unused(beta);
                         boost::ignore_unused(matC);
-                        boost::ignore_unused(ldc);
 
                         // Reserve the buffer for the two blocks of A and B.
                         return 2u * blockThreadExtent.prod() * threadElemExtent.prod() * sizeof(TElem);
@@ -458,18 +459,18 @@
         }
 
         // Select a device to execute on.
-        alpaka::dev::Dev<TAcc> devAcc(
+        auto devAcc(
             alpaka::dev::DevMan<TAcc>::getDevByIdx(0));
 
         // Get a stream on this device.
         Stream<alpaka::dev::Dev<TAcc>> stream(devAcc);
 
         // Result matrix is MxN. We create one worker per result matrix cell.
-        alpaka::Vec<Dim2, TSize> const v2uiExtentsC(
+        Vec2 const v2uiExtentsC(
             m,
             n);
 
-        alpaka::Vec<Dim2, TSize> const elemExtent(
+        Vec2 const elemExtent(
             static_cast<TSize>(OptimalVectorSize<TAcc>::type::value),
             static_cast<TSize>(OptimalVectorSize<TAcc>::type::value)
         );
@@ -528,12 +529,9 @@
             k,
             alpha,
             matA,
-            lda,
             matB,
-            ldb,
             beta,
-            matC,
-            ldc));
+            matC));
 
         MATMUL_TIME_START;
 
@@ -571,48 +569,57 @@
         }
 
         // Get the host device.
-        auto devHost(alpaka::dev::DevManCpu::getDevByIdx(0u));
+        auto devHost(
+            alpaka::dev::DevManCpu::getDevByIdx(0u));
 
         // Select a device to execute on.
-        alpaka::dev::Dev<TAcc> devAcc(
+        auto devAcc(
             alpaka::dev::DevMan<TAcc>::getDevByIdx(0));
 
         // Get a stream on this device.
         Stream<alpaka::dev::Dev<TAcc>> stream(devAcc);
 
-        alpaka::Vec<Dim2, TSize> const v2uiExtentsA(
+        Vec2 const v2uiExtentsA(
             m,
             k);
 
-        alpaka::Vec<Dim2, TSize> const v2uiExtentsB(
+        Vec2 const v2uiExtentsB(
             k,
             n);
 
         // Result matrix is MxN. We create one worker per result matrix cell.
-        alpaka::Vec<Dim2, TSize> const v2uiExtentsC(
+        Vec2 const v2uiExtentsC(
             m,
             n);
 
-        alpaka::Vec<Dim2, TSize> const elemExtent(
+        Vec2 const elemExtent(
             static_cast<TSize>(OptimalVectorSize<TAcc>::type::value),
             static_cast<TSize>(OptimalVectorSize<TAcc>::type::value)
         );
 
 
-        // Wrap the Pointers into memoryory buffer objects.
+        // Wrap the Pointers into memory buffer objects.
+        using DevHost = std::decay<decltype(devHost)>::type;
         using BufWrapperIn = alpaka::mem::view::ViewPlainPtr<
-            std::decay<decltype(devHost)>::type,
+            DevHost,
             TElem const,
-            alpaka::dim::DimInt<2u>,
+            Dim2,
             TSize>;
-        BufWrapperIn bufAHost(A, devHost, v2uiExtentsA, lda * sizeof(TElem));
-        BufWrapperIn bufBHost(B, devHost, v2uiExtentsB, ldb * sizeof(TElem));
+        constexpr TSize elemSize(static_cast<TSize>(sizeof(TElem)));
+        TSize const pitchBytesXAHost = lda * elemSize;
+        Vec2 const pitchBytesAHost(k * pitchBytesXAHost, pitchBytesXAHost);
+        BufWrapperIn bufAHost(A, devHost, v2uiExtentsA, pitchBytesAHost);
+        TSize const pitchBytesXBHost = ldb * elemSize;
+        Vec2 const pitchBytesBHost(n * pitchBytesXBHost, pitchBytesXBHost);
+        BufWrapperIn bufBHost(B, devHost, v2uiExtentsB, pitchBytesBHost);
         using BufWrapperOut = alpaka::mem::view::ViewPlainPtr<
-            std::decay<decltype(devHost)>::type,
+            DevHost,
             TElem,
-            alpaka::dim::DimInt<2u>,
+            Dim2,
             TSize>;
-        BufWrapperOut bufCHost(C, devHost, v2uiExtentsC, ldc * sizeof(TElem));
+        TSize const pitchBytesXCHost = ldc * elemSize;
+        Vec2 const pitchBytesCHost(n * pitchBytesXCHost, pitchBytesXCHost);
+        BufWrapperOut bufCHost(C, devHost, v2uiExtentsC, pitchBytesCHost);
 
         // Allocate the buffers on the accelerator and copy Host -> Acc.
         // TODO: Test if interleaved is better then alloc first, copy later.
@@ -647,7 +654,7 @@
             alpaka::mem::view::getPtrNative(bufAAcc),
             Vec2(
                 m,
-                alpaka::mem::view::getPitchBytes<1>(bufAAcc) / sizeof(TElem)
+                alpaka::mem::view::getPitchBytes<1>(bufAAcc) / elemSize
             )
         );
 
@@ -655,14 +662,14 @@
             alpaka::mem::view::getPtrNative(bufBAcc),
             Vec2(
                 k,
-                alpaka::mem::view::getPitchBytes<1>(bufBAcc) / sizeof(TElem)
+                alpaka::mem::view::getPitchBytes<1>(bufBAcc) / elemSize
             )
         );
         Matrix matC(
             alpaka::mem::view::getPtrNative(bufCAcc),
             Vec2(
                 m,
-                alpaka::mem::view::getPitchBytes<1>(bufCAcc) / sizeof(TElem)
+                alpaka::mem::view::getPitchBytes<1>(bufCAcc) / elemSize
             )
         );
 
@@ -678,12 +685,9 @@
             k,
             alpha,
             matA,
-            lda,
             matB,
-            ldb,
             beta,
-            matC,
-            ldc));
+            matC));
 
 
 #ifdef MATMUL_RETURN_COMPUTATION_TIME

@@ -202,12 +202,12 @@ install:
     # However, clang 3.7 requires special compiler flags that are not automatically provided by CMake.
     - if [ "${CXX}" == "clang++" ]
       ;then
-          if (( (( ${MATMUL_CLANG_VER_MAJOR} < 3 )) || ( (( ${MATMUL_CLANG_VER_MAJOR} == 3 )) && (( ${MATMUL_CLANG_VER_MINOR} < 7 )) ) ))
+          if (( (( ${MATMUL_CLANG_VER_MAJOR} < 3 )) || ( (( ${MATMUL_CLANG_VER_MAJOR} == 3 )) && (( ${MATMUL_CLANG_VER_MINOR} < 8 )) ) ))
           ;then
               if [ "${MATMUL_BENCHMARK_OMP2_ENABLE}" == "ON" ]
               ;then
                   export MATMUL_BENCHMARK_OMP2_ENABLE=OFF
-                  && echo MATMUL_BENCHMARK_OMP2_ENABLE=${MATMUL_BENCHMARK_OMP2_ENABLE} and MATMUL_BENCHMARK_OMP2_ENABLE=${MATMUL_BENCHMARK_OMP2_ENABLE} because the clang version does not support it!
+                  && echo MATMUL_BENCHMARK_OMP2_ENABLE=${MATMUL_BENCHMARK_OMP2_ENABLE} because the clang version does not support it!
               ;fi
           ;fi
           && if (( (( ${MATMUL_CLANG_VER_MAJOR} < 3 )) || ( (( ${MATMUL_CLANG_VER_MAJOR} == 3 )) && (( ${MATMUL_CLANG_VER_MINOR} < 8 )) ) ))
@@ -444,7 +444,7 @@ script:
 
     #-------------------------------------------------------------------------------
     # Build and execute all tests.
-    # TODO: MATMUL_BENCHMARK_PAR_OPENACC MATMUL_BENCHMARK_PAR_BLAS_MKL MATMUL_BENCHMARK_PAR_PHI_OFF_OMP2_GUIDED MATMUL_BENCHMARK_PAR_PHI_OFF_OMP2_STATIC MATMUL_BENCHMARK_PAR_PHI_OFF_OMP3 MATMUL_BENCHMARK_PAR_PHI_OFF_OMP4 MATMUL_BENCHMARK_PAR_PHI_OFF_BLAS_MKL DBENCHMARK_PAR_PHI_OFF_OMP MATMUL_BENCHMARK_PAR_MPI_CANNON_MKL
+    # TODO: MATMUL_BENCHMARK_ALPAKA_TILING_KERNEL MATMUL_BENCHMARK_PAR_OPENACC MATMUL_BENCHMARK_PAR_BLAS_MKL MATMUL_BENCHMARK_PAR_PHI_OFF_OMP2_GUIDED MATMUL_BENCHMARK_PAR_PHI_OFF_OMP2_STATIC MATMUL_BENCHMARK_PAR_PHI_OFF_OMP3 MATMUL_BENCHMARK_PAR_PHI_OFF_OMP4 MATMUL_BENCHMARK_PAR_PHI_OFF_BLAS_MKL DBENCHMARK_PAR_PHI_OFF_OMP MATMUL_BENCHMARK_PAR_MPI_CANNON_MKL
 
     - cd benchmark/
     - mkdir build/
