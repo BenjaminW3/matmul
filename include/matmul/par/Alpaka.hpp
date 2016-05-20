@@ -1,6 +1,6 @@
 //-----------------------------------------------------------------------------
 //! \file
-//! Copyright 2013-2015 Benjamin Worpitz
+//! Copyright 2013-2016 Benjamin Worpitz, Erik Zenker
 //!
 //! This file is part of matmul.
 //!
@@ -153,6 +153,7 @@
                     template<
                         typename TElem>
                     ALPAKA_FN_HOST static auto getBlockSharedMemDynSizeBytes(
+                        GemmAlpakaSharedKernel const & blockSharedMemDyn,
                         alpaka::Vec<alpaka::dim::Dim<TAcc>, size::Size<TAcc>> const & blockThreadExtent,
                         alpaka::Vec<alpaka::dim::Dim<TAcc>, size::Size<TAcc>> const & threadElemExtent,
                         TSize const & m,
@@ -172,6 +173,7 @@
                             std::is_same<TSize, size::Size<TAcc>>::value,
                             "TSize and size::Size<TAcc> have to be identical!");
 
+                        boost::ignore_unused(blockSharedMemDyn);
                         boost::ignore_unused(m);
                         boost::ignore_unused(n);
                         boost::ignore_unused(k);
@@ -253,8 +255,12 @@
         TElem const beta,
         TElem * const MATMUL_RESTRICT C, TSize const ldc)
     {
+
         using Dim2 = alpaka::dim::DimInt<2u>;
         using Vec2 = alpaka::Vec<Dim2, TSize>;
+
+        using DevAcc = alpaka::dev::Dev<TAcc>;
+        using PltfAcc = alpaka::pltf::Pltf<DevAcc>;
 
         if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
         {
@@ -263,7 +269,7 @@
 
         // Select a device to execute on.
         auto devAcc(
-            alpaka::dev::DevMan<TAcc>::getDevByIdx(0));
+            alpaka::pltf::getDevByIdx<PltfAcc>(0));
 
         // Get a stream on this device.
         Stream<alpaka::dev::Dev<TAcc>> stream(devAcc);
@@ -335,17 +341,22 @@
         using Dim2 = alpaka::dim::DimInt<2u>;
         using Vec2 = alpaka::Vec<Dim2, TSize>;
 
+        using DevAcc = alpaka::dev::Dev<TAcc>;
+        using PltfAcc = alpaka::pltf::Pltf<DevAcc>;
+        using PltfHost = alpaka::pltf::PltfCpu;
+
         if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
         {
             MATMUL_TIME_RETURN_EARLY_OUT;
         }
 
         // Get the host device.
-        auto devHost(alpaka::dev::DevManCpu::getDevByIdx(0u));
+        auto devHost(
+            alpaka::pltf::getDevByIdx<PltfHost>(0u));
 
         // Select a device to execute on.
         auto devAcc(
-            alpaka::dev::DevMan<TAcc>::getDevByIdx(0));
+            alpaka::pltf::getDevByIdx<PltfAcc>(0));
 
         // Get a stream on this device.
         Stream<alpaka::dev::Dev<TAcc>> stream(devAcc);

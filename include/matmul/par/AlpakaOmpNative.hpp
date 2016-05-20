@@ -1,6 +1,6 @@
 //-----------------------------------------------------------------------------
 //! \file
-//! Copyright 2013-2016 Benjamin Worpitz, Rene Widera
+//! Copyright 2013-2016 Benjamin Worpitz, Rene Widera, Erik Zenker
 //!
 //! This file is part of matmul.
 //!
@@ -140,6 +140,8 @@
         using Vec1 = alpaka::Vec<Dim1, TSize>;
         using Vec2 = alpaka::Vec<Dim2, TSize>;
 
+        using DevAcc = alpaka::dev::Dev<TAcc>;
+        using PltfAcc = alpaka::pltf::Pltf<DevAcc>;
 
         if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
         {
@@ -148,7 +150,7 @@
 
         // Select a device to execute on.
         auto devAcc(
-            alpaka::dev::DevMan<TAcc>::getDevByIdx(0));
+            alpaka::pltf::getDevByIdx<PltfAcc>(0));
 
         // Get a stream on this device.
         Stream<alpaka::dev::Dev<TAcc>> stream(devAcc);
@@ -223,17 +225,23 @@
         using Vec1 = alpaka::Vec<Dim1, TSize>;
         using Vec2 = alpaka::Vec<Dim2, TSize>;
 
+        using DevAcc = alpaka::dev::Dev<TAcc>;
+        using PltfAcc = alpaka::pltf::Pltf<DevAcc>;
+        using PltfHost = alpaka::pltf::PltfCpu;
+
+
         if(matmul_mat_gemm_early_out(m, n, k, alpha, beta))
         {
             MATMUL_TIME_RETURN_EARLY_OUT;
         }
 
         // Get the host device.
-        auto devHost(alpaka::dev::DevManCpu::getDevByIdx(0u));
+        auto devHost(
+            alpaka::pltf::getDevByIdx<PltfHost>(0u));
 
         // Select a device to execute on.
         auto devAcc(
-            alpaka::dev::DevMan<TAcc>::getDevByIdx(0));
+            alpaka::pltf::getDevByIdx<PltfAcc>(0));
 
         // Get a stream on this device.
         Stream<alpaka::dev::Dev<TAcc>> stream(devAcc);
