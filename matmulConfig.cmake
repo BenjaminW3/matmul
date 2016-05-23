@@ -399,13 +399,31 @@ ENDIF()
 #-------------------------------------------------------------------------------
 IF(_MATMUL_BUILD_OMP)
     FIND_PACKAGE(OpenMP)
+
+    # Manually find OpenMP for the clang compiler if it was not already found.
+    # Even CMake 3.5 is unable to find libiomp and provide the correct OpenMP flags.
+    IF(NOT OPENMP_FOUND)
+        IF(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+            FIND_PATH(_MATMUL_LIBIOMP_INCLUDE_DIR NAMES "omp.h" PATH_SUFFIXES "include" "libiomp" "include/libiomp")
+            IF(_MATMUL_LIBIOMP_INCLUDE_DIR)
+                SET(OPENMP_FOUND TRUE)
+                SET(OpenMP_CXX_FLAGS "-fopenmp=libiomp5")
+                SET(OpenMP_C_FLAGS "-fopenmp=libiomp5")
+                LIST(APPEND _MATMUL_INCLUDE_DIRECTORIES_PUBLIC "${_MATMUL_LIBIOMP_INCLUDE_DIR}")
+            ENDIF()
+        ENDIF()
+    ENDIF()
+
     IF(NOT OPENMP_FOUND)
         MESSAGE(WARNING "Required matmul dependency OpenMP could not be found!")
         SET(_MATMUL_FOUND FALSE)
 
     ELSE()
         LIST(APPEND _MATMUL_COMPILE_OPTIONS_C_PRIVATE ${OpenMP_C_FLAGS})
-        SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_C_FLAGS}")
+        IF(NOT MSVC)
+            SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_C_FLAGS}")
+        ENDIF()
+        # CUDA requires some special handling
         IF((NOT ALPAKA_ACC_GPU_CUDA_ENABLE) AND _MATMUL_BUILD_CUDA)
             SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
         ENDIF()
@@ -483,52 +501,92 @@ IF(_MATMUL_BUILD_CUDA OR _MATMUL_BUILD_CUBLAS)
     ELSE()
         # If the flags have not already been set.
         IF(NOT ALPAKA_ACC_GPU_CUDA_ENABLE)
-            IF(${MATMUL_DEBUG} GREATER 1)
-                SET(CUDA_VERBOSE_BUILD ON)
-            ENDIF()
-            SET(CUDA_PROPAGATE_HOST_FLAGS ON)
+            SET(MATMUL_CUDA_ARCH sm_20 CACHE STRING "GPU architecture")
+            STRING(COMPARE EQUAL "${MATMUL_CUDA_ARCH}" "sm_10" IS_CUDA_ARCH_UNSUPPORTED)
+            STRING(COMPARE EQUAL "${MATMUL_CUDA_ARCH}" "sm_11" IS_CUDA_ARCH_UNSUPPORTED)
+            STRING(COMPARE EQUAL "${MATMUL_CUDA_ARCH}" "sm_12" IS_CUDA_ARCH_UNSUPPORTED)
+            STRING(COMPARE EQUAL "${MATMUL_CUDA_ARCH}" "sm_13" IS_CUDA_ARCH_UNSUPPORTED)
 
-            SET(MATMUL_CUDA_ARCH sm_20 CACHE STRING "Set GPU architecture")
-            LIST(APPEND CUDA_NVCC_FLAGS "-arch=${MATMUL_CUDA_ARCH}")
+            IF(IS_CUDA_ARCH_UNSUPPORTED)
+                MESSAGE(WARNING "Unsupported CUDA architecture ${MATMUL_CUDA_ARCH} specified. SM 2.0 or higher is required for CUDA 7.0. Using sm_20 instead.")
+                SET(MATMUL_CUDA_ARCH sm_20 CACHE STRING "Set GPU architecture" FORCE)
+            ENDIF(IS_CUDA_ARCH_UNSUPPORTED)
 
-            IF(NOT MSVC)
-                SET(CUDA_HOST_COMPILER "${CMAKE_CXX_COMPILER}")
-            ENDIF()
-
-            IF(CMAKE_BUILD_TYPE MATCHES "Debug")
-                LIST(APPEND CUDA_NVCC_FLAGS "-g" "-G")
-            ENDIF()
+            SET(MATMUL_CUDA_COMPILER "nvcc" CACHE STRING "CUDA compiler")
+            SET_PROPERTY(CACHE MATMUL_CUDA_COMPILER PROPERTY STRINGS "nvcc;clang")
 
             OPTION(MATMUL_CUDA_FAST_MATH "Enable fast-math" ON)
-            IF(MATMUL_CUDA_FAST_MATH)
-                LIST(APPEND CUDA_NVCC_FLAGS "--use_fast_math")
-            ENDIF()
-
-            OPTION(MATMUL_CUDA_FTZ "Set flush to zero for GPU" OFF)
-            IF(MATMUL_CUDA_FTZ)
-                LIST(APPEND CUDA_NVCC_FLAGS "--ftz=true")
-            ELSE()
-                LIST(APPEND CUDA_NVCC_FLAGS "--ftz=false")
-            ENDIF()
-
             OPTION(MATMUL_CUDA_SHOW_REGISTER "Show kernel registers and create PTX" OFF)
-            IF(MATMUL_CUDA_SHOW_REGISTER)
-                LIST(APPEND CUDA_NVCC_FLAGS "-Xptxas=-v")
-            ENDIF()
-
             OPTION(MATMUL_CUDA_KEEP_FILES "Keep all intermediate files that are generated during internal compilation steps (folder: nvcc_tmp)" OFF)
-            IF(MATMUL_CUDA_KEEP_FILES)
-                MAKE_DIRECTORY("${PROJECT_BINARY_DIR}/nvcc_tmp")
-                LIST(APPEND CUDA_NVCC_FLAGS "--keep" "--keep-dir" "${PROJECT_BINARY_DIR}/nvcc_tmp")
-            ENDIF()
 
-            OPTION(MATMUL_CUDA_SHOW_CODELINES "Show kernel lines in cuda-gdb and cuda-memcheck" OFF)
-            IF(MATMUL_CUDA_SHOW_CODELINES)
-                LIST(APPEND CUDA_NVCC_FLAGS "--source-in-ptx" "-lineinfo")
-                IF(NOT MSVC)
-                    LIST(APPEND CUDA_NVCC_FLAGS "-Xcompiler" "-rdynamic")
+            IF(MATMUL_CUDA_COMPILER MATCHES "clang")
+                LIST(APPEND _MATMUL_COMPILE_OPTIONS_PUBLIC "--cuda-gpu-arch=${MATMUL_CUDA_ARCH}")
+
+                # This flag silences the warning produced by the Dummy.cpp files:
+                # clang: warning: argument unused during compilation: '--cuda-gpu-arch=sm_XX'
+                # This seems to be a false positive as all flags are 'unused' for an empty file.
+                LIST(APPEND _MATMUL_COMPILE_OPTIONS_PUBLIC "-Qunused-arguments")
+
+                # Silences warnings that are produced by boost because clang is not correctly identified.
+                LIST(APPEND _MATMUL_COMPILE_OPTIONS_PUBLIC "-Wno-unused-local-typedef")
+
+                IF(MATMUL_CUDA_FAST_MATH)
+                    # -ffp-contract=fast enables the usage of FMA
+                    LIST(APPEND _ALPAKA_COMPILE_OPTIONS_PUBLIC "-ffast-math" "-ffp-contract=fast")
                 ENDIF()
-                SET(MATMUL_CUDA_KEEP_FILES ON CACHE BOOL "activate keep files" FORCE)
+
+                IF(MATMUL_CUDA_SHOW_REGISTER)
+                    LIST(APPEND _ALPAKA_COMPILE_OPTIONS_PUBLIC "-Xcuda-ptxas=-v")
+                ENDIF()
+
+                IF(MATMUL_CUDA_KEEP_FILES)
+                    LIST(APPEND _MATMUL_COMPILE_OPTIONS_PUBLIC "-save-temps")
+                ENDIF()
+
+            ELSE()
+                IF(${MATMUL_DEBUG} GREATER 1)
+                    SET(CUDA_VERBOSE_BUILD ON)
+                ENDIF()
+                SET(CUDA_PROPAGATE_HOST_FLAGS ON)
+
+                LIST(APPEND CUDA_NVCC_FLAGS "-arch=${MATMUL_CUDA_ARCH}")
+
+                IF(NOT MSVC)
+                    SET(CUDA_HOST_COMPILER "${CMAKE_CXX_COMPILER}")
+                ENDIF()
+
+                IF(CMAKE_BUILD_TYPE MATCHES "Debug")
+                    LIST(APPEND CUDA_NVCC_FLAGS "-g" "-G")
+                ENDIF()
+
+                IF(MATMUL_CUDA_FAST_MATH)
+                    LIST(APPEND CUDA_NVCC_FLAGS "--use_fast_math")
+                ENDIF()
+
+                OPTION(MATMUL_CUDA_FTZ "Set flush to zero for GPU" OFF)
+                IF(MATMUL_CUDA_FTZ)
+                    LIST(APPEND CUDA_NVCC_FLAGS "--ftz=true")
+                ELSE()
+                    LIST(APPEND CUDA_NVCC_FLAGS "--ftz=false")
+                ENDIF()
+
+                IF(MATMUL_CUDA_SHOW_REGISTER)
+                    LIST(APPEND CUDA_NVCC_FLAGS "-Xptxas=-v")
+                ENDIF()
+
+                IF(MATMUL_CUDA_KEEP_FILES)
+                    MAKE_DIRECTORY("${PROJECT_BINARY_DIR}/nvcc_tmp")
+                    LIST(APPEND CUDA_NVCC_FLAGS "--keep" "--keep-dir" "${PROJECT_BINARY_DIR}/nvcc_tmp")
+                ENDIF()
+
+                OPTION(MATMUL_CUDA_SHOW_CODELINES "Show kernel lines in cuda-gdb and cuda-memcheck" OFF)
+                IF(MATMUL_CUDA_SHOW_CODELINES)
+                    LIST(APPEND CUDA_NVCC_FLAGS "--source-in-ptx" "-lineinfo")
+                    IF(NOT MSVC)
+                        LIST(APPEND CUDA_NVCC_FLAGS "-Xcompiler" "-rdynamic")
+                    ENDIF()
+                    SET(MATMUL_CUDA_KEEP_FILES ON CACHE BOOL "activate keep files" FORCE)
+                ENDIF()
             ENDIF()
 
             LIST(APPEND _MATMUL_LINK_LIBRARIES_PRIVATE "general;${CUDA_CUDART_LIBRARY}")

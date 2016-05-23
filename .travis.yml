@@ -42,14 +42,15 @@ compiler:
 
 ################################################################################
 # \TODO: Test full matrix:
-# MATMUL_INTEGRATION_TEST                       : {ON}
 # CXX                                           : {g++, clang++}
-#   [clang++] MATMUL_CLANG_LIBSTDCPP_VERSION    : {4.9}
-#   [clang++] MATMUL_CLANG_VER                  : {3.5, 3.6, 3.7, 3.8}
 #   [g++] MATMUL_GCC_VER                        : {4.9, 5}
-# MATMUL_BOOST_BRANCH                           : {boost-1.56.0, boost-1.57.0, boost-1.58.0, boost-1.59.0, develop}
-# MATMUL_CMAKE_VER                              : {3.3.0, 3.3.1, 3.3.2, 3.4.0}
+#   [clang++] MATMUL_CLANG_LIBSTDCPP_VERSION    : {4.9}
+#   [clang++] MATMUL_CLANG_VER                  : {3.5, 3.6, 3.7, 3.8, 3.9}
 # CMAKE_BUILD_TYPE                              : {Debug, Release}
+# MATMUL_CI_BOOST_BRANCH                        : {boost-1.59.0, boost-1.59.0, develop}
+# MATMUL_CI_CMAKE_VER                           : {3.3.2, 3.4.3, 3.5.2}
+# MATMUL_CI_SANITIZERS                          : {ASan+UBsan, TSan+UBsan, MSan+UBsan}
+# MATMUL_CI_ANALYSIS                            : {ON, OFF}
 # MATMUL_DEBUG                                  : {0, 1, 2}
 # MATMUL_BENCHMARK_COMPUTATION_TIME             : {ON, OFF}
 # MATMUL_BENCHMARK_MPI                          : {ON, OFF}
@@ -63,8 +64,7 @@ compiler:
 #   [ON] OMP_NUM_THREADS                        : {1, 2, 3, 4}
 # MATMUL_BENCHMARK_CUDA                         : {ON, OFF}
 #   [ON] MATMUL_CUDA_VERSION                    : {7.0, 7.5}
-# And one analysis build
-# MATMUL_ANALYSIS                               : {ON, OFF}
+#   [ON] MATMUL_CUDA_COMPILER                   : {nvcc, [CXX==clang++]:clang}
 ################################################################################
 env:
     global:
@@ -72,36 +72,37 @@ env:
         - MATMUL_BENCHMARK_OMP3_ENABLE=ON
         - MATMUL_BENCHMARK_OMP4_ENABLE=ON
         - MATMUL_BENCHMARK_ALPAKA_THREADS_ENABLE=ON
-        - MATMUL_BENCHMARK_ALPAKA_FIBERS_ENABLE=ON
-        - MATMUL_CLANG_LIBSTDCPP_VERSION=4.9
+        - MATMUL_BENCHMARK_ALPAKA_FIBERS_ENABLE=OFF
+        - MATMUL_CLANG_LIBSTDCPP_VERSION=5
+        - MATMUL_BENCHMARK_MPI=OFF
 
     matrix:
         # Analysis builds
-        - MATMUL_CUDA_VERSION=7.5 MATMUL_ANALYSIS=ON  MATMUL_DEBUG=2 MATMUL_CMAKE_VER=3.4.0 CMAKE_BUILD_TYPE=Debug   OMP_NUM_THREADS=4 MATMUL_GCC_VER=4.9 MATMUL_CLANG_VER=3.7 MATMUL_BOOST_BRANCH=boost-1.59.0 MATMUL_BENCHMARK_CUDA=ON   MATMUL_BENCHMARK_MPI=OFF MATMUL_BENCHMARK_COMPUTATION_TIME=OFF
-        - MATMUL_CUDA_VERSION=7.5 MATMUL_ANALYSIS=ON  MATMUL_DEBUG=2 MATMUL_CMAKE_VER=3.4.0 CMAKE_BUILD_TYPE=Debug   OMP_NUM_THREADS=4 MATMUL_GCC_VER=5   MATMUL_CLANG_VER=3.7 MATMUL_BOOST_BRANCH=boost-1.59.0 MATMUL_BENCHMARK_CUDA=OFF  MATMUL_BENCHMARK_MPI=OFF MATMUL_BENCHMARK_COMPUTATION_TIME=OFF
+        - MATMUL_GCC_VER=4.9 MATMUL_CLANG_VER=3.8 CMAKE_BUILD_TYPE=Debug   MATMUL_CI_BOOST_BRANCH=boost-1.60.0 MATMUL_CI_CMAKE_VER=3.4.3 MATMUL_CI_SANITIZERS=           MATMUL_CI_ANALYSIS=ON  MATMUL_DEBUG=2 OMP_NUM_THREADS=4 MATMUL_BENCHMARK_COMPUTATION_TIME=OFF MATMUL_BENCHMARK_CUDA=ON  MATMUL_CUDA_VERSION=7.5 MATMUL_CUDA_COMPILER=nvcc
+        - MATMUL_GCC_VER=5   MATMUL_CLANG_VER=3.8 CMAKE_BUILD_TYPE=Debug   MATMUL_CI_BOOST_BRANCH=boost-1.60.0 MATMUL_CI_CMAKE_VER=3.4.3 MATMUL_CI_SANITIZERS=           MATMUL_CI_ANALYSIS=ON  MATMUL_DEBUG=2 OMP_NUM_THREADS=4 MATMUL_BENCHMARK_COMPUTATION_TIME=OFF MATMUL_BENCHMARK_CUDA=OFF
 
-        - MATMUL_CUDA_VERSION=7.5 MATMUL_ANALYSIS=OFF MATMUL_DEBUG=2 MATMUL_CMAKE_VER=3.3.2 CMAKE_BUILD_TYPE=Debug   OMP_NUM_THREADS=4 MATMUL_GCC_VER=4.9 MATMUL_CLANG_VER=3.7 MATMUL_BOOST_BRANCH=boost-1.56.0 MATMUL_BENCHMARK_CUDA=ON   MATMUL_BENCHMARK_MPI=OFF MATMUL_BENCHMARK_COMPUTATION_TIME=OFF
-        - MATMUL_CUDA_VERSION=7.0 MATMUL_ANALYSIS=OFF MATMUL_DEBUG=0 MATMUL_CMAKE_VER=3.3.1 CMAKE_BUILD_TYPE=Debug   OMP_NUM_THREADS=3 MATMUL_GCC_VER=4.9 MATMUL_CLANG_VER=3.5 MATMUL_BOOST_BRANCH=boost-1.57.0 MATMUL_BENCHMARK_CUDA=ON   MATMUL_BENCHMARK_MPI=OFF MATMUL_BENCHMARK_COMPUTATION_TIME=ON
-        - MATMUL_CUDA_VERSION=7.0 MATMUL_ANALYSIS=OFF MATMUL_DEBUG=2 MATMUL_CMAKE_VER=3.3.0 CMAKE_BUILD_TYPE=Debug   OMP_NUM_THREADS=2 MATMUL_GCC_VER=4.9 MATMUL_CLANG_VER=3.6 MATMUL_BOOST_BRANCH=boost-1.58.0 MATMUL_BENCHMARK_CUDA=OFF  MATMUL_BENCHMARK_MPI=OFF MATMUL_BENCHMARK_COMPUTATION_TIME=OFF
-        - MATMUL_CUDA_VERSION=7.0 MATMUL_ANALYSIS=OFF MATMUL_DEBUG=1 MATMUL_CMAKE_VER=3.4.0 CMAKE_BUILD_TYPE=Debug   OMP_NUM_THREADS=4 MATMUL_GCC_VER=5   MATMUL_CLANG_VER=3.5 MATMUL_BOOST_BRANCH=boost-1.59.0 MATMUL_BENCHMARK_CUDA=OFF  MATMUL_BENCHMARK_MPI=OFF MATMUL_BENCHMARK_COMPUTATION_TIME=OFF
-        - MATMUL_CUDA_VERSION=7.0 MATMUL_ANALYSIS=OFF MATMUL_DEBUG=1 MATMUL_CMAKE_VER=3.4.0 CMAKE_BUILD_TYPE=Debug   OMP_NUM_THREADS=4 MATMUL_GCC_VER=5   MATMUL_CLANG_VER=3.8 MATMUL_BOOST_BRANCH=develop      MATMUL_BENCHMARK_CUDA=OFF  MATMUL_BENCHMARK_MPI=OFF MATMUL_BENCHMARK_COMPUTATION_TIME=ON
+        # Debug builds
+        - MATMUL_GCC_VER=4.9 MATMUL_CLANG_VER=3.8 CMAKE_BUILD_TYPE=Debug   MATMUL_CI_BOOST_BRANCH=boost-1.59.0 MATMUL_CI_CMAKE_VER=3.5.2 MATMUL_CI_SANITIZERS=           MATMUL_CI_ANALYSIS=OFF MATMUL_DEBUG=0 MATMUL_BENCHMARK_COMPUTATION_TIME=OFF OMP_NUM_THREADS=4 MATMUL_BENCHMARK_CUDA=ON  MATMUL_CUDA_VERSION=7.5 MATMUL_CUDA_COMPILER=nvcc
+        - MATMUL_GCC_VER=4.9 MATMUL_CLANG_VER=3.5 CMAKE_BUILD_TYPE=Debug   MATMUL_CI_BOOST_BRANCH=boost-1.60.0 MATMUL_CI_CMAKE_VER=3.4.3 MATMUL_CI_SANITIZERS=TSan+UBSan MATMUL_CI_ANALYSIS=OFF MATMUL_DEBUG=0 MATMUL_BENCHMARK_COMPUTATION_TIME=ON  OMP_NUM_THREADS=3 MATMUL_BENCHMARK_CUDA=ON  MATMUL_CUDA_VERSION=7.0 MATMUL_CUDA_COMPILER=nvcc
+        #- MATMUL_GCC_VER=4.9 MATMUL_CLANG_VER=3.6 CMAKE_BUILD_TYPE=Debug   MATMUL_CI_BOOST_BRANCH=boost-1.59.0 MATMUL_CI_CMAKE_VER=3.3.2 MATMUL_CI_SANITIZERS=ASan+UBSan MATMUL_CI_ANALYSIS=OFF MATMUL_DEBUG=0 MATMUL_BENCHMARK_COMPUTATION_TIME=OFF OMP_NUM_THREADS=2 MATMUL_BENCHMARK_CUDA=OFF
+        - MATMUL_GCC_VER=5   MATMUL_CLANG_VER=3.9 CMAKE_BUILD_TYPE=Debug   MATMUL_CI_BOOST_BRANCH=develop      MATMUL_CI_CMAKE_VER=3.5.2 MATMUL_CI_SANITIZERS=TSan+UBSan MATMUL_CI_ANALYSIS=OFF MATMUL_DEBUG=0 MATMUL_BENCHMARK_COMPUTATION_TIME=ON  OMP_NUM_THREADS=4 MATMUL_BENCHMARK_CUDA=OFF
 
-        - MATMUL_CUDA_VERSION=7.0 MATMUL_ANALYSIS=OFF MATMUL_DEBUG=2 MATMUL_CMAKE_VER=3.3.2 CMAKE_BUILD_TYPE=Debug OMP_NUM_THREADS=4 MATMUL_GCC_VER=4.9 MATMUL_CLANG_VER=3.7 MATMUL_BOOST_BRANCH=boost-1.58.0 MATMUL_BENCHMARK_CUDA=ON   MATMUL_BENCHMARK_MPI=OFF MATMUL_BENCHMARK_COMPUTATION_TIME=ON
-        - MATMUL_CUDA_VERSION=7.5 MATMUL_ANALYSIS=OFF MATMUL_DEBUG=0 MATMUL_CMAKE_VER=3.3.1 CMAKE_BUILD_TYPE=Debug OMP_NUM_THREADS=3 MATMUL_GCC_VER=4.9 MATMUL_CLANG_VER=3.5 MATMUL_BOOST_BRANCH=boost-1.59.0 MATMUL_BENCHMARK_CUDA=ON   MATMUL_BENCHMARK_MPI=OFF MATMUL_BENCHMARK_COMPUTATION_TIME=OFF
-        - MATMUL_CUDA_VERSION=7.0 MATMUL_ANALYSIS=OFF MATMUL_DEBUG=2 MATMUL_CMAKE_VER=3.3.0 CMAKE_BUILD_TYPE=Release OMP_NUM_THREADS=2 MATMUL_GCC_VER=4.9 MATMUL_CLANG_VER=3.6 MATMUL_BOOST_BRANCH=boost-1.56.0 MATMUL_BENCHMARK_CUDA=OFF  MATMUL_BENCHMARK_MPI=OFF MATMUL_BENCHMARK_COMPUTATION_TIME=OFF
-        - MATMUL_CUDA_VERSION=7.0 MATMUL_ANALYSIS=OFF MATMUL_DEBUG=0 MATMUL_CMAKE_VER=3.4.0 CMAKE_BUILD_TYPE=Release OMP_NUM_THREADS=1 MATMUL_GCC_VER=5   MATMUL_CLANG_VER=3.5 MATMUL_BOOST_BRANCH=boost-1.57.0 MATMUL_BENCHMARK_CUDA=OFF  MATMUL_BENCHMARK_MPI=OFF MATMUL_BENCHMARK_COMPUTATION_TIME=ON
-        - MATMUL_CUDA_VERSION=7.0 MATMUL_ANALYSIS=OFF MATMUL_DEBUG=1 MATMUL_CMAKE_VER=3.4.0 CMAKE_BUILD_TYPE=Release OMP_NUM_THREADS=4 MATMUL_GCC_VER=5   MATMUL_CLANG_VER=3.8 MATMUL_BOOST_BRANCH=develop      MATMUL_BENCHMARK_CUDA=OFF  MATMUL_BENCHMARK_MPI=OFF MATMUL_BENCHMARK_COMPUTATION_TIME=OFF
+        # Release builds
+        - MATMUL_GCC_VER=4.9 MATMUL_CLANG_VER=3.8 CMAKE_BUILD_TYPE=Release MATMUL_CI_BOOST_BRANCH=boost-1.59.0 MATMUL_CI_CMAKE_VER=3.5.2 MATMUL_CI_SANITIZERS=ASan+UBSan MATMUL_CI_ANALYSIS=OFF MATMUL_DEBUG=0 MATMUL_BENCHMARK_COMPUTATION_TIME=ON  OMP_NUM_THREADS=4 MATMUL_BENCHMARK_CUDA=ON  MATMUL_CUDA_VERSION=7.0 MATMUL_CUDA_COMPILER=nvcc
+        - MATMUL_GCC_VER=4.9 MATMUL_CLANG_VER=3.6 CMAKE_BUILD_TYPE=Release MATMUL_CI_BOOST_BRANCH=boost-1.60.0 MATMUL_CI_CMAKE_VER=3.4.3 MATMUL_CI_SANITIZERS=TSan+UBSan MATMUL_CI_ANALYSIS=OFF MATMUL_DEBUG=0 MATMUL_BENCHMARK_COMPUTATION_TIME=OFF OMP_NUM_THREADS=3 MATMUL_BENCHMARK_CUDA=ON  MATMUL_CUDA_VERSION=7.5 MATMUL_CUDA_COMPILER=nvcc
+        - MATMUL_GCC_VER=4.9 MATMUL_CLANG_VER=3.5 CMAKE_BUILD_TYPE=Release MATMUL_CI_BOOST_BRANCH=boost-1.60.0 MATMUL_CI_CMAKE_VER=3.3.2 MATMUL_CI_SANITIZERS=ASan+UBSan MATMUL_CI_ANALYSIS=OFF MATMUL_DEBUG=0 MATMUL_BENCHMARK_COMPUTATION_TIME=ON  OMP_NUM_THREADS=2 MATMUL_BENCHMARK_CUDA=OFF
+        - MATMUL_GCC_VER=5   MATMUL_CLANG_VER=3.9 CMAKE_BUILD_TYPE=Release MATMUL_CI_BOOST_BRANCH=develop      MATMUL_CI_CMAKE_VER=3.5.2 MATMUL_CI_SANITIZERS=           MATMUL_CI_ANALYSIS=OFF MATMUL_DEBUG=0 MATMUL_BENCHMARK_COMPUTATION_TIME=OFF OMP_NUM_THREADS=4 MATMUL_BENCHMARK_CUDA=OFF
 
 matrix:
     allow_failures:
         - compiler: gcc
-          env: MATMUL_CUDA_VERSION=7.0 MATMUL_ANALYSIS=OFF MATMUL_DEBUG=1 MATMUL_CMAKE_VER=3.4.0 CMAKE_BUILD_TYPE=Debug   OMP_NUM_THREADS=4 MATMUL_GCC_VER=5   MATMUL_CLANG_VER=3.8 MATMUL_BOOST_BRANCH=develop      MATMUL_BENCHMARK_CUDA=OFF  MATMUL_BENCHMARK_MPI=OFF MATMUL_BENCHMARK_COMPUTATION_TIME=ON
+          env: MATMUL_GCC_VER=5   MATMUL_CLANG_VER=3.9 CMAKE_BUILD_TYPE=Debug   MATMUL_CI_BOOST_BRANCH=develop      MATMUL_CI_CMAKE_VER=3.5.2 MATMUL_CI_SANITIZERS=TSan+UBSan MATMUL_CI_ANALYSIS=OFF MATMUL_DEBUG=0 MATMUL_BENCHMARK_COMPUTATION_TIME=ON  OMP_NUM_THREADS=4 MATMUL_BENCHMARK_CUDA=OFF
         - compiler: gcc
-          env: MATMUL_CUDA_VERSION=7.0 MATMUL_ANALYSIS=OFF MATMUL_DEBUG=1 MATMUL_CMAKE_VER=3.4.0 CMAKE_BUILD_TYPE=Release OMP_NUM_THREADS=4 MATMUL_GCC_VER=5   MATMUL_CLANG_VER=3.8 MATMUL_BOOST_BRANCH=develop      MATMUL_BENCHMARK_CUDA=OFF  MATMUL_BENCHMARK_MPI=OFF MATMUL_BENCHMARK_COMPUTATION_TIME=OFF
+          env: MATMUL_GCC_VER=5   MATMUL_CLANG_VER=3.9 CMAKE_BUILD_TYPE=Release MATMUL_CI_BOOST_BRANCH=develop      MATMUL_CI_CMAKE_VER=3.5.2 MATMUL_CI_SANITIZERS=           MATMUL_CI_ANALYSIS=OFF MATMUL_DEBUG=0 MATMUL_BENCHMARK_COMPUTATION_TIME=OFF OMP_NUM_THREADS=4 MATMUL_BENCHMARK_CUDA=OFF
         - compiler: clang
-          env: MATMUL_CUDA_VERSION=7.0 MATMUL_ANALYSIS=OFF MATMUL_DEBUG=1 MATMUL_CMAKE_VER=3.4.0 CMAKE_BUILD_TYPE=Debug   OMP_NUM_THREADS=4 MATMUL_GCC_VER=5   MATMUL_CLANG_VER=3.8 MATMUL_BOOST_BRANCH=develop      MATMUL_BENCHMARK_CUDA=OFF  MATMUL_BENCHMARK_MPI=OFF MATMUL_BENCHMARK_COMPUTATION_TIME=ON
+          env: MATMUL_GCC_VER=5   MATMUL_CLANG_VER=3.9 CMAKE_BUILD_TYPE=Debug   MATMUL_CI_BOOST_BRANCH=develop      MATMUL_CI_CMAKE_VER=3.5.2 MATMUL_CI_SANITIZERS=TSan+UBSan MATMUL_CI_ANALYSIS=OFF MATMUL_DEBUG=0 MATMUL_BENCHMARK_COMPUTATION_TIME=ON  OMP_NUM_THREADS=4 MATMUL_BENCHMARK_CUDA=OFF
         - compiler: clang
-          env: MATMUL_CUDA_VERSION=7.0 MATMUL_ANALYSIS=OFF MATMUL_DEBUG=1 MATMUL_CMAKE_VER=3.4.0 CMAKE_BUILD_TYPE=Release OMP_NUM_THREADS=4 MATMUL_GCC_VER=5   MATMUL_CLANG_VER=3.8 MATMUL_BOOST_BRANCH=develop      MATMUL_BENCHMARK_CUDA=OFF  MATMUL_BENCHMARK_MPI=OFF MATMUL_BENCHMARK_COMPUTATION_TIME=OFF
+          env: MATMUL_GCC_VER=5   MATMUL_CLANG_VER=3.9 CMAKE_BUILD_TYPE=Release MATMUL_CI_BOOST_BRANCH=develop      MATMUL_CI_CMAKE_VER=3.5.2 MATMUL_CI_SANITIZERS=           MATMUL_CI_ANALYSIS=OFF MATMUL_DEBUG=0 MATMUL_BENCHMARK_COMPUTATION_TIME=OFF OMP_NUM_THREADS=4 MATMUL_BENCHMARK_CUDA=OFF
 
         - os: osx
 
@@ -129,12 +130,13 @@ before_install:
     - echo "${TRAVIS_TAG}"
 
     # g++ / clang dependencies
-    - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+    - travis_retry sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
 
     # clang
     - if [ "${CXX}" == "clang++" ] ;then travis_retry sudo add-apt-repository -y 'deb http://llvm.org/apt/trusty/ llvm-toolchain-trusty-3.5 main' ;fi
     - if [ "${CXX}" == "clang++" ] ;then travis_retry sudo add-apt-repository -y 'deb http://llvm.org/apt/trusty/ llvm-toolchain-trusty-3.6 main' ;fi
     - if [ "${CXX}" == "clang++" ] ;then travis_retry sudo add-apt-repository -y 'deb http://llvm.org/apt/trusty/ llvm-toolchain-trusty-3.7 main' ;fi
+    - if [ "${CXX}" == "clang++" ] ;then travis_retry sudo add-apt-repository -y 'deb http://llvm.org/apt/trusty/ llvm-toolchain-trusty-3.8 main' ;fi
     - if [ "${CXX}" == "clang++" ] ;then travis_retry sudo add-apt-repository -y 'deb http://llvm.org/apt/trusty/ llvm-toolchain-trusty main' ;fi
     - if [ "${CXX}" == "clang++" ] ;then travis_retry wget -O - http://llvm.org/apt/llvm-snapshot.gpg.key | sudo apt-key add - ;fi
 
@@ -152,7 +154,7 @@ install:
 
     #-------------------------------------------------------------------------------
     # Install sloc
-    - if [ "${MATMUL_ANALYSIS}" == "ON" ] ;then travis_retry sudo apt-get install sloccount ;fi
+    - if [ "${MATMUL_CI_ANALYSIS}" == "ON" ] ;then travis_retry sudo apt-get install sloccount ;fi
 
     #-------------------------------------------------------------------------------
     # Get the current gcc version.
@@ -161,12 +163,27 @@ install:
     - git --version
 
     #-------------------------------------------------------------------------------
-    # gcc 4.6 is too old...
+    # We can only use clang as a CUDA compiler when clang is used as the main compiler.
+    # For gcc we have to use nvcc.
+    - if [ "${CXX}" != "clang++" ]
+      ;then
+          if [ "${MATMUL_CUDA_COMPILER}" == "clang" ]
+          ;then
+              export MATMUL_CUDA_COMPILER=nvcc
+          ;fi
+      ;fi
+
+    #-------------------------------------------------------------------------------
+    # Install the required gcc
     - if [ "${CXX}" == "g++" ]
       ;then
           travis_retry sudo apt-get -y install g++-${MATMUL_GCC_VER}
           && sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-${MATMUL_GCC_VER} 50
           && sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-${MATMUL_GCC_VER} 50
+          && if [ "${MATMUL_CI_SANITIZERS}" == *"TSan"* ]
+          ; then
+              travis_retry sudo apt-get -y install libtsan0
+          ; fi
       ;fi
     # Extract the version numbers.
     - if [ "${CXX}" == "g++" ]
@@ -184,6 +201,7 @@ install:
       ;then
           travis_retry sudo apt-get -y install libstdc++-${MATMUL_CLANG_LIBSTDCPP_VERSION}-dev
           && travis_retry sudo apt-get -y install clang-${MATMUL_CLANG_VER}
+          && travis_retry sudo apt-get -y install libiomp-dev
           && sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-${MATMUL_CLANG_VER} 50
           && sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-${MATMUL_CLANG_VER} 50
           && sudo update-alternatives --install /usr/bin/cc cc /usr/bin/clang 50
@@ -198,8 +216,8 @@ install:
           && echo ${MATMUL_CLANG_VER_MAJOR}
           && echo ${MATMUL_CLANG_VER_MINOR}
       ;fi
-    # clang versions lower than 3.7 do not support OpenMP 2.0, OpenMP 4.0 is not currently supported by any version.
-    # However, clang 3.7 requires special compiler flags that are not automatically provided by CMake.
+    # clang versions lower than 3.7 do not support OpenMP 2.0.
+    # clang-3.8 is able to parse OpenMP 4.0 but does not implement code generation for all used constructs, but does not print any error message!
     - if [ "${CXX}" == "clang++" ]
       ;then
           if (( (( ${MATMUL_CLANG_VER_MAJOR} < 3 )) || ( (( ${MATMUL_CLANG_VER_MAJOR} == 3 )) && (( ${MATMUL_CLANG_VER_MINOR} < 8 )) ) ))
@@ -210,7 +228,7 @@ install:
                   && echo MATMUL_BENCHMARK_OMP2_ENABLE=${MATMUL_BENCHMARK_OMP2_ENABLE} because the clang version does not support it!
               ;fi
           ;fi
-          && if (( (( ${MATMUL_CLANG_VER_MAJOR} < 3 )) || ( (( ${MATMUL_CLANG_VER_MAJOR} == 3 )) && (( ${MATMUL_CLANG_VER_MINOR} < 8 )) ) ))
+          && if (( (( ${MATMUL_CLANG_VER_MAJOR} < 3 )) || ( (( ${MATMUL_CLANG_VER_MAJOR} == 3 )) && (( ${MATMUL_CLANG_VER_MINOR} < 9 )) ) ))
           ;then
               if [ "${MATMUL_BENCHMARK_OMP4_ENABLE}" == "ON" ]
               ;then
@@ -219,6 +237,15 @@ install:
                   && export MATMUL_BENCHMARK_OMP3_ENABLE=OFF
                   && echo MATMUL_BENCHMARK_OMP3_ENABLE=${MATMUL_BENCHMARK_OMP3_ENABLE} because the clang version does not support it!
               ;fi
+          ;fi
+      ;fi
+
+    # Install some specific parts instead of the whole 'build-essential'
+    - if [ "${MATMUL_BENCHMARK_CUDA}" == "ON" ]
+      ;then
+          if [ "${MATMUL_CUDA_COMPILER}" == "clang" ]
+          ;then
+              travis_retry sudo apt-get -y install g++-multilib
           ;fi
       ;fi
 
@@ -247,15 +274,32 @@ install:
               ;fi
           ;fi
       ;fi
-    # clang is not a supported compiler for CUDA on linux
+    # CUDA 7.0 does not support clang on linux.
+    # CUDA 7.5 does not support clang > 3.6 on linux.
+    # CUDA 7.5 for clang is buggy and does not compile alpaka correctly.
     - if [ "${MATMUL_BENCHMARK_CUDA}" == "ON" ]
       ;then
           if [ "${CXX}" == "clang++" ]
           ;then
               if [ ${TRAVIS_OS_NAME} == "linux" ]
               ;then
-                  export MATMUL_BENCHMARK_CUDA=OFF
-                  && echo MATMUL_BENCHMARK_CUDA=${MATMUL_BENCHMARK_CUDA} because clang is not a supported compiler for CUDA on linux!
+                  if [ ${MATMUL_CUDA_COMPILER} != "clang" ]
+                  ;then
+                      if (( (( ${MATMUL_CUDA_VER_MAJOR} == 7 )) && (( ${MATMUL_CUDA_VER_MINOR} < 5 )) ))
+                      ;then
+                          export MATMUL_BENCHMARK_CUDA=OFF
+                          && echo MATMUL_BENCHMARK_CUDA=${MATMUL_BENCHMARK_CUDA} because clang is not a supported compiler for CUDA 7.0 on linux!
+                      ;elif (( (( ${MATMUL_CUDA_VER_MAJOR} == 7 )) && (( ${MATMUL_CUDA_VER_MINOR} == 5 )) ))
+                      ;then
+                          export MATMUL_BENCHMARK_CUDA=OFF
+                          && echo MATMUL_BENCHMARK_CUDA=${MATMUL_BENCHMARK_CUDA} because the CUDA 7.5 clang support is buggy!
+                          && if (( (( ${MATMUL_CLANG_VER_MAJOR} > 3 )) || ( (( ${MATMUL_CLANG_VER_MAJOR} == 3 )) && (( ${MATMUL_CLANG_VER_MINOR} > 6 )) ) ))
+                          ;then
+                              export MATMUL_BENCHMARK_CUDA=OFF
+                              && echo MATMUL_BENCHMARK_CUDA=${MATMUL_BENCHMARK_CUDA} because clang versions higher then 3.6 are not a supported compiler for CUDA 7.5 on linux!
+                          ;fi
+                      ;fi
+                  ;fi
               ;fi
           ;fi
       ;fi
@@ -271,7 +315,7 @@ install:
               && echo MATMUL_BENCHMARK_ALPAKA_THREADS_ENABLE=${MATMUL_BENCHMARK_ALPAKA_THREADS_ENABLE} because nvcc does not support boost correctly!
           ;fi
       ;fi
-    # Install nvcc
+    # Install CUDA
     - if [ "${MATMUL_BENCHMARK_CUDA}" == "ON" ]
       ;then
           if [ ${MATMUL_CUDA_VER_MAJOR} == 7 ]
@@ -309,14 +353,14 @@ install:
     # Remove the old version.
     - sudo apt-get -y remove cmake
     # Extract the version numbers.
-    - MATMUL_CMAKE_VER_MAJOR=${MATMUL_CMAKE_VER:0:1}
+    - MATMUL_CMAKE_VER_MAJOR=${MATMUL_CI_CMAKE_VER:0:1}
     - echo ${MATMUL_CMAKE_VER_MAJOR}
-    - MATMUL_CMAKE_VER_MINOR=${MATMUL_CMAKE_VER:2:1}
+    - MATMUL_CMAKE_VER_MINOR=${MATMUL_CI_CMAKE_VER:2:1}
     - echo ${MATMUL_CMAKE_VER_MINOR}
-    - MATMUL_CMAKE_PKG_FILE_NAME=cmake-${MATMUL_CMAKE_VER}-Linux-x86_64
+    - MATMUL_CMAKE_PKG_FILE_NAME=cmake-${MATMUL_CI_CMAKE_VER}-Linux-x86_64
     - wget http://www.cmake.org/files/v${MATMUL_CMAKE_VER_MAJOR}.${MATMUL_CMAKE_VER_MINOR}/${MATMUL_CMAKE_PKG_FILE_NAME}.tar.gz
       && tar -xzf ${MATMUL_CMAKE_PKG_FILE_NAME}.tar.gz
-      && sudo cp -fR cmake-${MATMUL_CMAKE_VER}-Linux-x86_64/* /usr
+      && sudo cp -fR cmake-${MATMUL_CI_CMAKE_VER}-Linux-x86_64/* /usr
       && sudo rm -rf ${MATMUL_CMAKE_PKG_FILE_NAME}.tar.gz ${MATMUL_CMAKE_PKG_FILE_NAME}
 
     #-------------------------------------------------------------------------------
@@ -324,14 +368,14 @@ install:
     # If fibers are enabled we need boost 1.59.0+.
     - if [ "${MATMUL_BENCHMARK_ALPAKA_FIBERS_ENABLE}" == "ON" ]
       ;then
-          if [ "${MATMUL_BOOST_BRANCH}" != "develop" ]
+          if [ "${MATMUL_CI_BOOST_BRANCH}" != "develop" ]
           ;then
               export MATMUL_BENCHMARK_ALPAKA_FIBERS_ENABLE=OFF
               && echo MATMUL_BENCHMARK_ALPAKA_FIBERS_ENABLE=${MATMUL_BENCHMARK_ALPAKA_FIBERS_ENABLE} set because boost fibers requires develop branch!
           ;fi
       ;fi
 
-    - git clone -b ${MATMUL_BOOST_BRANCH} --recursive --single-branch --depth 1 https://github.com/boostorg/boost.git boost
+    - git clone -b ${MATMUL_CI_BOOST_BRANCH} --quiet --recursive --single-branch --depth 1 https://github.com/boostorg/boost.git boost
     - cd boost/
     - export MATMUL_BOOST_ROOT_DIR=`pwd`
     - echo MATMUL_BOOST_ROOT_DIR="${MATMUL_BOOST_ROOT_DIR}"
@@ -341,7 +385,7 @@ install:
     # Clone boost.fiber.
     - if [ "${MATMUL_BENCHMARK_ALPAKA_FIBERS_ENABLE}" == "ON" ]
       ;then
-          git clone -b develop --single-branch --depth 1 https://github.com/olk/boost-fiber.git fiber
+          git clone -b develop --quiet --single-branch --depth 1 https://github.com/olk/boost-fiber.git fiber
       ;fi
 
     - cd ../
@@ -398,12 +442,16 @@ install:
     - cd ../
 
     #-------------------------------------------------------------------------------
+    # Install TBB
+    - travis_retry sudo apt-get -y install libtbb-dev
+
+    #-------------------------------------------------------------------------------
     # Install MPI
     - travis_retry sudo apt-get -y install openmpi-bin libopenmpi-dev
 
     #-------------------------------------------------------------------------------
     # Clone alpaka.
-    - git clone -b develop --single-branch --depth 1 https://github.com/ComputationalRadiationPhysics/alpaka.git alpaka
+    - git clone -b develop --quiet --single-branch --depth 1 https://github.com/ComputationalRadiationPhysics/alpaka.git alpaka
     - cd alpaka/
     - export MATMUL_ALPAKA_ROOT_DIR=`pwd`
     - echo MATMUL_ALPAKA_ROOT_DIR="${MATMUL_ALPAKA_ROOT_DIR}"
@@ -434,13 +482,51 @@ before_script:
 script:
     #-------------------------------------------------------------------------------
     # sloc
-    - if [ "${MATMUL_ANALYSIS}" == "ON" ] ;then sloccount . ;fi
+    - if [ "${MATMUL_CI_ANALYSIS}" == "ON" ] ;then sloccount . ;fi
 
     #-------------------------------------------------------------------------------
     # TODO/FIXME/HACK
-    - if [ "${MATMUL_ANALYSIS}" == "ON" ] ;then grep -r HACK * ;fi || true
-    - if [ "${MATMUL_ANALYSIS}" == "ON" ] ;then grep -r FIXME * ;fi || true
-    - if [ "${MATMUL_ANALYSIS}" == "ON" ] ;then grep -r TODO * ;fi || true
+    - if [ "${MATMUL_CI_ANALYSIS}" == "ON" ] ;then grep -r HACK * ;fi || true
+    - if [ "${MATMUL_CI_ANALYSIS}" == "ON" ] ;then grep -r FIXME * ;fi || true
+    - if [ "${MATMUL_CI_ANALYSIS}" == "ON" ] ;then grep -r TODO * ;fi || true
+
+    #-------------------------------------------------------------------------------
+    # sanitizers
+    # NOTE: There is a bug in the way that clang-3.7 was packaged so the sanitizers can not be enabled out of the box
+    #   See http://askubuntu.com/questions/740289/which-package-do-i-need-to-use-clang-with-asan-for-32-bit/745320
+    #
+    # General sanitizer settings
+    # - to get nicer stack-traces:
+    - if [ "${MATMUL_CI_SANITIZERS}" != "" ]; then export CMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS} -fno-omit-frame-pointer"; fi
+    # - to get perfect stack-traces:
+    - if [ "${MATMUL_CI_SANITIZERS}" != "" ]; then export CMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS} -fno-optimize-sibling-calls"; fi
+    #
+    # UBSan - http://clang.llvm.org/docs/UndefinedBehaviorSanitizer.html
+    - if [ "${MATMUL_CI_SANITIZERS}" == *"UBSan"* ]; then export CMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS} -fsanitize=undefined"; fi
+    #
+    # It is not possible to combine more than one of the -fsanitize=address, -fsanitize=thread, and -fsanitize=memory checkers in the same program.
+    #
+    # ASan - http://clang.llvm.org/docs/AddressSanitizer.html
+    - if [ "${MATMUL_CI_SANITIZERS}" == *"ASan"* ]; then export CMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS} -fsanitize=address"; fi
+    #
+    # TSan - http://clang.llvm.org/docs/ThreadSanitizer.html
+    # TSan requires PositionIndependentCode -pie;-fPIE;-fPIC. clang sets this automatically, gcc not.
+    # All base libraries (e.g. boost) have to be build with this flag.
+    # Furthermore, by installing gcc, libtsan0 is not automatically installed.
+    - if [ "${MATMUL_CI_SANITIZERS}" == *"TSan"* ]
+      ; then
+          export CMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS} -fsanitize=thread"
+          && if [ "${CXX}" == "g++" ]
+          ; then
+              export CMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS} -pie -fPIE"
+              export CMAKE_EXE_LINKER_FLAGS="${CMAKE_EXE_LINKER_FLAGS} -ltsan"
+          ;fi
+      ; fi
+    #
+    # MSan - http://clang.llvm.org/docs/MemorySanitizer.html
+    # NOTE: Currently we can not enable this for CI as this finds some 'use-of-uninitialized-value' inside:
+    #   - alpaka/include/alpaka/exec/ExecCpuThreads.hpp:307:21 used alpaka/include/alpaka/idx/bt/IdxBtRefThreadIdMap.hpp:130:44
+    - if [ "${MATMUL_CI_SANITIZERS}" == *"MSan"* ]; then export CMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS} -fsanitize=memory -fsanitize-memory-track-origins"; fi
 
     #-------------------------------------------------------------------------------
     # Build and execute all tests.
@@ -460,10 +546,10 @@ script:
     - if [ "${MATMUL_BENCHMARK_MPI}" == "OFF" ]
       ;then
         cmake -G "Unix Makefiles"
-          -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+          -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DCMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS}" -DCMAKE_EXE_LINKER_FLAGS="${CMAKE_EXE_LINKER_FLAGS}"
           -DBOOST_ROOT="${MATMUL_BOOST_ROOT_DIR}" -DBOOST_LIBRARYDIR="${MATMUL_BOOST_LIB_DIR}" -DBoost_COMPILER="${MATMUL_BOOST_COMPILER}" -DBoost_USE_STATIC_LIBS=ON -DBoost_USE_MULTITHREADED=ON -DBoost_USE_STATIC_RUNTIME=OFF
-          -DALPAKA_ROOT="${MATMUL_ALPAKA_ROOT_DIR}" -DALPAKA_DEBUG=${MATMUL_DEBUG} -DALPAKA_CUDA_VERSION=${MATMUL_CUDA_VERSION}
-          -DMATMUL_DEBUG=${MATMUL_DEBUG} -DMATMUL_CUDA_VERSION=${MATMUL_CUDA_VERSION}
+          -DALPAKA_ROOT="${MATMUL_ALPAKA_ROOT_DIR}" -DALPAKA_DEBUG="${MATMUL_DEBUG}" -DALPAKA_CUDA_VERSION="${MATMUL_CUDA_VERSION}" -DALPAKA_CUDA_COMPILER="${MATMUL_CUDA_COMPILER}"
+          -DMATMUL_DEBUG="${MATMUL_DEBUG}" -DMATMUL_CUDA_VERSION="${MATMUL_CUDA_VERSION}" -DMATMUL_CUDA_COMPILER="${MATMUL_CUDA_COMPILER}"
           -DMATMUL_ALIGNED_MALLOC=ON -DMATMUL_ELEMENT_TYPE_DOUBLE=ON -DMATMUL_INDEX_TYPE=int -DMATMUL_BENCHMARK_COMPUTATION_TIME=${MATMUL_BENCHMARK_COMPUTATION_TIME}
           -DMATMUL_BENCHMARK_PRINT_GFLOPS=OFF -DMATMUL_BENCHMARK_PRINT_MATRICES=OFF -DMATMUL_BENCHMARK_PRINT_ITERATIONS=OFF
           -DMATMUL_BENCHMARK_SEQ_BASIC=ON -DMATMUL_BENCHMARK_SEQ_SINGLE_OPTS=ON -DMATMUL_BENCHMARK_SEQ_MULTIPLE_OPTS=ON
@@ -473,18 +559,18 @@ script:
           -DMATMUL_BENCHMARK_PAR_BLAS_CUBLAS_MEMCPY=${MATMUL_BENCHMARK_CUDA}
           -DMATMUL_BENCHMARK_PAR_ALPAKA_ACC_CPU_B_SEQ_T_SEQ=ON -DMATMUL_BENCHMARK_PAR_ALPAKA_ACC_CPU_B_OMP2_T_SEQ=${MATMUL_BENCHMARK_OMP2_ENABLE} -DMATMUL_BENCHMARK_PAR_ALPAKA_ACC_CPU_B_SEQ_T_OMP2=${MATMUL_BENCHMARK_OMP2_ENABLE} -DMATMUL_BENCHMARK_PAR_ALPAKA_ACC_CPU_BT_OMP4=${MATMUL_BENCHMARK_OMP4_ENABLE} -DMATMUL_BENCHMARK_PAR_ALPAKA_ACC_CPU_B_SEQ_T_FIBERS=${MATMUL_BENCHMARK_ALPAKA_FIBERS_ENABLE} -DMATMUL_BENCHMARK_PAR_ALPAKA_ACC_CPU_B_SEQ_T_THREADS=${MATMUL_BENCHMARK_ALPAKA_THREADS_ENABLE} -DMATMUL_BENCHMARK_PAR_ALPAKA_ACC_GPU_CUDA_MEMCPY=${MATMUL_BENCHMARK_CUDA}
           -DMATMUL_BENCHMARK_ALPAKA_CUDASDK_KERNEL=ON -DMATMUL_BENCHMARK_ALPAKA_OMPNATIVE_KERNEL=ON -DMATMUL_BENCHMARK_ALPAKA_TILING_KERNEL=OFF
-          -DMATMUL_BENCHMARK_REPEAT_COUNT=2 -DMATMUL_BENCHMARK_REPEAT_TAKE_MINIMUM=ON -DMATMUL_BENCHMARK_VERIFY_RESULT=ON -DMATMUL_BENCHMARK_PRINT_MATRICES=OFF
+          -DMATMUL_BENCHMARK_REPEAT_TAKE_MINIMUM=ON -DMATMUL_BENCHMARK_VERIFY_RESULT=ON -DMATMUL_BENCHMARK_PRINT_MATRICES=OFF
           "../../../"
       ;else
         cmake -G "Unix Makefiles"
-          -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+          -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DCMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS}" -DCMAKE_EXE_LINKER_FLAGS="${CMAKE_EXE_LINKER_FLAGS}"
           -DBOOST_ROOT="${MATMUL_BOOST_ROOT_DIR}" -DBOOST_LIBRARYDIR="${MATMUL_BOOST_LIB_DIR}" -DBoost_COMPILER="${MATMUL_BOOST_COMPILER}" -DBoost_USE_STATIC_LIBS=ON -DBoost_USE_MULTITHREADED=ON -DBoost_USE_STATIC_RUNTIME=OFF
-          -DALPAKA_ROOT="${MATMUL_ALPAKA_ROOT_DIR}" -DALPAKA_DEBUG=${MATMUL_DEBUG} -DALPAKA_CUDA_VERSION=${MATMUL_CUDA_VERSION}
-          -DMATMUL_DEBUG=${MATMUL_DEBUG} -DMATMUL_CUDA_VERSION=${MATMUL_CUDA_VERSION}
+          -DALPAKA_ROOT="${MATMUL_ALPAKA_ROOT_DIR}" -DALPAKA_DEBUG="${MATMUL_DEBUG}" -DALPAKA_CUDA_VERSION="${MATMUL_CUDA_VERSION}" -DALPAKA_CUDA_COMPILER="${MATMUL_CUDA_COMPILER}"
+          -DMATMUL_DEBUG="${MATMUL_DEBUG}" -DMATMUL_CUDA_VERSION="${MATMUL_CUDA_VERSION}" -DMATMUL_CUDA_COMPILER="${MATMUL_CUDA_COMPILER}"
           -DMATMUL_ALIGNED_MALLOC=ON -DMATMUL_ELEMENT_TYPE_DOUBLE=ON -DMATMUL_INDEX_TYPE=int -DMATMUL_BENCHMARK_COMPUTATION_TIME=${MATMUL_BENCHMARK_COMPUTATION_TIME}
           -DMATMUL_BENCHMARK_PRINT_GFLOPS=OFF -DMATMUL_BENCHMARK_PRINT_MATRICES=OFF -DMATMUL_BENCHMARK_PRINT_ITERATIONS=OFF
           -DMATMUL_BENCHMARK_PAR_MPI_CANNON_STD=ON -DMATMUL_BENCHMARK_PAR_MPI_CANNON_CUBLAS=${MATMUL_BENCHMARK_CUDA} -DMATMUL_BENCHMARK_PAR_MPI_DNS=ON
-          -DMATMUL_BENCHMARK_REPEAT_COUNT=2 -DMATMUL_BENCHMARK_REPEAT_TAKE_MINIMUM=ON -DMATMUL_BENCHMARK_VERIFY_RESULT=ON -DMATMUL_BENCHMARK_PRINT_MATRICES=OFF
+          -DMATMUL_BENCHMARK_REPEAT_TAKE_MINIMUM=ON -DMATMUL_BENCHMARK_VERIFY_RESULT=ON -DMATMUL_BENCHMARK_PRINT_MATRICES=OFF
           "../../../"
       ;fi
     - make VERBOSE=1
@@ -509,10 +595,10 @@ script:
     - if [ "${MATMUL_BENCHMARK_MPI}" == "OFF" ]
       ;then
         cmake -G "Unix Makefiles"
-          -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+          -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DCMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS}" -DCMAKE_EXE_LINKER_FLAGS="${CMAKE_EXE_LINKER_FLAGS}"
           -DBOOST_ROOT="${MATMUL_BOOST_ROOT_DIR}" -DBOOST_LIBRARYDIR="${MATMUL_BOOST_LIB_DIR}" -DBoost_COMPILER="${MATMUL_BOOST_COMPILER}" -DBoost_USE_STATIC_LIBS=ON -DBoost_USE_MULTITHREADED=ON -DBoost_USE_STATIC_RUNTIME=OFF
-          -DALPAKA_ROOT="${MATMUL_ALPAKA_ROOT_DIR}" -DALPAKA_DEBUG=${MATMUL_DEBUG} -DALPAKA_CUDA_VERSION=${MATMUL_CUDA_VERSION}
-          -DMATMUL_DEBUG=${MATMUL_DEBUG} -DMATMUL_CUDA_VERSION=${MATMUL_CUDA_VERSION}
+          -DALPAKA_ROOT="${MATMUL_ALPAKA_ROOT_DIR}" -DALPAKA_DEBUG="${MATMUL_DEBUG}" -DALPAKA_CUDA_VERSION="${MATMUL_CUDA_VERSION}" -DALPAKA_CUDA_COMPILER="${MATMUL_CUDA_COMPILER}"
+          -DMATMUL_DEBUG="${MATMUL_DEBUG}" -DMATMUL_CUDA_VERSION="${MATMUL_CUDA_VERSION}" -DMATMUL_CUDA_COMPILER="${MATMUL_CUDA_COMPILER}"
           -DMATMUL_ALIGNED_MALLOC=ON -DMATMUL_ELEMENT_TYPE_DOUBLE=OFF -DMATMUL_INDEX_TYPE=size_t -DMATMUL_BENCHMARK_COMPUTATION_TIME=${MATMUL_BENCHMARK_COMPUTATION_TIME}
           -DMATMUL_BENCHMARK_PRINT_GFLOPS=ON -DMATMUL_BENCHMARK_PRINT_MATRICES=OFF -DMATMUL_BENCHMARK_PRINT_ITERATIONS=OFF
           -DMATMUL_BENCHMARK_SEQ_BASIC=ON -DMATMUL_BENCHMARK_SEQ_SINGLE_OPTS=ON -DMATMUL_BENCHMARK_SEQ_MULTIPLE_OPTS=ON
@@ -522,18 +608,18 @@ script:
           -DMATMUL_BENCHMARK_PAR_BLAS_CUBLAS_MEMCPY=${MATMUL_BENCHMARK_CUDA}
           -DMATMUL_BENCHMARK_PAR_ALPAKA_ACC_CPU_B_SEQ_T_SEQ=ON -DMATMUL_BENCHMARK_PAR_ALPAKA_ACC_CPU_B_OMP2_T_SEQ=${MATMUL_BENCHMARK_OMP2_ENABLE} -DMATMUL_BENCHMARK_PAR_ALPAKA_ACC_CPU_B_SEQ_T_OMP2=${MATMUL_BENCHMARK_OMP2_ENABLE} -DMATMUL_BENCHMARK_PAR_ALPAKA_ACC_CPU_BT_OMP4=${MATMUL_BENCHMARK_OMP4_ENABLE} -DMATMUL_BENCHMARK_PAR_ALPAKA_ACC_CPU_B_SEQ_T_FIBERS=${MATMUL_BENCHMARK_ALPAKA_FIBERS_ENABLE} -DMATMUL_BENCHMARK_PAR_ALPAKA_ACC_CPU_B_SEQ_T_THREADS=${MATMUL_BENCHMARK_ALPAKA_THREADS_ENABLE} -DMATMUL_BENCHMARK_PAR_ALPAKA_ACC_GPU_CUDA_MEMCPY=${MATMUL_BENCHMARK_CUDA}
           -DMATMUL_BENCHMARK_ALPAKA_CUDASDK_KERNEL=ON -DMATMUL_BENCHMARK_ALPAKA_OMPNATIVE_KERNEL=ON -DMATMUL_BENCHMARK_ALPAKA_TILING_KERNEL=OFF
-          -DMATMUL_BENCHMARK_REPEAT_COUNT=2 -DMATMUL_BENCHMARK_REPEAT_TAKE_MINIMUM=ON -DMATMUL_BENCHMARK_VERIFY_RESULT=ON -DMATMUL_BENCHMARK_PRINT_MATRICES=OFF
+          -DMATMUL_BENCHMARK_REPEAT_TAKE_MINIMUM=ON -DMATMUL_BENCHMARK_VERIFY_RESULT=ON -DMATMUL_BENCHMARK_PRINT_MATRICES=OFF
           "../../../"
       ;else
         cmake -G "Unix Makefiles"
-          -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+          -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DCMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS}" -DCMAKE_EXE_LINKER_FLAGS="${CMAKE_EXE_LINKER_FLAGS}"
           -DBOOST_ROOT="${MATMUL_BOOST_ROOT_DIR}" -DBOOST_LIBRARYDIR="${MATMUL_BOOST_LIB_DIR}" -DBoost_COMPILER="${MATMUL_BOOST_COMPILER}" -DBoost_USE_STATIC_LIBS=ON -DBoost_USE_MULTITHREADED=ON -DBoost_USE_STATIC_RUNTIME=OFF
-          -DALPAKA_ROOT="${MATMUL_ALPAKA_ROOT_DIR}" -DALPAKA_DEBUG=${MATMUL_DEBUG} -DALPAKA_CUDA_VERSION=${MATMUL_CUDA_VERSION}
-          -DMATMUL_DEBUG=${MATMUL_DEBUG} -DMATMUL_CUDA_VERSION=${MATMUL_CUDA_VERSION}
+          -DALPAKA_ROOT="${MATMUL_ALPAKA_ROOT_DIR}" -DALPAKA_DEBUG="${MATMUL_DEBUG}" -DALPAKA_CUDA_VERSION="${MATMUL_CUDA_VERSION}" -DALPAKA_CUDA_COMPILER="${MATMUL_CUDA_COMPILER}"
+          -DMATMUL_DEBUG="${MATMUL_DEBUG}" -DMATMUL_CUDA_VERSION="${MATMUL_CUDA_VERSION}" -DMATMUL_CUDA_COMPILER="${MATMUL_CUDA_COMPILER}"
           -DMATMUL_ALIGNED_MALLOC=ON -DMATMUL_ELEMENT_TYPE_DOUBLE=OFF -DMATMUL_INDEX_TYPE=size_t -DMATMUL_BENCHMARK_COMPUTATION_TIME=${MATMUL_BENCHMARK_COMPUTATION_TIME}
           -DMATMUL_BENCHMARK_PRINT_GFLOPS=ON -DMATMUL_BENCHMARK_PRINT_MATRICES=OFF -DMATMUL_BENCHMARK_PRINT_ITERATIONS=OFF
           -DMATMUL_BENCHMARK_PAR_MPI_CANNON_STD=ON -DMATMUL_BENCHMARK_PAR_MPI_CANNON_CUBLAS=${MATMUL_BENCHMARK_CUDA} -DMATMUL_BENCHMARK_PAR_MPI_DNS=ON
-          -DMATMUL_BENCHMARK_REPEAT_COUNT=2 -DMATMUL_BENCHMARK_REPEAT_TAKE_MINIMUM=ON -DMATMUL_BENCHMARK_VERIFY_RESULT=ON -DMATMUL_BENCHMARK_PRINT_MATRICES=OFF
+          -DMATMUL_BENCHMARK_REPEAT_TAKE_MINIMUM=ON -DMATMUL_BENCHMARK_VERIFY_RESULT=ON -DMATMUL_BENCHMARK_PRINT_MATRICES=OFF
           "../../../"
       ;fi
     - make VERBOSE=1
