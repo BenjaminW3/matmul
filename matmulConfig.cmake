@@ -81,6 +81,8 @@ INCLUDE("${_MATMUL_COMMON_FILE}")
 SET(MATMUL_DEBUG "0" CACHE STRING "Debug level")
 SET_PROPERTY(CACHE MATMUL_DEBUG PROPERTY STRINGS "0;1;2")
 
+SET(ALPAKA_DEBUG "${MATMUL_DEBUG}")
+
 OPTION(MATMUL_ELEMENT_TYPE_DOUBLE "If this is defined, double precision data elements are used, else single precision." ON)
 IF(MATMUL_ELEMENT_TYPE_DOUBLE)
     LIST(APPEND _MATMUL_COMPILE_DEFINITIONS_PUBLIC "MATMUL_ELEMENT_TYPE_DOUBLE")
@@ -602,6 +604,9 @@ ENDIF()
 #-------------------------------------------------------------------------------
 # Find alpaka.
 #-------------------------------------------------------------------------------
+SET(ALPAKA_CUDA_VERSION "${MATMUL_CUDA_VERSION}")
+SET(ALPAKA_CUDA_COMPILER "${MATMUL_CUDA_COMPILER}")
+
 IF(_MATMUL_BUILD_ALPAKA)
     LIST(APPEND CMAKE_MODULE_PATH "${ALPAKA_ROOT}")
     FIND_PACKAGE(alpaka)
